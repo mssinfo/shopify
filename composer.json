@@ -1,0 +1,19 @@
+{
+    "name": "mraganksoni/shopify",
+    "description": "setup basic shopify app like install and all",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Mraganksoni\\Shopify\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "mragankshekhar",
+            "email": "mragankshekhar@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
