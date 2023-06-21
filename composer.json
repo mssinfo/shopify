@@ -5,7 +5,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "msdev2\\Shopify\\": "src/"
+            "Msdev2\\Shopify\\": "src/"
         }
     },
     "authors": [
@@ -19,7 +19,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "msdev2\\Shopify\\ShopifyServiceProvider"
+                "Msdev2\\Shopify\\ShopifyServiceProvider"
             ]
         }
     }
