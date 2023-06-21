@@ -2,11 +2,11 @@
 
 // use Illuminate\Routing\Route;
 
-use Mraganksoni\Shopify\Http\Controllers\ShopifyController;
+use Msdev2\Shopify\Http\Controllers\ShopifyController;
 
 
-Route::post("install",[ShopifyController::class,'install'])->name("mraganksoni.install");
+Route::post("install",[ShopifyController::class,'install'])->name("msdev2.install");
 Route::get("install",function(){
-    return view('mraganksoni::install');
+    return view('msdev2::install');
 });
-Route::get('api/auth/callback', [ShopifyController::class,'generateToken'])->name("mraganksoni.callback");
+Route::get('api/auth/callback', [ShopifyController::class,'generateToken'])->name("msdev2.callback");

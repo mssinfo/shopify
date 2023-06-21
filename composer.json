@@ -1,17 +1,17 @@
 {
-    "name": "mraganksoni/shopify",
+    "name": "msdev2/shopify",
     "description": "setup basic shopify app like install and all",
     "type": "library",
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Mraganksoni\\Shopify\\": "src/"
+            "msdev2\\Shopify\\": "src/"
         }
     },
     "authors": [
         {
-            "name": "mragankshekhar",
-            "email": "mragankshekhar@gmail.com"
+            "name": "mragank",
+            "email": "contact@mragank.com"
         }
     ],
     "minimum-stability": "dev",
@@ -19,7 +19,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Mraganksoni\\Shopify\\ShopifyServiceProvider"
+                "msdev2\\Shopify\\ShopifyServiceProvider"
             ]
         }
     }

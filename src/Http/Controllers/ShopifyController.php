@@ -1,26 +1,26 @@
 <?php
-namespace Mraganksoni\Shopify\Http\Controllers;
+namespace Msdev2\Shopify\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Mraganksoni\Shopify\App\Models\Shop;
+use Msdev2\Shopify\App\Models\Shop;
 
 class ShopifyController extends Controller{
 
     public function install(Request $request)
     {
         $shop = $request->shop;
-        $api_key = config('mraganksoni.shopify_api_key');
-        $scopes = config('mraganksoni.scopes');
-        $redirect_uri = route("mraganksoni.callback");
+        $api_key = config('msdev2.shopify_api_key');
+        $scopes = config('msdev2.scopes');
+        $redirect_uri = route("msdev2.callback");
         $install_url = "https://" . $shop . ".myshopify.com/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
         return redirect($install_url);
     }
     public function generateToken(Request $request)
     {
-        $shared_secret = config("mraganksoni.shopify_api_secret");
-        $api_key = config('mraganksoni.shopify_api_key');
+        $shared_secret = config("msdev2.shopify_api_secret");
+        $api_key = config('msdev2.shopify_api_key');
         $params = $request->all(); // Retrieve all request parameters
         $hmac = $request->get('hmac'); // Retrieve HMAC request parameter
         $params = array_diff_key($params, array('hmac' => '')); // Remove hmac from params

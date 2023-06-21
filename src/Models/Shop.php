@@ -1,6 +1,6 @@
 <?php
 
-namespace Mraganksoni\Shopify\App\Models;
+namespace Msdev2\Shopify\App\Models;
 
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;

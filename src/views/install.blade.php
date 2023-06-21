@@ -7,7 +7,7 @@
     <title>Install Shopify</title>
 </head>
 <body>
-    <form method="post" action="{{route("mraganksoni.install")}}">
+    <form method="post" action="{{route("msdev2.install")}}">
         <input type="text" name="shop"><button>Install</button>
     </form>
 </body>
