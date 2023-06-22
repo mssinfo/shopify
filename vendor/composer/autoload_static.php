@@ -20,7 +20,7 @@ class ComposerStaticInit61892aa1399b7730bd1c35c2861364ea
     public static $prefixDirsPsr4 = array (
         'Msdev2\\Shopify\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/packages/msdev2/shopify/src',
+            0 => __DIR__ . '/../..' . '/src',
         ),
         'App\\' => 
         array (

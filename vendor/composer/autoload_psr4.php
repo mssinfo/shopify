@@ -6,6 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Msdev2\\Shopify\\' => array($baseDir . '/packages/msdev2/shopify/src'),
+    'Msdev2\\Shopify\\' => array($baseDir . '/src'),
     'App\\' => array($baseDir . '/app'),
 );

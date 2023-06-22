@@ -3,7 +3,7 @@
         'name' => 'msdev2/shopify',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '2bfd3f1453208ed4c1f91b100c7edb435cc28c87',
+        'reference' => '006b179d69f218ca138d10b647cf4fde6c77130b',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'msdev2/shopify' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '2bfd3f1453208ed4c1f91b100c7edb435cc28c87',
+            'reference' => '006b179d69f218ca138d10b647cf4fde6c77130b',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

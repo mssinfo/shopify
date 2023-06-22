@@ -6,7 +6,7 @@
     "autoload": {
         "psr-4": {
             "App\\": "app/",
-            "Msdev2\\Shopify\\": "packages/msdev2/shopify/src/"
+            "Msdev2\\Shopify\\": "src/"
         }
     },
     "authors": [
