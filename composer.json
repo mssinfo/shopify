@@ -5,7 +5,8 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Msdev2\\Shopify\\": "src/"
+            "App\\": "app/",
+            "Msdev2\\Shopify\\": "packages/msdev2/shopify/src/"
         }
     },
     "authors": [
