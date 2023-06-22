@@ -12,7 +12,7 @@
 
 ### To install shop
 
-    [shop]/install
+    [domain].install
     <a htef="{{ reoute('msdev2.install') }}">Install</a>
 
 ### Update shopify app callback url 
