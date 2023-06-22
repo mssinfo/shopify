@@ -1,6 +1,5 @@
 <?php
 namespace Msdev2\Shopify;
-use Riak\Connection;
 use Illuminate\Support\ServiceProvider;
 
 class ShopifyServiceProvider extends ServiceProvider
@@ -18,6 +17,6 @@ class ShopifyServiceProvider extends ServiceProvider
     }
     public function register()
     {
-        $this->app->register('Msdev2\\Shopify\\ShopifyServiceProvider');
+        $this->app->register('Msdev2\Shopify\ShopifyServiceProvider');
     }
 }
