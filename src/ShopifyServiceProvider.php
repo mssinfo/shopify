@@ -17,6 +17,9 @@ class ShopifyServiceProvider extends ServiceProvider
     }
     public function register()
     {
-        $this->app->register('Msdev2\Shopify\ShopifyServiceProvider');
+        // $this->app->singleton(IShopCommand::class, function ($app) {
+        //     return new ShopCommand($app->make(IShopQuery::class));
+        // });
+        // $this->app->register('Msdev2\Shopify\ShopifyServiceProvider');
     }
 }
