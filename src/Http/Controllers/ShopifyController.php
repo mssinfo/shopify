@@ -4,7 +4,7 @@ namespace Msdev2\Shopify\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Msdev2\Shopify\App\Models\Shop;
+use Msdev2\Shopify\Models\Shop;
 
 class ShopifyController extends Controller{
 
