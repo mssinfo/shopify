@@ -42,10 +42,11 @@ class ShopifyController extends Controller{
         // Generate access token URL
         $url = "https://" . $params['shop'] . "/admin/oauth/access_token";
         $result = Http::post($url,$query);
-        return Shop::updateOrInsert(
+        $shop = Shop::updateOrInsert(
             ['scope' => $result->json("scope"), 'access_token' => $result->json("access_token")],
             ['shop' => $params['shop']]
         );
+        return redirect('./');
     }
 }
 ?>

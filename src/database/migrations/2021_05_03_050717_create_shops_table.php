@@ -15,7 +15,7 @@ class CreateShopsTable extends Migration
     {
         Schema::create('shops', function (Blueprint $table) {
             $table->id();
-            $table->string('session_id')->nullable(false)->unique();
+            $table->string('session_id')->nullable()->unique();
             $table->string('shop')->nullable(false);
             $table->boolean('is_online')->default(false);
             $table->string('scope')->nullable(false);
