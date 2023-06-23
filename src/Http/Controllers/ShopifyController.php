@@ -15,10 +15,11 @@ class ShopifyController extends Controller{
         $api_key = config('msdev2.shopify_api_key');
         $scopes = config('msdev2.scopes');
         $redirect_uri = route("msdev2.callback");
-        if(!Utils::sanitizeShopDomain($shop)){
+        $shop = Utils::sanitizeShopDomain($shop);
+        if(!$shop){
             return redirect()->back()->withErrors(['msg'=>'invalid domain']);
         }
-        $install_url = "https://" . $shop . ".myshopify.com/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
+        $install_url = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
         return redirect($install_url);
     }
     public function generateToken(Request $request)
