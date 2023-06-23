@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Msdev2\Shopify\Models\Shop;
+use Msdev2\Shopify\Utils;
 
 class ShopifyController extends Controller{
 
@@ -14,6 +15,9 @@ class ShopifyController extends Controller{
         $api_key = config('msdev2.shopify_api_key');
         $scopes = config('msdev2.scopes');
         $redirect_uri = route("msdev2.callback");
+        if(!Utils::sanitizeShopDomain($shop)){
+            return redirect()->back()->withErrors(['msg'=>'invalid domain']);
+        }
         $install_url = "https://" . $shop . ".myshopify.com/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
         return redirect($install_url);
     }
