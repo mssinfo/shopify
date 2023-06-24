@@ -15,7 +15,7 @@ return [
     ],
     'appbridge_enabled' => (bool) env('APPBRIDGE_ENABLED', true),
     "appbridge_version"=>env('APPBRIDGE_VERSION', '3'),
-    "footer"=>env('SHOPIFY_FOOTER', '<p>Copyright &copy; All right reserved.</p>'),,
+    "footer"=>env('SHOPIFY_FOOTER', '<p>Copyright &copy; All right reserved.</p>'),
     "menu"=>[
         'logo'=>[
             'type'=>'url',//image,url,
