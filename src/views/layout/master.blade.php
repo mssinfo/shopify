@@ -21,9 +21,8 @@
                 </main>
             </div>
         </div>
-
-        <script src="https://unpkg.com@shopify/app-bridge{{ '@'.config('msdev2.appbridge_version') }}"></script>
-        <script src="https://unpkg.com@shopify/app-bridge-utils{{ '@'.config('msdev2.appbridge_version') }}"></script>
+        <script src="https://unpkg.com/@shopify/app-bridge{{ '@'.config('msdev2.appbridge_version') }}"></script>
+        <script src="https://unpkg.com/@shopify/app-bridge-utils{{ '@'.config('msdev2.appbridge_version') }}"></script>
         <script>
             window.AppBridge = window['app-bridge'];
             var actions = window.AppBridge.actions;
