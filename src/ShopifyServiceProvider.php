@@ -18,8 +18,8 @@ class ShopifyServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/views/','msdev2');
         $this->loadMigrationsFrom(__DIR__.'/database/migrations');
         // $this->loadModelsFrom(__DIR__.'/Models');
-        $this->mergeConfigFrom(__DIR__.'/config/msdev2_config.php','msdev2');
-        $this->publishes([__DIR__.'/config/msdev2_config.php'=>config_path("msdev2_config.php")]);
+        $this->mergeConfigFrom(__DIR__.'/config/msdev2.php','msdev2');
+        $this->publishes([__DIR__.'/config/msdev2.php'=>config_path("msdev2.php")]);
         //    $this->loadTranslationsFrom(__DIR__.'/../lang', 'courier');
         $this->app['router']->aliasMiddleware('msdev2.shopify.verify', VerifyShopify::class);
         $this->app['router']->aliasMiddleware('msdev2.shopify.auth', EnsureShopifySession::class);
