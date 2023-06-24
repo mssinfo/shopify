@@ -5,6 +5,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Msdev2\Shopify\Models\Shop;
 use Shopify\Utils;
+use Shopify\Auth\OAuth;
+
+use Shopify\Auth\Session;
+
 class VerifyShopify
 {
     public function __construct() {
@@ -20,6 +24,8 @@ class VerifyShopify
                 if(!$shop){
                     abort(403,'Invalid shop domain');        
                 }
+                $sessionId = Str::random(16);
+                new Session($sessionId, $shop, true, '3600');
             }
             return $next($request);
         }
