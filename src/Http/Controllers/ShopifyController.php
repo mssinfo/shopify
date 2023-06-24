@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Http;
 use Msdev2\Shopify\Models\Shop;
 use Msdev2\Shopify\Utils;
 use Shopify\Webhooks\Registry;
-use Shopify\Webhooks\Topics;
+
+use Illuminate\Support\Facades\Log;
 
 class ShopifyController extends Controller{
 
@@ -62,7 +63,7 @@ class ShopifyController extends Controller{
                 if ($response->isSuccess()) {
                     Log::debug("Registered APP_UNINSTALLED webhook for shop ".$shop);
                 } else {
-                    Log::error( "Failed to register APP_UNINSTALLED webhook for shop ".$shop." with response body: "  print_r($response->getBody(), true));
+                    Log::error( "Failed to register APP_UNINSTALLED webhook for shop ".$shop." with response body: " ,[$response->getBody()]);
                 }
             }
         }
