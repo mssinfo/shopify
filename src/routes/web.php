@@ -1,7 +1,6 @@
 <?php
 
-use Illuminate\Routing\Route;
-
+use Illuminate\Support\Facades\Route;
 use Msdev2\Shopify\Http\Controllers\ShopifyController;
 
 Route::fallback([ShopifyController::class , 'fallback'])->middleware('msdev2.shopify.installed');
