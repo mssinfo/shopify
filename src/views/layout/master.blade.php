@@ -9,7 +9,7 @@
     </head>
     <body>
         <main role="main">
-            @include('msdev2.layout.menu')
+            @include('msdev2::layout.menu')
             @yield('content')
             @if (config("msdev2.footer")) 
                 <footer>
