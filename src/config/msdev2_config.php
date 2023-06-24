@@ -5,7 +5,7 @@ return [
     "scopes"=>env('SHOPIFY_API_SCOPES', 'read_products,write_products'),
     "webhooks"=>env('SHOPIFY_WEBHOOKS', 'APP_UNINSTALLED,THEMES_PUBLISH,SHOP_UPDATE'),
     "billing" => [
-        "required" => env('SHOPIFY_BILLING', true),
+        "required" => env('SHOPIFY_BILLING', false),
 
         // Example set of values to create a charge for $5 one time
         "chargeName" => "My Shopify App Billing",

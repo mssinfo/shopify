@@ -62,11 +62,11 @@ class ShopifyController extends Controller{
         );
         $host = $request->query('host');
         $shop = Utils::sanitizeShopDomain($request->query('shop'));
-        $session = OAuth::callback(
-            $request->cookie(),
-            $request->query(),
-            [CookieHandler::class, 'saveShopifyCookie'],
-        );
+        // $session = OAuth::callback(
+        //     $request->cookie(),
+        //     $request->query(),
+        //     [CookieHandler::class, 'saveShopifyCookie'],
+        // );
         // Generate access token URL
         $url = "https://" . $shop . "/admin/oauth/access_token";
         $result = Http::post($url,$query);
