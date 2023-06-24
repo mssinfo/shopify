@@ -61,7 +61,7 @@ class ShopifyController extends Controller{
             foreach ($webhooks as $webhook) {
                 $response = Registry::register(config('app.url').'/api/webhooks?type=', $webhook, $shop, $result->json("access_token"));
                 if ($response->isSuccess()) {
-                    Log::debug("Registered APP_UNINSTALLED webhook for shop ".$shop);
+                    Log::debug("Registered $webhook webhook for shop ".$shop);
                 } else {
                     Log::error( "Failed to register APP_UNINSTALLED webhook for shop ".$shop." with response body: " ,[$response->getBody()]);
                 }
@@ -69,7 +69,7 @@ class ShopifyController extends Controller{
         }
         
         $redirectUrl = Utils::getEmbeddedAppUrl($host);
-        return redirect('./');
+        return redirect($redirectUrl);
     }
 }
 ?>
