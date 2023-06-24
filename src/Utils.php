@@ -98,6 +98,35 @@ final class Utils
             hash_hmac('sha256', self::buildQueryString($params), $secret)
         );
     }
+    /**
+     * URL-safe Base64 encoding.
+     *
+     * Replaces `+` with `-` and `/` with `_` and trims padding `=`.
+     *
+     * @param string $data The data to be encoded.
+     *
+     * @return string
+     */
+    public static function base64UrlEncode($data)
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
+    /**
+     * URL-safe Base64 decoding.
+     *
+     * Replaces `-` with `+` and `_` with `/`.
+     *
+     * Adds padding `=` if needed.
+     *
+     * @param string $data The data to be decoded.
+     *
+     * @return string
+     */
+    public static function base64UrlDecode($data)
+    {
+        return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
+    }
 
     /**
      * Retrieves the query string arguments from a URL, if any
