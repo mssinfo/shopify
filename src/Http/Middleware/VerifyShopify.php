@@ -25,7 +25,7 @@ class VerifyShopify
                     abort(403,'Invalid shop domain');        
                 }
                 $sessionId = Str::random(16);
-                new Session($sessionId, $shop, true, '3600');
+                new Session($sessionId, $shop->shop, true, '3600');
             }
             return $next($request);
         }
