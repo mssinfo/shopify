@@ -52,7 +52,7 @@ class ShopifyController extends Controller{
         $session = OAuth::callback(
             $request->cookie(),
             $request->query(),
-            ['App\Lib\CookieHandler', 'saveShopifyCookie'],
+            ['Msdev2\Shopify\Lib\CookieHandler', 'saveShopifyCookie'],
         );
         // Generate access token URL
         $url = "https://" . $shop . "/admin/oauth/access_token";
