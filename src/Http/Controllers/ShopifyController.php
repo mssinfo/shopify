@@ -67,8 +67,6 @@ class ShopifyController extends Controller{
                 }
             }
         }
-        
-        $redirectUrl = Utils::getEmbeddedAppUrl($host);
         return redirect($redirectUrl);
     }
 }

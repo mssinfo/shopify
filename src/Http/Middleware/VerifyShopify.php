@@ -12,7 +12,7 @@ class VerifyShopify
     }
     public function handle(Request $request, Closure $next)
     {
-        if (Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing']) || isset($shop)) {
+        if (Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing']) || isset($request->query('shop'))) {
             $host = $request->query('host');
             $shop = Utils::sanitizeShopDomain($request->query('shop'));
             if(isset($shop)){
