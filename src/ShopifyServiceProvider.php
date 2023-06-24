@@ -5,6 +5,7 @@ use Msdev2\Shopify\Http\Middleware\VerifyShopify;
 use Shopify\Context;
 use Shopify\ApiVersion;
 use Illuminate\Support\Facades\URL;
+use Msdev2\Shopify\Http\Middleware\EnsureShopifySession;
 use Msdev2\Shopify\Lib\DbSessionStorage;
 
 class ShopifyServiceProvider extends ServiceProvider
@@ -18,7 +19,8 @@ class ShopifyServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/config/msdev2_config.php','msdev2');
         $this->publishes([__DIR__.'/config/msdev2_config.php'=>config_path("msdev2_config.php")]);
         //    $this->loadTranslationsFrom(__DIR__.'/../lang', 'courier');
-        $this->app['router']->aliasMiddleware('msdev2.verify.shopify', VerifyShopify::class);
+        $this->app['router']->aliasMiddleware('msdev2.shopify.verify', VerifyShopify::class);
+        $this->app['router']->aliasMiddleware('msdev2.shopify.auth', EnsureShopifySession::class);
 
         $host = str_replace('https://', '', env('APP_URL', 'not_defined'));
 
