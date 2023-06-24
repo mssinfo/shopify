@@ -24,13 +24,13 @@
 
         <script src="https://unpkg.com@shopify/app-bridge{{ '@'.config('msdev2.appbridge_version') }}"></script>
         <script src="https://unpkg.com@shopify/app-bridge-utils{{ '@'.config('msdev2.appbridge_version') }}"></script>
-        <script></script>
+        <script>
             window.AppBridge = window['app-bridge'];
             var actions = window.AppBridge.actions;
             var utils = window['app-bridge-utils'];
             var createApp = window.AppBridge.default;
             var app = createApp({
-                apiKey: "{{ \Osiset\ShopifyApp\Util::getShopifyConfig('api_key', $shopDomain ?? Auth::user()->name ) }}",
+                apiKey: "{{ config('msdev2.shopify_api_key') }}",
                 host: "{{ \Request::get('host') }}",
                 forceRedirect: false,
             });
@@ -51,7 +51,5 @@
         </script>
 
         @yield('scripts')
-
-
     </body>
 </html>
