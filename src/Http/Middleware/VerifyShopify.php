@@ -25,6 +25,7 @@ class VerifyShopify
                 if(!$shop){
                     abort(403,'Invalid shop domain');        
                 }
+                session('shop', $shop);
                 // $sessionId = Str::random(16);
                 // $session = new Session($sessionId, $shop->shop, true, '3600');
                 // $DbSession = new DbSessionStorage();
