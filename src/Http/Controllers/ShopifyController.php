@@ -63,7 +63,7 @@ class ShopifyController extends Controller{
                 if ($response->isSuccess()) {
                     Log::debug("Registered $webhook webhook for shop ".$shop);
                 } else {
-                    Log::error( "Failed to register APP_UNINSTALLED webhook for shop ".$shop." with response body: " ,[$response->getBody()]);
+                    Log::error( "Failed to register $webhook  webhook for shop ".$shop." with response body: " ,[$response->getBody()]);
                 }
             }
         }
