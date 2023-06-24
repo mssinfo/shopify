@@ -5,22 +5,23 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>{{ config('app.name') }}</title>
         <link rel="stylesheet" href="https://www.uptowncss.com/css/uptown.css">
-        <style>nav{overflow: hidden;background-color: #f1f2f4;border-bottom: 0.0625rem solid #dde0e4;margin-bottom: 20px}nav a{float: left;display: block;color: #1f2124;text-align: center;padding: 14px 16px;text-decoration: none;font-size: 17px}nav a.logo{margin: 0;padding: 0}nav a.logo img{max-width: 100%;max-height: 100%;width: 35px;margin: 5px 0px 5px 10px;position: relative;top: 1px}nav a:hover{background-color: #ebecef;color: black}nav a.active{background-color: #ebecef;color: #007a5c}nav .icon{display: none}@media screen and (max-width: 600px){nav a:not(:first-child){display: none}nav a.icon{float: right;display: block}}@media screen and (max-width: 600px){nav.responsive{position: relative}nav.responsive .icon{position: absolute;right: 0;top: 0}nav.responsive a{float: none;display: block;text-align: left}}</style>
+        <style>html, body {height: 100%;} body { display: flex; flex-direction: column;} main { flex: 1 0 auto; } footer { flex-shrink: 0; } nav{overflow: hidden;background-color: #f1f2f4;border-bottom: 0.0625rem solid #dde0e4;margin-bottom: 20px}nav a{float: left;display: block;color: #1f2124;text-align: center;padding: 14px 16px;text-decoration: none;font-size: 17px}nav a.logo{margin: 0;padding: 0}nav a.logo img{max-width: 100%;max-height: 100%;width: 35px;margin: 5px 0px 5px 10px;position: relative;top: 1px}nav a:hover{background-color: #ebecef;color: black}nav a.active{background-color: #ebecef;color: #007a5c}nav .icon{display: none}@media screen and (max-width: 600px){nav a:not(:first-child){display: none}nav a.icon{float: right;display: block}}@media screen and (max-width: 600px){nav.responsive{position: relative}nav.responsive .icon{position: absolute;right: 0;top: 0}nav.responsive a{float: none;display: block;text-align: left}}</style>
         @yield('styles')
     </head>
     <body>
         <main role="main">
             @include('msdev2::layout.menu')
             @yield('content')
-            @if (config("msdev2.footer")) 
-                <footer>
-                    <article class="help">
-                      <span></span>
-                      {!! config("msdev2.footer") !!}
-                    </article>
-                </footer>
-            @endif
+           
         </main>
+        @if (config("msdev2.footer")) 
+            <footer>
+                <article class="help">
+                    <span></span>
+                    {!! config("msdev2.footer") !!}
+                </article>
+            </footer>
+        @endif
         <script src="https://unpkg.com/turbolinks"></script>
         <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
         <script src="https://unpkg.com/@shopify/app-bridge{{ '@'.config('msdev2.appbridge_version') }}"></script>
