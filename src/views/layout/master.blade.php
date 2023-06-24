@@ -5,6 +5,8 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name') }}</title>
+        
+        <link rel="stylesheet" href="https://www.uptowncss.com/css/uptown.css">
         <script src="https://unpkg.com/turbolinks"></script>
         <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
 
@@ -20,15 +22,15 @@
             </div>
         </div>
 
-        <script src="https://unpkg.com@shopify/app-bridge@{{ config('msdev2.appbridge_version') }}"></script>
-        <script src="https://unpkg.com@shopify/app-bridge-utils@{{ config('msdev2.appbridge_version') }}"></script>
-        <script data-turbolinks-eval="false">
+        <script src="https://unpkg.com@shopify/app-bridge{{ '@'.config('msdev2.appbridge_version') }}"></script>
+        <script src="https://unpkg.com@shopify/app-bridge-utils{{ '@'.config('msdev2.appbridge_version') }}"></script>
+        <script></script>
             window.AppBridge = window['app-bridge'];
             var actions = window.AppBridge.actions;
             var utils = window['app-bridge-utils'];
             var createApp = window.AppBridge.default;
             var app = createApp({
-                apiKey: "{{ config('msdev2.shopify_api_key') }}",
+                apiKey: "{{ \Osiset\ShopifyApp\Util::getShopifyConfig('api_key', $shopDomain ?? Auth::user()->name ) }}",
                 host: "{{ \Request::get('host') }}",
                 forceRedirect: false,
             });
