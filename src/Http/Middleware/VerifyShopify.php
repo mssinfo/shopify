@@ -10,8 +10,8 @@ use Illuminate\Support\Str;
 
 class VerifyShopify
 {
-    public function __construct( AuthManager $auth) {
-        $this->auth = $auth;
+    public function __construct() {
+        
     }
     public function handle(Request $request, Closure $next)
     {
