@@ -5,7 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Msdev2\Shopify\Models\Shop;
-use Msdev2\Shopify\Utils;
+use Shopify\Utils;
 use Shopify\Webhooks\Registry;
 
 use Illuminate\Support\Facades\Log;
