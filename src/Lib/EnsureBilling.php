@@ -2,6 +2,7 @@
 
 namespace Msdev2\Shopify\Lib;
 
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Shopify\Auth\Session;
 use Shopify\Clients\Graphql;
@@ -187,7 +188,7 @@ class EnsureBilling
         $responseBody = $response->getDecodedBody();
 
         if (!empty($responseBody["errors"])) {
-            throw new ShopifyBillingException("Error while billing the store", (array)$responseBody["errors"]);
+            throw new Exception("Error while billing the store", $responseBody["errors"]);
         }
 
         return $responseBody;

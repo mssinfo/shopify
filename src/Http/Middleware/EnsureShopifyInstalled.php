@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Msdev2\Shopify\Http\Middleware;
 
 use Msdev2\Shopify\Lib\AuthRedirection;
 use Msdev2\Shopify\Models\Session;

@@ -1,6 +1,6 @@
 <?php
 
-// use Illuminate\Routing\Route;
+use Illuminate\Routing\Route;
 
 use Msdev2\Shopify\Http\Controllers\ShopifyController;
 
