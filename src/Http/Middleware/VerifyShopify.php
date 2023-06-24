@@ -18,6 +18,6 @@ class VerifyShopify
         if (Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing']) || isset($request->shop)) {
             return $next($request);
         }
-        return ['invalid url shop'];
+        abort(403);
     }
 }
