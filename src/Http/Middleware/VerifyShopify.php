@@ -3,6 +3,7 @@ namespace Msdev2\Shopify\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Msdev2\Shopify\Lib\DbSessionStorage;
 use Msdev2\Shopify\Models\Shop;
 use Shopify\Utils;
 use Shopify\Auth\OAuth;
@@ -25,7 +26,9 @@ class VerifyShopify
                     abort(403,'Invalid shop domain');        
                 }
                 $sessionId = Str::random(16);
-                new Session($sessionId, $shop->shop, true, '3600');
+                $session = new Session($sessionId, $shop->shop, true, '3600');
+                $DbSession = new DbSessionStorage();
+                $DbSession->storeSession($session);
             }
             return $next($request);
         }
