@@ -8,4 +8,4 @@ Route::post("install",[ShopifyController::class,'install'])->name("msdev2.instal
 Route::get("install",function(){
     return view('msdev2::install');
 });
-Route::get('auth/callback', [ShopifyController::class,'generateToken'])->name("msdev2.callback");
+Route::get('auth/callback', [ShopifyController::class,'generateToken'])->middleware('msdev2.shopify.verify')->name("msdev2.callback");
