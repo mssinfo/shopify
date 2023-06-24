@@ -24,4 +24,4 @@
     'SHOPIFY_API_KEY', '63f2fa001d************',
     'SHOPIFY_API_SECRET', '47f72686a3************',
     'SCOPES', 'read_products,write_products',
-    'HOST', '[domain].com'
+    'SHOPIFY_WEBHOOKS', 'APP_UNINSTALLED,THEMES_PUBLISH,SHOP_UPDATE'

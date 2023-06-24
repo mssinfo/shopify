@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Str;
 use Msdev2\Shopify\Models\Shop;
-
+use Shopify\Utils;
 class VerifyShopify
 {
     public function __construct() {
@@ -16,13 +16,17 @@ class VerifyShopify
     }
     public function handle(Request $request, Closure $next)
     {
-        if (Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing']) || isset($request->shop)) {
-            $shop = Shop::where("shop")->first();
-            if(!$shop){
-                abort(403,'invalid shop domain');        
+        $host = $request->query('host');
+        $shop = Utils::sanitizeShopDomain($request->query('shop'));
+        if (Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing']) || isset($shop)) {
+            if(isset($shop)){
+                $shop = Shop::where("shop",$shop)->first();
+                if(!$shop){
+                    abort(403,'Invalid shop domain');        
+                }
             }
             return $next($request);
         }
-        abort(403,'shop not exist in request');
+        abort(403,'Shop not exist in request');
     }
 }

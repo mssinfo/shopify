@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Msdev2\Shopify\Models\Shop;
 use Msdev2\Shopify\Utils;
+use Shopify\Webhooks\Registry;
+use Shopify\Webhooks\Topics;
 
 class ShopifyController extends Controller{
 
@@ -43,14 +45,29 @@ class ShopifyController extends Controller{
             "client_secret" => $shared_secret, // Your app credentials (secret key)
             "code" => $params['code'] // Grab the access key from the URL
         );
-
+        $host = $request->query('host');
+        $shop = Utils::sanitizeShopDomain($request->query('shop'));
         // Generate access token URL
-        $url = "https://" . $params['shop'] . "/admin/oauth/access_token";
+        $url = "https://" . $shop . "/admin/oauth/access_token";
         $result = Http::post($url,$query);
-        $shop = Shop::updateOrInsert(
+        Shop::updateOrInsert(
             ['scope' => $result->json("scope"), 'access_token' => $result->json("access_token")],
-            ['shop' => $params['shop']]
+            ['shop' => $shop]
         );
+        $redirectUrl = Utils::getEmbeddedAppUrl($host);
+        if(config('msdev2.webhooks')){
+            $webhooks = explode(",",config('msdev2.webhooks'));
+            foreach ($webhooks as $webhook) {
+                $response = Registry::register(config('app.url').'/api/webhooks?type=', $webhook, $shop, $result->json("access_token"));
+                if ($response->isSuccess()) {
+                    Log::debug("Registered APP_UNINSTALLED webhook for shop ".$shop);
+                } else {
+                    Log::error( "Failed to register APP_UNINSTALLED webhook for shop ".$shop." with response body: "  print_r($response->getBody(), true));
+                }
+            }
+        }
+        
+        $redirectUrl = Utils::getEmbeddedAppUrl($host);
         return redirect('./');
     }
 }
