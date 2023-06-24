@@ -14,7 +14,7 @@ class ShopifyServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/config/msdev2_config.php','msdev2');
         $this->publishes([__DIR__.'/config/msdev2_config.php'=>config_path("msdev2_config.php")]);
         //    $this->loadTranslationsFrom(__DIR__.'/../lang', 'courier');
-        $this->app['router']->aliasMiddleware('verify.shopify', VerifyShopify::class);
+        $this->app['router']->aliasMiddleware('msdev2.verify.shopify', VerifyShopify::class);
     }
     public function register()
     {
