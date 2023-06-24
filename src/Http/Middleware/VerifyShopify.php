@@ -1,11 +1,7 @@
 <?php
 namespace Msdev2\Shopify\Http\Middleware;
 use Closure;
-use Illuminate\Auth\AuthManager;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Str;
 use Msdev2\Shopify\Models\Shop;
 use Shopify\Utils;
