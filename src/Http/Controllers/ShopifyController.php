@@ -5,9 +5,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Msdev2\Shopify\Models\Shop;
+use Msdev2\Shopify\Lib\EnsureBilling;
 use Shopify\Utils;
 use Shopify\Webhooks\Registry;
-
+use Shopify\Auth\OAuth;
 use Illuminate\Support\Facades\Log;
 
 class ShopifyController extends Controller{
@@ -48,6 +49,11 @@ class ShopifyController extends Controller{
         );
         $host = $request->query('host');
         $shop = Utils::sanitizeShopDomain($request->query('shop'));
+        $session = OAuth::callback(
+            $request->cookie(),
+            $request->query(),
+            ['App\Lib\CookieHandler', 'saveShopifyCookie'],
+        );
         // Generate access token URL
         $url = "https://" . $shop . "/admin/oauth/access_token";
         $result = Http::post($url,$query);
@@ -65,6 +71,13 @@ class ShopifyController extends Controller{
                 } else {
                     Log::error( "Failed to register $webhook  webhook for shop ".$shop." with response body: " ,[$response->getBody()]);
                 }
+            }
+        }
+        if (config('msdev2.billing.required')) {
+            list($hasPayment, $confirmationUrl) = EnsureBilling::check($session, config('msdev2.billing'));
+    
+            if (!$hasPayment) {
+                $redirectUrl = $confirmationUrl;
             }
         }
         return redirect($redirectUrl);
