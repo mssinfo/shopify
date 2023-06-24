@@ -13,4 +13,6 @@ return [
         "currencyCode" => "USD", // Currently only supports USD
         "interval" => 'EVERY_30_DAYS', //ANNUAL|EVERY_30_DAYS|INTERVAL_ONE_TIME
     ],
+    'appbridge_enabled' => (bool) env('APPBRIDGE_ENABLED', true),
+    "appbridge_version"=>env('APPBRIDGE_VERSION', '1'),
 ];
