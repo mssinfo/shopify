@@ -1,18 +1,31 @@
 <?php
 namespace Msdev2\Shopify\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use Msdev2\Shopify\Models\Shop;
 use Msdev2\Shopify\Lib\EnsureBilling;
-use Shopify\Utils;
+use Msdev2\Shopify\Lib\CookieHandler;
 use Shopify\Webhooks\Registry;
 use Shopify\Auth\OAuth;
-use Illuminate\Support\Facades\Log;
+use Shopify\Utils;
+use Shopify\Context;
 
 class ShopifyController extends Controller{
 
+    function fallback(Request $request) {
+        if (Context::$IS_EMBEDDED_APP &&  $request->query("embedded", false) === "1") {
+            if (env('APP_ENV') === 'production') {
+                return file_get_contents(public_path('index.html'));
+            } else {
+                return file_get_contents(base_path('frontend/index.html'));
+            }
+        } else {
+            return redirect(Utils::getEmbeddedAppUrl($request->query("host", null)) . "/" . $request->path());
+        }
+    }
     public function install(Request $request)
     {
         $shop = $request->shop;
@@ -52,7 +65,7 @@ class ShopifyController extends Controller{
         $session = OAuth::callback(
             $request->cookie(),
             $request->query(),
-            ['Msdev2\Shopify\Lib\CookieHandler', 'saveShopifyCookie'],
+            [CookieHandler::class, 'saveShopifyCookie'],
         );
         // Generate access token URL
         $url = "https://" . $shop . "/admin/oauth/access_token";

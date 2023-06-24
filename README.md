@@ -30,3 +30,4 @@
 ### middleware lists
     msdev2.shopify.verify  //to verify shop exist in url
     msdev2.shopify.auth //to authenticate shopify user
+    msdev2.shopify.installed //to check if shopify is installed

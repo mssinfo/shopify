@@ -1,12 +1,14 @@
 <?php
 namespace Msdev2\Shopify;
+
 use Illuminate\Support\ServiceProvider;
-use Msdev2\Shopify\Http\Middleware\VerifyShopify;
-use Shopify\Context;
-use Shopify\ApiVersion;
 use Illuminate\Support\Facades\URL;
+use Msdev2\Shopify\Http\Middleware\EnsureShopifyInstalled;
+use Msdev2\Shopify\Http\Middleware\VerifyShopify;
 use Msdev2\Shopify\Http\Middleware\EnsureShopifySession;
 use Msdev2\Shopify\Lib\DbSessionStorage;
+use Shopify\ApiVersion;
+use Shopify\Context;
 
 class ShopifyServiceProvider extends ServiceProvider
 {
@@ -21,6 +23,7 @@ class ShopifyServiceProvider extends ServiceProvider
         //    $this->loadTranslationsFrom(__DIR__.'/../lang', 'courier');
         $this->app['router']->aliasMiddleware('msdev2.shopify.verify', VerifyShopify::class);
         $this->app['router']->aliasMiddleware('msdev2.shopify.auth', EnsureShopifySession::class);
+        $this->app['router']->aliasMiddleware('msdev2.shopify.installed', EnsureShopifyInstalled::class);
 
         $host = str_replace('https://', '', env('APP_URL', 'not_defined'));
 
