@@ -20,15 +20,32 @@
             </div>
         </div>
 
-        <script src="https://unpkg.com/@shopify/app-bridge{{ config('msdev2.appbridge_version') ? '@'.config('appbridge_version.appbridge_version') : '' }}"></script>
-        <script>
-            var AppBridge = window['app-bridge'];
-            var createApp = AppBridge.default;
+        <script src="https://unpkg.com@shopify/app-bridge@{{ config('msdev2.appbridge_version') }}"></script>
+        <script src="https://unpkg.com@shopify/app-bridge-utils@{{ config('msdev2.appbridge_version') }}"></script>
+        <script data-turbolinks-eval="false">
+            window.AppBridge = window['app-bridge'];
+            var actions = window.AppBridge.actions;
+            var utils = window['app-bridge-utils'];
+            var createApp = window.AppBridge.default;
             var app = createApp({
-                apiKey: '{{ config('msdev2.shopify_api_key') }}',
-                shopOrigin: '{{ request()->get('shop') }}',
+                apiKey: "{{ config('msdev2.shopify_api_key') }}",
+                host: "{{ \Request::get('host') }}",
                 forceRedirect: false,
             });
+            {{-- var NavigationMenu = actions.NavigationMenu;
+            var AppLink = actions.AppLink;
+            NavigationMenu.create(app, {
+                items: [
+                @foreach (config('shopify-helper.menu') as $menu)
+                @if (isset($menu["position"]) && ($menu["position"] == "sidebar" || $menu["position"] == "all"))
+                AppLink.create(app, {
+                    label: '{{$menu["label"]}}',
+                    destination: '{{$menu["destination"]}}',
+                }),
+                @endif
+                @endforeach
+                ]
+            }); --}}
         </script>
 
         @yield('scripts')
