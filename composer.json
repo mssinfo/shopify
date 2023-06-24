@@ -2,6 +2,21 @@
     "name": "msdev2/shopify",
     "description": "setup basic shopify app like install and all",
     "type": "library",
+    "keywords": [
+        "api",
+        "callback-url",
+        "driver",
+        "facade",
+        "laravel",
+        "laravel-package",
+        "laravel-shopify",
+        "scripttags",
+        "sdk",
+        "shopify",
+        "shopify-api",
+        "shopify-app",
+        "webhook"
+    ],
     "license": "MIT",
     "autoload": {
         "psr-4": {
@@ -16,7 +31,10 @@
         }
     ],
     "minimum-stability": "dev",
-    "require": {},
+    "require": {
+        "laravel/framework": "^8.0 || ^9.0 || ^10.0",
+        "shopify/shopify-api":"^5.0.0"
+    },
     "prefer-stable": true,
     "extra": {
         "laravel": {
@@ -24,5 +42,11 @@
                 "Msdev2\\Shopify\\ShopifyServiceProvider"
             ]
         }
+    },
+    "support": {
+        "issues": "https://github.com/msdev2/shopify/issues",
+        "forum": "https://github.com/msdev2/shopify/discussions",
+        "wiki": "https://github.com/msdev2/shopify/wiki",
+        "source": "https://github.com/msdev2/shopify"
     }
 }
