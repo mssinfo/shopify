@@ -20,7 +20,7 @@
     <div class="wrapper">
         <div class="inner">
             <img src="https://colorlib.com/etc/regform/colorlib-regform-26/images/image-1.png" alt="" class="image-1">
-            <form method="post" action="{{ route('msdev2.install') }}">
+            <form method="get" action="{{ route('msdev2.shopify.install') }}">
                 <h3>Your Shopify Domain Name</h3>
                 <div class="form-holder">
                     <input type="text" class="form-control" placeholder="Domain Name" name="shop">

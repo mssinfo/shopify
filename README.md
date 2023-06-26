@@ -27,6 +27,7 @@ setup basic shopify app like install and all
     'SHOPIFY_WEBHOOKS'='APP_UNINSTALLED,THEMES_PUBLISH,SHOP_UPDATE',
     'SHOPIFY_BILLING'= true, #false
     'SHOPIFY_FOOTER'='<div>copyright @copy; all right reserved</div>',
+    
 ## middleware lists
     msdev2.shopify.verify  //to verify shop exist in url
     msdev2.shopify.auth //to authenticate shopify user

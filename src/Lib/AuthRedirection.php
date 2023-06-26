@@ -27,9 +27,9 @@ class AuthRedirection
     {
         return OAuth::begin(
             $shop,
-            '/api/auth/callback',
+            '/auth/callback',
             $isOnline,
-            ['App\Lib\CookieHandler', 'saveShopifyCookie'],
+            ['Msdev2\Shopify\Lib\CookieHandler', 'saveShopifyCookie'],
         );
     }
 

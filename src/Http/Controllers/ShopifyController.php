@@ -5,9 +5,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Msdev2\Shopify\Lib\AuthRedirection;
 use Msdev2\Shopify\Models\Shop;
 use Msdev2\Shopify\Lib\EnsureBilling;
 use Msdev2\Shopify\Lib\CookieHandler;
+use Shopify\Auth\Session;
 use Shopify\Webhooks\Registry;
 use Shopify\Auth\OAuth;
 use Shopify\Utils;
@@ -16,26 +18,34 @@ use Shopify\Context;
 class ShopifyController extends Controller{
 
     function fallback(Request $request) {
-        if (Context::$IS_EMBEDDED_APP &&  $request->query("embedded", false) === "1") {
-            if (env('APP_ENV') === 'production') {
-                return file_get_contents(public_path('index.html'));
-            } else {
-                return file_get_contents(base_path('frontend/index.html'));
-            }
-        } else {
-            return redirect(Utils::getEmbeddedAppUrl($request->query("host", null)) . "/" . $request->path());
-        }
+        return redirect(Utils::getEmbeddedAppUrl($request->query("host", null)) . "/" . $request->path());
+        // if (Context::$IS_EMBEDDED_APP &&  $request->query("embedded", false) === "1") {
+        //     if (env('APP_ENV') === 'production') {
+        //         return file_get_contents(public_path('index.html'));
+        //     } else {
+        //         return file_get_contents(base_path('frontend/index.html'));
+        //     }
+        // } else {
+        //     return redirect(Utils::getEmbeddedAppUrl($request->query("host", null)) . "/" . $request->path());
+        // }
     }
     public function install(Request $request)
     {
+        // return AuthRedirection::redirect($request);
         $shop = $request->shop;
         $api_key = config('msdev2.shopify_api_key');
         $scopes = config('msdev2.scopes');
-        $redirect_uri = route("msdev2.callback");
+        $redirect_uri = route("msdev2.shopify.callback");
         $shop = Utils::sanitizeShopDomain($shop);
         if(!$shop){
             return redirect()->back()->withErrors(['msg'=>'invalid domain']);
         }
+        // OAuth::begin(
+        //     $shop,
+        //     '/auth/callback',
+        //     false,
+        //     [CookieHandler::class, 'saveShopifyCookie'],
+        // );
         $install_url = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
         return redirect($install_url);
     }
@@ -87,13 +97,19 @@ class ShopifyController extends Controller{
             }
         }
         if (config('msdev2.billing.required')) {
-            list($hasPayment, $confirmationUrl) = EnsureBilling::check($session, config('msdev2.billing'));
-    
-            if (!$hasPayment) {
-                $redirectUrl = $confirmationUrl;
-            }
+            redirect($redirectUrl.'/plan');
         }
         return redirect($redirectUrl);
+    }
+    public function planSubscribe(Request $request){
+        $session = new Session();
+        $name = $request->get("name");
+        $planList = config('msdev2.billing');
+        $key = array_search($name, array_column($planList, 'name'));
+        list($hasPayment, $confirmationUrl) = EnsureBilling::check($session, $planList[$key]);
+        if (!$hasPayment) {
+            return redirect($confirmationUrl);
+        }
     }
 }
 ?>
