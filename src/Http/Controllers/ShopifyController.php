@@ -9,7 +9,6 @@ use Msdev2\Shopify\Lib\AuthRedirection;
 use Msdev2\Shopify\Models\Shop;
 use Shopify\Webhooks\Registry;
 use Shopify\Utils;
-use Shopify\Context;
 
 class ShopifyController extends Controller{
 
@@ -63,7 +62,7 @@ class ShopifyController extends Controller{
             return "NOT VALIDATED – Someone is trying to be shady!";
         }
         $host = $request->query('host');
-        $shop = Utils::sanitizeShopDomain($request->query('shop'));
+        $shopName = Utils::sanitizeShopDomain($request->query('shop'));
 
         $query = array(
             "client_id" => $api_key, // Your API key
@@ -71,26 +70,25 @@ class ShopifyController extends Controller{
             "code" => $params['code'] // Grab the access key from the URL
         );
         // Generate access token URL
-        $url = "https://" . $shop . "/admin/oauth/access_token";
+        $url = "https://" . $shopName . "/admin/oauth/access_token";
         $result = Http::post($url,$query);
-        Shop::updateOrInsert(
-            ['shop' => $shop],
+        $shop = Shop::updateOrCreate(
+            ['shop' => $shopName],
             ['scope' => $result->json("scope"), 'access_token' => $result->json("access_token")]
         );
+        $shop->refresh();
         $redirectUrl = Utils::getEmbeddedAppUrl($host);
         if(config('msdev2.webhooks')){
             $webhooks = explode(",",config('msdev2.webhooks'));
             foreach ($webhooks as $webhook) {
-                $response = Registry::register(config('app.url').'/api/webhooks?type=', $webhook, $shop, $result->json("access_token"));
+                $response = Registry::register('/shopify/webhooks', $webhook, $shopName, $result->json("access_token"));
                 if ($response->isSuccess()) {
-                    Log::debug("Registered $webhook webhook for shop ".$shop);
+                    Log::debug("Registered $webhook webhook for shop ".$shopName);
                 } else {
-                    Log::error( "Failed to register $webhook  webhook for shop ".$shop." with response body: " ,[$response->getBody()]);
+                    Log::error( "Failed to register $webhook  webhook for shop ".$shopName." with response body: " ,[$response->getBody()]);
                 }
             }
         }
-
-        $shop = \Msdev2\Shopify\Utils::getShop();
         if($shop){
             $result = $shop->rest()->get('shop');
             $shop->detail = $result->getDecodedBody()["shop"];
@@ -100,6 +98,25 @@ class ShopifyController extends Controller{
             return redirect($redirectUrl.'/plan');
         }
         return redirect($redirectUrl);
+    }
+    public function webhooksAction(Request $request)
+    {
+        Log::error("process req",[$request]);
+        return $request->all();
+        try {
+            $response = Registry::process($request->headers->toArray(), $request->getRawBody());
+
+            if ($response->isSuccess()) {
+                Log::info("Responded to webhook!",[$response]);
+                // Respond with HTTP 200 OK
+            } else {
+                // The webhook request was valid, but the handler threw an exception
+                Log::error("Webhook handler failed with message: " . $response->getErrorMessage());
+            }
+        } catch (\Exception $error) {
+            // The webhook request was not a valid one, likely a code error or it wasn't fired by Shopify
+            Log::error($error);
+        }
     }
 }
 ?>
