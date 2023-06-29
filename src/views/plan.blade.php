@@ -10,14 +10,23 @@
     </article>
 </section>
 @endsection
+@section('style')
+<style>
+.card.active,.card:hover {
+    transform: scale(1.05);
+}
+</style>
+@endsection
 @section('scripts')
     @parent
-    <script type="text/javascript" data-turbolinks-eval="false">
-        let pricingPlan = {!! json_encode(config('msdev2.plan')) !!};
-        let classList = ['twelve','six','four','three']
-        let el = [];
-        let column = classList[pricingPlan.length-1];
-        pricingPlan.forEach(element => {
+    <script type="text/javascript">
+        var currentPlan = '{{$activePlanName}}';
+        var appUsed = parseInt('{{$appUsed}}');
+        var pricingPlan = {!! json_encode(config('msdev2.plan')) !!};
+        var classList = ['twelve','six','four','three']
+        var el = [];
+        var column = classList[pricingPlan.length-1];
+        pricingPlan.forEach((element,key) => {
             let iType = ''
             if(element.interval == "EVERY_30_DAYS"){
                 iType = '/month'
@@ -37,13 +46,26 @@
                     cls = 'error'
                 }
                 feature.push(`<tr class="${cls}"><td>
-                    <div>
+                    <div>${element.value=='true' ? '✅' : '❌ '}
                         ${element.name}
                         ${element.help_text ? ' &nbsp; <span class="tip" data-hover="'+element.help_text+'" style="position: relative;top: -5px;"><i class="icon-question"></i></span>' : ''}
                     </div>
                 </td></tr>`)
             });
-            el.push(`<div class="columns ${column}"><div class="card">
+            let buttonForm = `<button type="button" disabled="disabled">Current Plan</button>`;
+            let isActive = 'active'
+            if(currentPlan != element.chargeName){
+                isActive = ''
+                buttonForm = `<form target="_parent" method="post" action="{{Msdev2\Shopify\Utils::getUrl(route('msdev2.shopify.plan.subscribe'))}}">
+                    <input type="hidden" name="plan" value="${element.chargeName}">`;
+                if(appUsed < element.trialDays && element.trialDays > 0){
+                    buttonForm += `<button>${'Start '+ (element.trialDays-appUsed) +' Day Trial'}</button>`
+                }else{
+                    buttonForm += `<button>Purchase</button>`
+                }
+                buttonForm += `</form>`;
+            }
+            el.push(`<div class="columns ${column}"><div class="card ${isActive}">
                 <table><thead><tr><th>
                     <div>${element.chargeName}</div>
                     <h2>${element.amount == 0 ? '' : element.currencyCode}${element.amount == 0 ? 'Free' : element.amount }${iType}</h2>
@@ -51,9 +73,9 @@
                 <tbody>
                     ${feature.join('')}
                 </tbody>
-                <tfoot><tr><td><form method="post" action="{{route('msdev2.shopify.plan.subscribe')}}">
-                    <button>Purchase</button>
-                </form></td></tr></tfoot>
+                <tfoot><tr><td>
+                    ${buttonForm}
+                </td></tr></tfoot>
                 </table>
             </div></div>`)
         });

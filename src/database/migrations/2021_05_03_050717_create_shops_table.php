@@ -22,14 +22,9 @@ class CreateShopsTable extends Migration
             $table->string('access_token')->nullable(false);
             $table->dateTime('expires_at')->nullable();
             $table->bigInteger('user_id')->nullable();
-            $table->string('shop_url')->nullable();
-            $table->string('email')->nullable();
-            $table->string('name')->nullable();
-            $table->boolean('shop_owner')->nullable();
-            $table->boolean('timezone')->nullable();
-            $table->string('phone')->nullable();
-            $table->string('locale')->nullable();
+            $table->json('detail')->nullable();
             $table->boolean('collaborator')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

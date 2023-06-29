@@ -7,6 +7,7 @@ use Msdev2\Shopify\Http\Middleware\EnsureShopifyInstalled;
 use Msdev2\Shopify\Http\Middleware\VerifyShopify;
 use Msdev2\Shopify\Http\Middleware\EnsureShopifySession;
 use Msdev2\Shopify\Lib\DbSessionStorage;
+use Msdev2\Shopify\Models\Session;
 use Shopify\ApiVersion;
 use Shopify\Context;
 
@@ -29,20 +30,29 @@ class ShopifyServiceProvider extends ServiceProvider
 
         $customDomain = env('SHOP_CUSTOM_DOMAIN', null);
         Context::initialize(
-            env('SHOPIFY_API_KEY', 'not_defined'),
-            env('SHOPIFY_API_SECRET', 'not_defined'),
-            env('SHOPIFY_API_SCOPES', 'not_defined'),
+            config('msdev2.shopify_api_key'),
+            config('msdev2.shopify_api_secret'),
+            config('msdev2.scopes'),
             $host,
             new DbSessionStorage(),
             ApiVersion::LATEST,
-            true,
+            config('msdev2.is_embedded_app'),
             false,
             null,
             '',
             null,
             (array)$customDomain,
         );
-
+        $sessionArray = [];
+        if(request()->get('shop')){
+            $sessionArray['shop'] = request()->get('shop');
+        }
+        if(request()->get('host')){
+            $sessionArray['host'] = request()->get('host');
+        }
+        if(!empty($sessionArray)){
+            session($sessionArray);
+        }
         URL::forceRootUrl("https://$host");
         URL::forceScheme('https');
     }

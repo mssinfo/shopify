@@ -21,7 +21,7 @@ class CookieHandler
             false,
             'Lax'
         );
-
-        return true;
+        // dd(request()->cookie());
+        return response('some content');
     }
 }

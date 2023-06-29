@@ -7,11 +7,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Msdev2\Shopify\Lib\AuthRedirection;
 use Msdev2\Shopify\Models\Shop;
-use Msdev2\Shopify\Lib\EnsureBilling;
-use Msdev2\Shopify\Lib\CookieHandler;
-use Shopify\Auth\Session;
 use Shopify\Webhooks\Registry;
-use Shopify\Auth\OAuth;
 use Shopify\Utils;
 use Shopify\Context;
 
@@ -31,26 +27,27 @@ class ShopifyController extends Controller{
     }
     public function install(Request $request)
     {
-        // return AuthRedirection::redirect($request);
-        $shop = $request->shop;
-        $api_key = config('msdev2.shopify_api_key');
-        $scopes = config('msdev2.scopes');
-        $redirect_uri = route("msdev2.shopify.callback");
-        $shop = Utils::sanitizeShopDomain($shop);
-        if(!$shop){
-            return redirect()->back()->withErrors(['msg'=>'invalid domain']);
-        }
-        // OAuth::begin(
-        //     $shop,
-        //     '/auth/callback',
-        //     false,
-        //     [CookieHandler::class, 'saveShopifyCookie'],
-        // );
-        $install_url = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
-        return redirect($install_url);
+        return AuthRedirection::redirect($request);
+        // $shop = $request->shop;
+        // $api_key = config('msdev2.shopify_api_key');
+        // $scopes = config('msdev2.scopes');
+        // $redirect_uri = route("msdev2.shopify.callback");
+        // $shop = Utils::sanitizeShopDomain($shop);
+        // if(!$shop){
+        //     return redirect()->back()->withErrors(['msg'=>'invalid domain']);
+        // }
+        // $install_url = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
+        // return redirect($install_url);
     }
     public function generateToken(Request $request)
     {
+
+        // $session = OAuth::callback(
+        //     $request->cookie(),
+        //     $request->query(),
+        //     [CookieHandler::class, 'saveShopifyCookie'],
+        // );
+        // dd($session);
         $shared_secret = config("msdev2.shopify_api_secret");
         $api_key = config('msdev2.shopify_api_key');
         $params = $request->all(); // Retrieve all request parameters
@@ -65,24 +62,20 @@ class ShopifyController extends Controller{
         if (!hash_equals($hmac, $computed_hmac)) {
             return "NOT VALIDATED – Someone is trying to be shady!";
         }
+        $host = $request->query('host');
+        $shop = Utils::sanitizeShopDomain($request->query('shop'));
+
         $query = array(
             "client_id" => $api_key, // Your API key
             "client_secret" => $shared_secret, // Your app credentials (secret key)
             "code" => $params['code'] // Grab the access key from the URL
         );
-        $host = $request->query('host');
-        $shop = Utils::sanitizeShopDomain($request->query('shop'));
-        // $session = OAuth::callback(
-        //     $request->cookie(),
-        //     $request->query(),
-        //     [CookieHandler::class, 'saveShopifyCookie'],
-        // );
         // Generate access token URL
         $url = "https://" . $shop . "/admin/oauth/access_token";
         $result = Http::post($url,$query);
         Shop::updateOrInsert(
-            ['scope' => $result->json("scope"), 'access_token' => $result->json("access_token")],
-            ['shop' => $shop]
+            ['shop' => $shop],
+            ['scope' => $result->json("scope"), 'access_token' => $result->json("access_token")]
         );
         $redirectUrl = Utils::getEmbeddedAppUrl($host);
         if(config('msdev2.webhooks')){
@@ -96,20 +89,17 @@ class ShopifyController extends Controller{
                 }
             }
         }
-        if (config('msdev2.billing.required')) {
-            redirect($redirectUrl.'/plan');
+
+        $shop = \Msdev2\Shopify\Utils::getShop();
+        if($shop){
+            $result = $shop->rest()->get('shop');
+            $shop->detail = $result->getDecodedBody()["shop"];
+            $shop->save();
+        }
+        if (config('msdev2.billing')) {
+            return redirect($redirectUrl.'/plan');
         }
         return redirect($redirectUrl);
-    }
-    public function planSubscribe(Request $request){
-        $session = new Session();
-        $name = $request->get("name");
-        $planList = config('msdev2.billing');
-        $key = array_search($name, array_column($planList, 'name'));
-        list($hasPayment, $confirmationUrl) = EnsureBilling::check($session, $planList[$key]);
-        if (!$hasPayment) {
-            return redirect($confirmationUrl);
-        }
     }
 }
 ?>

@@ -2,9 +2,11 @@
 
 namespace Msdev2\Shopify\Lib;
 
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Log;
-use Shopify\Auth\Session;
+use Msdev2\Shopify\Models\Shop;
+use Msdev2\Shopify\Utils;
 use Shopify\Clients\Graphql;
 use Shopify\Context;
 
@@ -17,11 +19,12 @@ class EnsureBilling
     private static $RECURRING_INTERVALS = [
         self::INTERVAL_EVERY_30_DAYS, self::INTERVAL_ANNUAL
     ];
-
+    public static $subscriptionId;
+    public static $trialDays;
     /**
-     * Check if the given session has an active payment based on the configs.
+     * Check if the given shop has an active payment based on the configs.
      *
-     * @param Session $session The current session to check
+     * @param Shop $shop The current shop to check
      * @param array   $config  Associative array that accepts keys:
      *                         - "chargeName": string, the name of the charge
      *                         - "amount": float
@@ -32,53 +35,57 @@ class EnsureBilling
      * - hasPayment: bool
      * - confirmationUrl: string|null
      */
-    public static function check(Session $session, array $config): array
+    public static function check(Shop $shop, array $config): array
     {
         $confirmationUrl = null;
-
-        if (self::hasActivePayment($session, $config)) {
-            $hasPayment = true;
-        } else {
-            $hasPayment = false;
-            $confirmationUrl = self::requestPayment($session, $config);
+        self::$trialDays = $config["trialDays"];
+        $charges = $shop->activeCharge;
+        if($charges){
+            self::requestCancelSubscription($shop, 'gid://shopify/AppSubscription/'.$charges->charge_id);
+            $charges->status = 'canceled';
+            $charges->cancelled_on = Carbon::now();
+            $status = $charges->save();
+            Log::alert("update charge",[$status,$charges]);
         }
-
+        $appUsed = $shop->appUsedDay();
+        self::$trialDays = $config["trialDays"] > $appUsed ? $config["trialDays"] - $appUsed : 0;
+        $hasPayment = false;
+        $confirmationUrl = self::requestPayment($shop, $config);
         return [$hasPayment, $confirmationUrl];
     }
 
-    private static function hasActivePayment(Session $session, array $config): bool
+    private static function hasActivePayment(Shop $shop, array $config): bool
     {
         if (self::isRecurring($config)) {
-            return self::hasSubscription($session, $config);
+            return self::hasSubscription($shop, $config);
         } else {
-            return self::hasOneTimePayment($session, $config);
+            return self::hasOneTimePayment($shop, $config);
         }
     }
 
-    private static function hasSubscription(Session $session, array $config): bool
+    private static function hasSubscription(Shop $shop, array $config): bool
     {
-        $responseBody = self::queryOrException($session, self::RECURRING_PURCHASES_QUERY);
+        $responseBody = self::queryOrException($shop, self::RECURRING_PURCHASES_QUERY);
         $subscriptions = $responseBody["data"]["currentAppInstallation"]["activeSubscriptions"];
-
-        foreach ($subscriptions as $subscription) {
-            if (
-                $subscription["name"] === $config["chargeName"] &&
-                (!self::isProd() || !$subscription["test"])
-            ) {
-                return true;
+        if(!empty($subscriptions)){
+            self::$subscriptionId = $subscriptions[0]['id'];
+            foreach ($subscriptions as $subscription) {
+                if ( $subscription["name"] === $config["chargeName"] && ($shop->isTestStore() || !$subscription["test"]) ) {
+                    return true;
+                }
             }
         }
 
         return false;
     }
 
-    private static function hasOneTimePayment(Session $session, array $config): bool
+    private static function hasOneTimePayment(Shop $shop, array $config): bool
     {
         $purchases = null;
         $endCursor = null;
         do {
             $responseBody = self::queryOrException(
-                $session,
+                $shop,
                 [
                     "query" => self::ONE_TIME_PURCHASES_QUERY,
                     "variables" => ["endCursor" => $endCursor]
@@ -89,8 +96,7 @@ class EnsureBilling
             foreach ($purchases["edges"] as $purchase) {
                 $node = $purchase["node"];
                 if (
-                    $node["name"] === $config["chargeName"] &&
-                    (!self::isProd() || !$node["test"]) &&
+                    $node["name"] === $config["chargeName"] && ($shop->isTestStore() || !$node["test"]) &&
                     $node["status"] === "ACTIVE"
                 ) {
                     return true;
@@ -106,18 +112,17 @@ class EnsureBilling
     /**
      * @return string|null
      */
-    private static function requestPayment(Session $session, array $config)
+    private static function requestPayment(Shop $shop, array $config)
     {
-        $hostName = Context::$HOST_NAME;
-        $shop = $session->getShop();
-        $host = base64_encode("$shop/admin");
-        $returnUrl = "https://$hostName?shop={$shop}&host=$host";
-
+        // $hostName = Context::$HOST_NAME;
+        $shopName = $shop->shop;
+        $host = base64_encode("$shopName/admin");
+        $returnUrl = route('msdev2.shopify.plan.approve')."?shop={$shopName}&host=$host&plan=".$config["chargeName"];
         if (self::isRecurring($config)) {
-            $data = self::requestRecurringPayment($session, $config, $returnUrl);
+            $data = self::requestRecurringPayment($shop, $config, $returnUrl);
             $data = $data["data"]["appSubscriptionCreate"];
         } else {
-            $data = self::requestOneTimePayment($session, $config, $returnUrl);
+            $data = self::requestOneTimePayment($shop, $config, $returnUrl);
             $data = $data["data"]["appPurchaseOneTimeCreate"];
         }
 
@@ -128,10 +133,11 @@ class EnsureBilling
         return $data["confirmationUrl"];
     }
 
-    private static function requestRecurringPayment(Session $session, array $config, string $returnUrl): array
+    private static function requestRecurringPayment(Shop $shop, array $config, string $returnUrl): array
     {
+
         return self::queryOrException(
-            $session,
+            $shop,
             [
                 "query" => self::RECURRING_PURCHASE_MUTATION,
                 "variables" => [
@@ -145,31 +151,39 @@ class EnsureBilling
                         ],
                     ],
                     "returnUrl" => $returnUrl,
-                    "test" => !self::isProd(),
+                    "test" => $shop->isTestStore(),
+                    "trialDays" => self::$trialDays
                 ],
             ]
         );
     }
 
-    private static function requestOneTimePayment(Session $session, array $config, string $returnUrl): array
+    private static function requestOneTimePayment(Shop $shop, array $config, string $returnUrl): array
     {
         return self::queryOrException(
-            $session,
+            $shop,
             [
                 "query" => self::ONE_TIME_PURCHASE_MUTATION,
                 "variables" => [
                     "name" => $config["chargeName"],
                     "price" => ["amount" => $config["amount"], "currencyCode" => $config["currencyCode"]],
                     "returnUrl" => $returnUrl,
-                    "test" => !self::isProd(),
+                    "test" => $shop->isTestStore(),
+                    "trialDays" => self::$trialDays
                 ],
             ]
         );
     }
-
-    private static function isProd()
-    {
-        return app()->environment() === 'production';
+    private static function requestCancelSubscription(Shop $shop, $id){
+        return self::queryOrException(
+            $shop,
+            [
+                "query" => self::CANCEL_PURCHASE_MUTATION,
+                "variables" => [
+                    "id" => $id
+                ],
+            ]
+        );
     }
 
     private static function isRecurring(array $config): bool
@@ -180,13 +194,12 @@ class EnsureBilling
     /**
      * @param string|array $query
      */
-    private static function queryOrException(Session $session, $query): array
+    private static function queryOrException(Shop $shop, $query): array
     {
-        $client = new Graphql($session->getShop(), $session->getAccessToken());
+        $client = new Graphql($shop->shop, $shop->access_token);
 
         $response = $client->query($query);
         $responseBody = $response->getDecodedBody();
-
         if (!empty($responseBody["errors"])) {
             throw new Exception("Error while billing the store", $responseBody["errors"]);
         }
@@ -198,7 +211,7 @@ class EnsureBilling
     query appSubscription {
         currentAppInstallation {
             activeSubscriptions {
-                name, test
+                id, name, test
             }
         }
     }
@@ -210,7 +223,7 @@ class EnsureBilling
             oneTimePurchases(first: 250, sortKey: CREATED_AT, after: $endCursor) {
                 edges {
                     node {
-                        name, test, status
+                        id, name, test, status
                     }
                 }
                 pageInfo {
@@ -226,13 +239,15 @@ class EnsureBilling
         $name: String!
         $lineItems: [AppSubscriptionLineItemInput!]!
         $returnUrl: URL!
-        $test: Boolean
+        $test: Boolean,
+        $trialDays: Int
     ) {
         appSubscriptionCreate(
             name: $name
             lineItems: $lineItems
             returnUrl: $returnUrl
-            test: $test
+            test: $test,
+            trialDays: $trialDays
         ) {
             confirmationUrl
             userErrors {
@@ -247,15 +262,35 @@ class EnsureBilling
         $name: String!
         $price: MoneyInput!
         $returnUrl: URL!
-        $test: Boolean
+        $test: Boolean,
+        $trialDays: Int
     ) {
         appPurchaseOneTimeCreate(
             name: $name
             price: $price
             returnUrl: $returnUrl
             test: $test
+            trialDays: $trialDays
         ) {
             confirmationUrl
+            userErrors {
+                field, message
+            }
+        }
+    }
+    QUERY;
+
+
+    private const CANCEL_PURCHASE_MUTATION = <<<'QUERY'
+    mutation appSubscriptionCancel(
+        $id: ID!
+    ) {
+        appSubscriptionCancel(
+            id: $id
+        ) {
+            appSubscription {
+                status
+            }
             userErrors {
                 field, message
             }

@@ -19,7 +19,6 @@ class AuthRedirection
         } else {
             $redirectUrl = self::serverSideRedirectUrl($shop, $isOnline);
         }
-
         return redirect($redirectUrl);
     }
 
@@ -29,7 +28,7 @@ class AuthRedirection
             $shop,
             '/auth/callback',
             $isOnline,
-            ['Msdev2\Shopify\Lib\CookieHandler', 'saveShopifyCookie'],
+            [CookieHandler::class, 'saveShopifyCookie'],
         );
     }
 

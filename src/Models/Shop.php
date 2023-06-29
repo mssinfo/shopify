@@ -2,11 +2,97 @@
 
 namespace Msdev2\Shopify\Models;
 
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
+use Exception;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Shopify\Clients\Rest;
+use Shopify\Clients\Graphql;
 class Shop extends Model
 {
-    use HasFactory;
+    use SoftDeletes;
+    protected $guarded = [];
+    public $timestamps = true;
+
+    protected $casts = [
+        'detail' => 'array',
+    ];
+    public function rest(): Rest {
+        $client = new Rest($this->shop, $this->access_token);
+        //https://github.com/Shopify/shopify-api-php/blob/main/docs/usage/rest.md
+        return $client;
+    }
+    public function graph(): Graphql {
+        $client = new Graphql($this->shop, $this->access_token);
+        //https://github.com/Shopify/shopify-api-php/blob/main/docs/usage/graphql.md
+        return $client;
+    }
+    /**
+     * Get all of the metadata for the Shop
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function metadata(): HasMany
+    {
+        return $this->hasMany(Metadata::class);
+    }
+    /**
+     * Get all of the charges for the Shop
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function charges(): HasMany
+    {
+        return $this->hasMany(Charge::class);
+    }
+    public function activeCharge(): HasOne {
+        return $this->hasOne(Charge::class)->where('status','active')->whereNull('cancelled_on');
+    }
+    public function plan($name = null) {
+        $name = $name ?? ($this->activeCharge->name ?? null);
+
+        if($name){
+            $key = $name;
+            if(!is_numeric($name)){
+                $key = array_search($name, array_column(config('msdev2.plan'), 'chargeName'));
+            }
+            return config('msdev2.plan')[$key] ?? [];
+        }
+        return [];
+    }
+    public function appUsedDay(): int {
+        if($this->charges()){
+            $firstTTimeCharge = $this->charges()->first();
+            if($firstTTimeCharge){
+                $date = \Carbon\Carbon::parse($firstTTimeCharge->activated_on);
+                $now = \Carbon\Carbon::now();
+                return $date->diffInDays($now);
+            }
+        }
+        return 0;
+    }
+    public function setMetaData($key, $value) {
+        return $this->metadata()->updateOrCreate(
+            ['key' => $key],
+            ['value' => $value]
+        );
+    }
+    public function getMetaData($key){
+        $value = $this->metadata()->where('key', $key)->first();
+        if($value){
+            return $value->value;
+        }
+        return null;
+    }
+    public function deleteMetaData($key){
+        return $this->metadata()->where('key', $key)->delete();
+    }
+    public function isTestStore() : bool {
+        $domain = explode('.',$this->shop);
+        $testStore = explode(',',config('Msdev2.test_stores'));
+        if(in_array($domain[0],$testStore)){
+            return true;
+        }
+        return false;
+    }
 }
