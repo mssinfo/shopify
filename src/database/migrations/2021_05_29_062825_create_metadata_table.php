@@ -2,10 +2,9 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Schema;
 
-class CreateChargesTable extends Migration
+class CreateMetadataTable extends Migration
 {
     /**
      * Run the migrations.
