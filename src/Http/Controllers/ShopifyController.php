@@ -6,7 +6,14 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Msdev2\Shopify\Lib\AuthRedirection;
+use Msdev2\Shopify\Lib\DbSessionStorage;
 use Msdev2\Shopify\Models\Shop;
+use Ramsey\Uuid\Nonstandard\Uuid;
+use Shopify\ApiVersion;
+use Shopify\Auth\Session;
+use Shopify\Clients\HttpHeaders;
+use Shopify\Context;
+use Shopify\Exception\InvalidWebhookException;
 use Shopify\Webhooks\Registry;
 use Shopify\Utils;
 
@@ -40,11 +47,14 @@ class ShopifyController extends Controller{
     }
     public function generateToken(Request $request)
     {
-
+        // $cookieCallback = function (OAuthCookie $cookie) use (&$cookiesSet) {
+        //     $cookiesSet[$cookie->getName()] = $cookie;
+        //     return !empty($cookie->getValue());
+        // };
         // $session = OAuth::callback(
         //     $request->cookie(),
         //     $request->query(),
-        //     [CookieHandler::class, 'saveShopifyCookie'],
+        //     $cookieCallback,
         // );
         // dd($session);
         $shared_secret = config("msdev2.shopify_api_secret");
@@ -89,23 +99,63 @@ class ShopifyController extends Controller{
                 }
             }
         }
+        Context::initialize(
+            config('msdev2.shopify_api_key'),
+            config('msdev2.shopify_api_secret'),
+            config('msdev2.scopes'),
+            $host,
+            new DbSessionStorage(),
+            ApiVersion::LATEST,
+            config('msdev2.is_embedded_app'),
+            false,
+            null,
+            '',
+            null,
+            [],
+        );
+        // $shop = \Msdev2\Shopify\Utils::getShop();
         if($shop){
-            $result = $shop->rest()->get('shop');
+            $offlineSession = new Session(request()->session ?? 'offline_'.$shop->shop, $shop->shop, false, Uuid::uuid4()->toString());
+            $offlineSession->setScope(Context::$SCOPES->toString());
+            $offlineSession->setAccessToken($shop->access_token);
+            $offlineSession->setExpires(strtotime('+1 day'));
+            Context::$SESSION_STORAGE->storeSession($offlineSession);
+            $result = \Msdev2\Shopify\Utils::rest()->get('shop');
             $shop->detail = $result->getDecodedBody()["shop"];
             $shop->save();
         }
-        if (config('msdev2.billing')) {
+        if (config('msdev2.billing') && !$shop->activeCharge) {
             return redirect($redirectUrl.'/plan');
         }
         return redirect($redirectUrl);
     }
     public function webhooksAction(Request $request)
     {
-        Log::error("process req",[$request]);
-        return $request->all();
-        try {
-            $response = Registry::process($request->headers->toArray(), $request->getRawBody());
+        $rawHeaders = $request->headers->all();
+        $headers = new HttpHeaders($rawHeaders);
 
+        $missingHeaders = $headers->diff(
+            [HttpHeaders::X_SHOPIFY_HMAC, HttpHeaders::X_SHOPIFY_TOPIC, HttpHeaders::X_SHOPIFY_DOMAIN],
+            false,
+        );
+
+        if (!empty($missingHeaders)) {
+            $missingHeaders = implode(', ', $missingHeaders);
+            throw new InvalidWebhookException(
+                "Missing one or more of the required HTTP headers to process webhooks: [$missingHeaders]"
+            );
+        }
+
+        $topic = $headers->get(HttpHeaders::X_SHOPIFY_TOPIC);
+        $hookClass = ucwords(str_replace('/',' ',$topic));
+        $classWebhook = "\\App\\Webhook\\Handlers\\".str_replace(' ','',$hookClass);
+        if (!class_exists($classWebhook)) {
+            return false;
+        }
+        Registry::addHandler(strtoupper(str_replace(' ','_',$hookClass)), new $classWebhook());
+        try {
+
+            $response = Registry::process($rawHeaders, $request->getContent());
             if ($response->isSuccess()) {
                 Log::info("Responded to webhook!",[$response]);
                 // Respond with HTTP 200 OK
@@ -115,7 +165,7 @@ class ShopifyController extends Controller{
             }
         } catch (\Exception $error) {
             // The webhook request was not a valid one, likely a code error or it wasn't fired by Shopify
-            Log::error($error);
+            Log::error('excepion : '.$error->getMessage(),[$error]);
         }
     }
 }

@@ -43,6 +43,7 @@ class EnsureBilling
         if($charges){
             self::requestCancelSubscription($shop, 'gid://shopify/AppSubscription/'.$charges->charge_id);
             $charges->status = 'canceled';
+            $charges->description = 'Cancel due to change plan';
             $charges->cancelled_on = Carbon::now();
             $status = $charges->save();
             Log::alert("update charge",[$status,$charges]);
@@ -114,7 +115,6 @@ class EnsureBilling
      */
     private static function requestPayment(Shop $shop, array $config)
     {
-        // $hostName = Context::$HOST_NAME;
         $shopName = $shop->shop;
         $host = base64_encode("$shopName/admin");
         $returnUrl = route('msdev2.shopify.plan.approve')."?shop={$shopName}&host=$host&plan=".$config["chargeName"];

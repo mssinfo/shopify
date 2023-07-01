@@ -6,8 +6,6 @@ use Exception;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Shopify\Clients\Rest;
-use Shopify\Clients\Graphql;
 class Shop extends Model
 {
     use SoftDeletes;
@@ -17,16 +15,7 @@ class Shop extends Model
     protected $casts = [
         'detail' => 'array',
     ];
-    public function rest(): Rest {
-        $client = new Rest($this->shop, $this->access_token);
-        //https://github.com/Shopify/shopify-api-php/blob/main/docs/usage/rest.md
-        return $client;
-    }
-    public function graph(): Graphql {
-        $client = new Graphql($this->shop, $this->access_token);
-        //https://github.com/Shopify/shopify-api-php/blob/main/docs/usage/graphql.md
-        return $client;
-    }
+
     /**
      * Get all of the metadata for the Shop
      *
@@ -89,10 +78,13 @@ class Shop extends Model
     }
     public function isTestStore() : bool {
         $domain = explode('.',$this->shop);
-        $testStore = explode(',',config('Msdev2.test_stores'));
+        $testStore = explode(',',config('msdev2.test_stores'));
         if(in_array($domain[0],$testStore)){
             return true;
         }
         return false;
+    }
+    public function log($type){
+        $shop = $this->shop;
     }
 }

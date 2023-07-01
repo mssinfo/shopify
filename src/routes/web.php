@@ -8,7 +8,7 @@ Route::fallback([ShopifyController::class , 'fallback'])->middleware('msdev2.sho
 Route::get("install",function(){
     return view('msdev2::install');
 });
-Route::get('shopify/webhooks"',[ShopifyController::class,'webhooksAction'])->name('msdev2.shopify.webhooks');
+Route::post("shopify/webhooks",[ShopifyController::class,'webhooksAction'])->name('msdev2.shopify.webhooks');
 Route::get("authenticate",[ShopifyController::class,'install'])->name("msdev2.shopify.install");
 Route::get('auth/callback', [ShopifyController::class,'generateToken'])->name("msdev2.shopify.callback");
 
@@ -16,5 +16,5 @@ Route::post('plan/subscribe',[PlanController::class,'planSubscribe'])->name('msd
 Route::get('plan/approve',[PlanController::class,'planAccept'])->name('msdev2.shopify.plan.approve');
 
 Route::middleware(['msdev2.shopify.verify','web'])->group(function(){
-    Route::get('plan',[PlanController::class,'plan'])->name("msdev2.shopify.plan");
+    Route::get('plan',[PlanController::class,'plan'])->name("msdev2.shopify.plan.index");
 });

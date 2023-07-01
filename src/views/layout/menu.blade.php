@@ -22,7 +22,7 @@
             @endif
         @endforeach
         @if (config('msdev2.billing'))
-            <a class="right" href="{{Msdev2\Shopify\Utils::getUrl(route('msdev2.shopify.plan'))}}"><i class="icon-payment"></i> Plan</a>
+            <a class="right" href="{{Msdev2\Shopify\Utils::getUrl(route('msdev2.shopify.plan.index'))}}"><i class="icon-payment"></i> Plan</a>
         @endif
     </nav>
 

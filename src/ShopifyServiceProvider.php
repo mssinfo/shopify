@@ -7,9 +7,10 @@ use Msdev2\Shopify\Http\Middleware\EnsureShopifyInstalled;
 use Msdev2\Shopify\Http\Middleware\VerifyShopify;
 use Msdev2\Shopify\Http\Middleware\EnsureShopifySession;
 use Msdev2\Shopify\Lib\DbSessionStorage;
-use Msdev2\Shopify\Models\Session;
 use Shopify\ApiVersion;
+use Shopify\Auth\Session;
 use Shopify\Context;
+use Ramsey\Uuid\Uuid;
 
 class ShopifyServiceProvider extends ServiceProvider
 {
@@ -25,9 +26,7 @@ class ShopifyServiceProvider extends ServiceProvider
         $this->app['router']->aliasMiddleware('msdev2.shopify.verify', VerifyShopify::class);
         $this->app['router']->aliasMiddleware('msdev2.shopify.auth', EnsureShopifySession::class);
         $this->app['router']->aliasMiddleware('msdev2.shopify.installed', EnsureShopifyInstalled::class);
-
-        $host = str_replace('https://', '', env('APP_URL', 'not_defined'));
-
+        $host = str_replace('https://', '', config('app.url'));
         $customDomain = env('SHOP_CUSTOM_DOMAIN', null);
         Context::initialize(
             config('msdev2.shopify_api_key'),
@@ -43,15 +42,13 @@ class ShopifyServiceProvider extends ServiceProvider
             null,
             (array)$customDomain,
         );
-        $sessionArray = [];
-        if(request()->get('shop')){
-            $sessionArray['shop'] = request()->get('shop');
-        }
-        if(request()->get('host')){
-            $sessionArray['host'] = request()->get('host');
-        }
-        if(!empty($sessionArray)){
-            session($sessionArray);
+        $shop = Utils::getShop();
+        if($shop){
+            $offlineSession = new Session(request()->session ?? 'offline_'.$shop->shop, $shop->shop, false, Uuid::uuid4()->toString());
+            $offlineSession->setScope(Context::$SCOPES->toString());
+            $offlineSession->setAccessToken($shop->access_token);
+            $offlineSession->setExpires(strtotime('+1 day'));
+            Context::$SESSION_STORAGE->storeSession($offlineSession);
         }
         URL::forceRootUrl("https://$host");
         URL::forceScheme('https');

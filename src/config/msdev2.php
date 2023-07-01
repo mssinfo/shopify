@@ -6,7 +6,7 @@ return [
     "webhooks"=>env('SHOPIFY_WEBHOOKS', 'APP_UNINSTALLED,THEMES_PUBLISH,SHOP_UPDATE'),
     'appbridge_enabled' => (bool) env('SHOPIFY_APPBRIDGE_ENABLED', true),
     "appbridge_version"=>env('SHOPIFY_APPBRIDGE_VERSION', '3'),
-    "is_embedded_app"=> (bool) env('SHOPIFY_IS_EMBEDDED_APP',true),
+    "is_embedded_app"=> (bool) env('SHOPIFY_IS_EMBEDDED_APP',true) ?? true,
     "footer"=>env('SHOPIFY_FOOTER', '<p>Copyright &copy; All right reserved.</p>'),
     "test_stores"=>env('SHOPIFY_TEST_STORES',''),
     "menu"=>[
