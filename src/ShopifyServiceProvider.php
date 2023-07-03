@@ -44,6 +44,7 @@ class ShopifyServiceProvider extends ServiceProvider
         );
         $shop = Utils::getShop();
         if($shop){
+            if(!session('shopName'))session(['shopName'=>$shop->shop]);
             $offlineSession = new Session(request()->session ?? 'offline_'.$shop->shop, $shop->shop, false, Uuid::uuid4()->toString());
             $offlineSession->setScope(Context::$SCOPES->toString());
             $offlineSession->setAccessToken($shop->access_token);
@@ -56,5 +57,6 @@ class ShopifyServiceProvider extends ServiceProvider
     public function register()
     {
         //code here to register
+        require_once __DIR__.'/Lib/Functions.php';
     }
 }

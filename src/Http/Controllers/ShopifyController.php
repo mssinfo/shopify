@@ -120,7 +120,7 @@ class ShopifyController extends Controller{
             $offlineSession->setAccessToken($shop->access_token);
             $offlineSession->setExpires(strtotime('+1 day'));
             Context::$SESSION_STORAGE->storeSession($offlineSession);
-            $result = \Msdev2\Shopify\Utils::rest()->get('shop');
+            $result = \Msdev2\Shopify\Utils::rest($shop)->get('shop');
             $shop->detail = $result->getDecodedBody()["shop"];
             $shop->save();
         }

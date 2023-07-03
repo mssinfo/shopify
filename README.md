@@ -57,3 +57,20 @@ css reference is https://www.uptowncss.com/
             actions.TitleBar.create(app, { title: 'Welcome' });
         </script>
     @endsection
+
+## helper functions
+### route helper functions
+    \Msdev2\Shopify\Utils::Route('home',['app'=>'home']) or mRoute('home',['app'=>'home])
+    \Msdev2\Shopify\Utils::Route('home') or mRoute('home')
+    \Msdev2\Shopify\Utils::Route('home.name') or mRoute('home.name')
+    \Msdev2\Shopify\Utils::Route('/pagename') or mRoute('/pagename')
+### other common helper functions
+    \Msdev2\Shopify\Utils::getShopName() or mShopName()
+    \Msdev2\Shopify\Utils::getShop(?$shopname) or mShop(?$shopname)
+    \Msdev2\Shopify\Utils::rest(?$shop) or mRest(?$shop)
+    \Msdev2\Shopify\Utils::graph(?$shop) or mGraph(?$shop)
+    \Msdev2\Shopify\Utils::makeUrltoLinkFromString($string) or mUrltoLinkFromString($string)
+    \Msdev2\Shopify\Utils::successResponse(?$message,?$array,?$code) or mSuccessResponse(?$message,?$array,?$code)
+    \Msdev2\Shopify\Utils::errorResponse(?$message,?$array,?$code) or mErrorResponse(?$message,?$array,?$code)
+
+

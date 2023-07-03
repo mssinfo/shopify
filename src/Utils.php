@@ -3,6 +3,7 @@ namespace Msdev2\Shopify;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Route;
 use Msdev2\Shopify\Models\Shop;
 use Shopify\Context;
 use Shopify\Utils as ShopifyUtils;
@@ -11,7 +12,7 @@ use Shopify\Clients\Graphql;
 
 class Utils
 {
-    public static function getUrl($path) {
+    public static function Route($path,$query = []) {
         $queryList = ShopifyUtils::getQueryParams(URL::full());
         if(isset($queryList["host"])) $query["host"] = $queryList['host'];
         else $query["host"] = base64_encode('https://'.Context::$HOST_NAME.'/admin');
@@ -28,13 +29,19 @@ class Utils
             }
         }
         $query = http_build_query($query);
-        return $path.'?'.$query;
+        if(Route::has($path)){
+            return route($path,$query);
+        }elseif (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path.'?'.$query;
+        }
+        $path = ltrim($path, '/');
+        return 'https://'.Context::$HOST_NAME.'/'.$path.'?'.$query;
     }
     public static function getShopName(){
         $query = ShopifyUtils::getQueryParams(URL::full());
         $shopName = $query['shop'] ?? null;
         if(!$shopName){
-            $shopName = session('shop') ?? null;
+            $shopName = session('shopName') ?? null;
         }
         if(!$shopName){
             $shopName = request()->header('shop') ?? null;
@@ -52,25 +59,38 @@ class Utils
             $shopName = self::getShopName();
         }
         if($shopName){
+            if(is_numeric($shopName)){
+                return Shop::find($shopName);
+            }
             return Shop::where('shop',$shopName)->first();
         }
         return null;
     }
-    public static function rest(): Rest {
-        $shopName = self::getShopName();
-        $accessToken = Context::$SESSION_STORAGE->loadSession(request()->session ?? 'offline_'.$shopName)->getAccessToken();
-        if(!$accessToken){
-            $accessToken = self::getShop()->access_token;
+    public static function rest(Shop $shop = null): Rest {
+        if(!$shop){
+            $shopName = self::getShopName();
+            $accessToken = Context::$SESSION_STORAGE->loadSession(request()->session ?? 'offline_'.$shopName)->getAccessToken();
+            if(!$accessToken){
+                $accessToken = self::getShop()->access_token;
+            }
+        }else{
+            $shopName = $shop->shop;
+            $accessToken = $shop->access_token;
         }
         $client = new Rest($shopName, $accessToken);
         //https://github.com/Shopify/shopify-api-php/blob/main/docs/usage/rest.md
         return $client;
     }
-    public static function graph(): Graphql {
-        $shopName = self::getShopName();
-        $accessToken = Context::$SESSION_STORAGE->loadSession(request()->session ?? 'offline_'.$shopName)->getAccessToken();
-        if(!$accessToken){
-            $accessToken = self::getShop()->access_token;
+    public static function graph(Shop $shop = null): Graphql {
+        if(!$shop){
+            $shopName = self::getShopName();
+            $accessToken = Context::$SESSION_STORAGE->loadSession(request()->session ?? 'offline_'.$shopName)->getAccessToken();
+            if(!$accessToken){
+                $accessToken = self::getShop()->access_token;
+            }
+        }else{
+            $shopName = $shop->shop;
+            $accessToken = $shop->access_token;
         }
         $client = new Graphql($shopName, $accessToken);
         //https://github.com/Shopify/shopify-api-php/blob/main/docs/usage/graphql.md
@@ -83,7 +103,7 @@ class Utils
     *
     * @return string
     */
-    function makeUrltoLink($string) {
+    public static function makeUrltoLinkFromString($string) {
         // The Regular Expression filter
         $reg_pattern = "/(((http|https|ftp|ftps)\:\/\/)|(www\.))[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\:[0-9]+)?(\/\S*)?/";
         // make the urls to hyperlinks
@@ -98,7 +118,7 @@ class Utils
     *
     * @return JsonResponse
     */
-    function successResponse($data=[], $message = "Operation Done Successful", $code = "200"){
+    public static function successResponse($data=[], $message = "Operation Done Successful", $code = "200"){
         return response()->json([
             "status"=>"success",
             "message"=>$message,
@@ -116,7 +136,7 @@ class Utils
     *
     * @return JsonResponse
     */
-    function errorResponse($data=[], $message = "Some Error", $code = "200"){
+    public static function errorResponse($data=[], $message = "Some Error", $code = "200"){
         return response()->json([
             "status"=>"error",
             "message"=>$message,

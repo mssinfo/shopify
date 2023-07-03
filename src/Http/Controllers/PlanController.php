@@ -53,7 +53,7 @@ class PlanController extends Controller{
             'activated_on'=>Carbon::now(),
             'trial_ends_on'=>Carbon::now()->addDays($trialDay),
         ]);
-        return redirect(Utils::getUrl('/'));
+        return redirect(Utils::Route('home'));
     }
 }
 ?>

@@ -56,7 +56,7 @@
             let isActive = 'active'
             if(currentPlan != element.chargeName){
                 isActive = ''
-                buttonForm = `<form target="_parent" method="post" action="{{Msdev2\Shopify\Utils::getUrl(route('msdev2.shopify.plan.subscribe'))}}">
+                buttonForm = `<form target="_parent" method="post" action="{{mRoute('msdev2.shopify.plan.subscribe')}}">
                     <input type="hidden" name="plan" value="${element.chargeName}">`;
                 if(appUsed < element.trialDays && element.trialDays > 0){
                     buttonForm += `<button>${'Start '+ (element.trialDays-appUsed) +' Day Trial'}</button>`

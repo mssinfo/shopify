@@ -2,7 +2,7 @@
 return [
     "shopify_api_key"=>env('SHOPIFY_API_KEY', '63f2fa001dd7228268d7c5f920f9b28b'),
     "shopify_api_secret"=>env('SHOPIFY_API_SECRET', '47f72686a3950d8f9bf307f5eea1f071'),
-    "scopes"=>env('SHOPIFY_API_SCOPES', 'read_content,read_files,write_files,read_metaobjects,write_metaobjects,read_script_tags,read_script_tags,read_themes'),
+    "scopes"=>env('SHOPIFY_API_SCOPES', 'read_content,read_files,write_files,read_themes,write_themes,read_metaobjects,write_metaobjects,read_script_tags,read_script_tags,read_themes'),
     "webhooks"=>env('SHOPIFY_WEBHOOKS', 'APP_UNINSTALLED,THEMES_PUBLISH,SHOP_UPDATE'),
     'appbridge_enabled' => (bool) env('SHOPIFY_APPBRIDGE_ENABLED', true),
     "appbridge_version"=>env('SHOPIFY_APPBRIDGE_VERSION', '3'),
