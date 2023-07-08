@@ -34,7 +34,7 @@ class ShopifyServiceProvider extends ServiceProvider
             config('msdev2.scopes'),
             $host,
             new DbSessionStorage(),
-            ApiVersion::LATEST,
+            ApiVersion::JANUARY_2023,
             config('msdev2.is_embedded_app'),
             false,
             null,
@@ -42,12 +42,13 @@ class ShopifyServiceProvider extends ServiceProvider
             null,
             (array)$customDomain,
         );
-        $shop = Utils::getShop();
-        if($shop){
-            if(!session('shopName'))session(['shopName'=>$shop->shop]);
-            $offlineSession = new Session(request()->session ?? 'offline_'.$shop->shop, $shop->shop, false, Uuid::uuid4()->toString());
+        $shoName = Utils::getShopName();
+        $accessToken = Utils::getAccessToken();
+        if($shoName && $accessToken){
+            if(!session('shopName'))session(['shopName'=>$shoName]);
+            $offlineSession = new Session(request()->session ?? 'offline_'.$shoName, $shoName, false, Uuid::uuid4()->toString());
             $offlineSession->setScope(Context::$SCOPES->toString());
-            $offlineSession->setAccessToken($shop->access_token);
+            $offlineSession->setAccessToken($accessToken);
             $offlineSession->setExpires(strtotime('+1 day'));
             Context::$SESSION_STORAGE->storeSession($offlineSession);
         }
@@ -56,7 +57,6 @@ class ShopifyServiceProvider extends ServiceProvider
     }
     public function register()
     {
-        //code here to register
         require_once __DIR__.'/Lib/Functions.php';
     }
 }

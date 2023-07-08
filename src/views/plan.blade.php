@@ -28,7 +28,10 @@
         var column = classList[pricingPlan.length-1];
         pricingPlan.forEach((element,key) => {
             let iType = ''
-            if(element.interval == "EVERY_30_DAYS"){
+            if(parseInt(element.amount) == 0){
+                iType = ''
+            }
+            else if(element.interval == "EVERY_30_DAYS"){
                 iType = '/month'
             }
             else if(element.interval == "ANNUAL"){
@@ -37,15 +40,15 @@
             else if(element.interval == "ONE_TIME"){
                 iType = ' One Time'
             }
-            let feature = [];
-            (element.feature).forEach(element => {
+            let properties = [];
+            (element.properties).forEach(element => {
                 let cls = ''
                 if(element.value=='true'){
                     cls = 'success'
                 }else if(element.value=='false'){
                     cls = 'error'
                 }
-                feature.push(`<tr class="${cls}"><td>
+                properties.push(`<tr class="${cls}"><td>
                     <div>${element.value=='true' ? '✅' : '❌ '}
                         ${element.name}
                         ${element.help_text ? ' &nbsp; <span class="tip" data-hover="'+element.help_text+'" style="position: relative;top: -5px;"><i class="icon-question"></i></span>' : ''}
@@ -71,7 +74,7 @@
                     <h2>${element.amount == 0 ? '' : element.currencyCode}${element.amount == 0 ? 'Free' : element.amount }${iType}</h2>
                 </th></tr></thead>
                 <tbody>
-                    ${feature.join('')}
+                    ${properties.join('')}
                 </tbody>
                 <tfoot><tr><td>
                     ${buttonForm}

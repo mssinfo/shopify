@@ -1,6 +1,7 @@
 <?php
 namespace Msdev2\Shopify;
 
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Route;
@@ -9,6 +10,7 @@ use Shopify\Context;
 use Shopify\Utils as ShopifyUtils;
 use Shopify\Clients\Rest;
 use Shopify\Clients\Graphql;
+use Illuminate\Support\Facades\Cache;
 
 class Utils
 {
@@ -40,39 +42,65 @@ class Utils
     public static function getShopName(){
         $query = ShopifyUtils::getQueryParams(URL::full());
         $shopName = $query['shop'] ?? null;
-        if(!$shopName){
-            $shopName = session('shopName') ?? null;
+        if(!$shopName && session('shopName')){
+            $shopName = session('shopName');
         }
-        if(!$shopName){
-            $shopName = request()->header('shop') ?? null;
+        elseif(!$shopName && request()->header('shop')){
+            $shopName = request()->header('shop');
         }
-        if(!$shopName && request()->session){
+        elseif(!$shopName &&  Cache::get('shopName')){
+            $shopName = Cache::get('shopName');
+        }
+        elseif(!$shopName && request()->session){
             $shopName = Context::$SESSION_STORAGE->loadSession(request()->session)->getShop();
         }
         if(!$shopName){
             return null;
         }
+        Cache::put('shopName',$shopName);
         return $shopName;
     }
+    public static function getAccessToken(){
+        $accessToken = null;
+        if(Cache::get('accessToken')){
+            $accessToken = Cache::get('accessToken');
+        }
+        elseif(!$accessToken && request()->session){
+            $accessToken = Context::$SESSION_STORAGE->loadSession(request()->session)->getAccessToken();
+        }
+        if(!$accessToken){
+            $shop = self::getShop();
+            if($shop){
+                $accessToken = $shop->access_token;
+            }
+        }
+        if(!$accessToken){
+            return null;
+        }
+        Cache::put('accessToken',$accessToken);
+        return $accessToken;
+    }
     public static function getShop($shopName = null) :Shop|null{
+        $shop = null;
         if(!$shopName){
             $shopName = self::getShopName();
         }
         if($shopName){
             if(is_numeric($shopName)){
-                return Shop::find($shopName);
+                $shop = Shop::find($shopName);
             }
-            return Shop::where('shop',$shopName)->first();
+            $shop = Shop::where('shop',$shopName)->first();
         }
-        return null;
+        if($shop){
+            Cache::put('accessToken',$shop->access_token);
+            Cache::put('shopName',$shop->shop);
+        }
+        return $shop;
     }
     public static function rest(Shop $shop = null): Rest {
         if(!$shop){
             $shopName = self::getShopName();
-            $accessToken = Context::$SESSION_STORAGE->loadSession(request()->session ?? 'offline_'.$shopName)->getAccessToken();
-            if(!$accessToken){
-                $accessToken = self::getShop()->access_token;
-            }
+            $accessToken = self::getAccessToken();
         }else{
             $shopName = $shop->shop;
             $accessToken = $shop->access_token;
@@ -84,10 +112,7 @@ class Utils
     public static function graph(Shop $shop = null): Graphql {
         if(!$shop){
             $shopName = self::getShopName();
-            $accessToken = Context::$SESSION_STORAGE->loadSession(request()->session ?? 'offline_'.$shopName)->getAccessToken();
-            if(!$accessToken){
-                $accessToken = self::getShop()->access_token;
-            }
+            $accessToken = self::getAccessToken();
         }else{
             $shopName = $shop->shop;
             $accessToken = $shop->access_token;
@@ -108,6 +133,116 @@ class Utils
         $reg_pattern = "/(((http|https|ftp|ftps)\:\/\/)|(www\.))[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\:[0-9]+)?(\/\S*)?/";
         // make the urls to hyperlinks
         return preg_replace($reg_pattern, '<a href="$0" target="_blank" rel="noopener noreferrer">$0</a>', $string);
+    }
+    public static function scriptTagShouldBeEnabled(Shop $shop, $published_theme, array $app_block_templates = [], array $params = []):bool
+    {
+        if (empty($app_block_templates)) {
+            return false;
+        }
+        if (is_null($published_theme)) {
+            return false;
+        }
+        $templateJSONFiles = [];
+        $sectionsWithAppBlock = [];
+        $main = false;
+        $templateMainSections = [];
+        // Setup the params
+        $reqParams = array_merge(
+            [
+                'fields' => 'key',
+            ],
+            $params
+        );
+        // Fire the request
+        $response =  mRest($shop)->get("/themes/{$published_theme}/assets", [], $reqParams);
+        $assets = $response->getDecodedBody()['assets'];
+        if (empty($assets)) {
+            return false;
+        }
+        foreach ($assets as $asset) {
+            foreach ($app_block_templates as $template) {
+                if ($asset['key'] === "templates/{$template}.json") {
+                    $templateJSONFiles[] = $asset['key'];
+                }
+            }
+        }
+        if (count($templateJSONFiles) != count($app_block_templates)) {
+            return false;
+        }
+        foreach ($templateJSONFiles as $file) {
+            $acceptsAppBlock = false;
+            $reqParams = array_merge(
+                [
+                    'fields' => 'value',
+                ],
+                ['asset[key]' => $file]
+            );
+
+            // Fire the request
+            $response = mRest($shop)->get("themes/{$published_theme}/assets", [], $reqParams);
+            $asset = $response->getDecodedBody()['asset'];
+
+            $json = json_decode($asset['value'], true);
+            $query = 'main-';
+            // Log::info(print_r($json, 1));
+
+            if (array_key_exists('sections', (array)$json) && count($json['sections']) > 0) {
+                foreach ($json['sections'] as $key => $value) {
+                    if ($key === 'main' || substr($value['type'], 0, strlen($query)) === $query) {
+                        $main = $value;
+                        break;
+                    }
+                }
+            }
+
+            if ($main) {
+                $mainType = $main['type'];
+                if (count($assets) > 0) {
+                    foreach ($assets as $asset) {
+                        if ($asset['key'] === "sections/{$mainType}.liquid") {
+                            $templateMainSections[] = $asset['key'];
+                        }
+                    }
+                }
+            }
+        }
+
+        if (count($templateMainSections) > 0) {
+            $templateMainSections = array_unique($templateMainSections);
+            foreach ($templateMainSections as $templateSection) {
+                $acceptsAppBlock = false;
+                $reqParams = array_merge(
+                    [
+                        'fields' => 'value',
+                    ],
+                    ['asset[key]' => $templateSection]
+                );
+
+                // Fire the request
+                $response = mRest($shop)->get("/admin/themes/{$published_theme}/assets", [], $reqParams);
+                $asset = $response->getDecodedBody()['asset'];
+
+                $match = preg_match('/\{\%\s+schema\s+\%\}([\s\S]*?)\{\%\s+endschema\s+\%\}/m', $asset['value'], $matches);
+
+                // Log::info(print_r($matches,1));
+                $schema = json_decode($matches[1], true);
+                // Log::info(print_r($schema,1));
+
+                if ($schema && array_key_exists('blocks', $schema)) {
+                    foreach ($schema['blocks'] as $block) {
+                        if (array_key_exists('type', (array)$block) && $block['type'] === '@app') {
+                            $acceptsAppBlock = true;
+                        }
+                    }
+                    //   $acceptsAppBlock = .some((b => b.type === '@app'));
+                }
+                $acceptsAppBlock ? array_push($sectionsWithAppBlock, $templateSection) : null ;
+            }
+        }
+        if (count($sectionsWithAppBlock)>0  && count($sectionsWithAppBlock) === count($templateJSONFiles)) {
+            return false;
+        }
+        return true;
     }
     /**
     * Create a success response. This is a convenience function to create a success response with a JSON payload.

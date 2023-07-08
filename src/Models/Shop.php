@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 class Shop extends Model
 {
+    use \App\Models\Shop;
     use SoftDeletes;
     protected $guarded = [];
     public $timestamps = true;

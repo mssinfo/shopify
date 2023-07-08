@@ -32,7 +32,10 @@ class PlanController extends Controller{
         $plan = $shop->plan($request->plan);
         $planType = 'recurring';
         $billingOn = Carbon::now()->addYear();
-        if($plan['interval'] == 'ONE_TIME'){
+        if($plan["amount"] == 0){
+            $planType = 'free';
+            $billingOn = Carbon::now();
+        }elseif($plan['interval'] == 'ONE_TIME'){
             $planType = 'one_time';
             $billingOn = Carbon::now();
         }elseif($plan['interval'] == 'EVERY_30_DAYS'){
@@ -40,7 +43,7 @@ class PlanController extends Controller{
         }
         $trialDay = $plan['trialDays'] > $shop->appUsedDay() ? $plan['trialDays'] - $shop->appUsedDay() : 0;
         $shop->charges()->create([
-            'charge_id'=>$request->charge_id,
+            'charge_id'=>$request->charge_id ?? 0,
             'name'=>$plan["chargeName"],
             'test'=>!(app()->environment() === 'production'),
             'status'=>'active',
@@ -53,7 +56,7 @@ class PlanController extends Controller{
             'activated_on'=>Carbon::now(),
             'trial_ends_on'=>Carbon::now()->addDays($trialDay),
         ]);
-        return redirect(Utils::Route('home'));
+        return redirect(Utils::Route('/'));
     }
 }
 ?>

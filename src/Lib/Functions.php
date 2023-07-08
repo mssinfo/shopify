@@ -5,8 +5,11 @@ use Msdev2\Shopify\Utils;
 function mRoute($path,$param = []){
     return Utils::Route($path,$param);
 }
-function mShopname(){
+function mShopName(){
     return Utils::getShopName();
+}
+function mAccessToken(){
+    return Utils::getAccessToken();
 }
 function mShop($shopName = null){
     return Utils::getShop($shopName);

@@ -113,7 +113,6 @@ class ShopifyController extends Controller{
             null,
             [],
         );
-        // $shop = \Msdev2\Shopify\Utils::getShop();
         if($shop){
             $offlineSession = new Session(request()->session ?? 'offline_'.$shop->shop, $shop->shop, false, Uuid::uuid4()->toString());
             $offlineSession->setScope(Context::$SCOPES->toString());

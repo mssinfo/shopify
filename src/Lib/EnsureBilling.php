@@ -118,7 +118,9 @@ class EnsureBilling
         $shopName = $shop->shop;
         $host = base64_encode("$shopName/admin");
         $returnUrl = route('msdev2.shopify.plan.approve')."?shop={$shopName}&host=$host&plan=".$config["chargeName"];
-        if (self::isRecurring($config)) {
+        if($config["amount"]==0){
+            $data["confirmationUrl"] = $returnUrl;
+        }else if (self::isRecurring($config)) {
             $data = self::requestRecurringPayment($shop, $config, $returnUrl);
             $data = $data["data"]["appSubscriptionCreate"];
         } else {

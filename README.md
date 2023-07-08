@@ -26,17 +26,17 @@ setup basic shopify app like install and all
     [shop]/auth/callback
 
 ## Update ENV variables
-    'SHOPIFY_API_KEY'='63f2fa001d************',
-    'SHOPIFY_API_SECRET'='47f72686a3************',
-    'SHOPIFY_API_SCOPES'='read_products,write_products',
-    'SHOPIFY_WEBHOOKS'='APP_UNINSTALLED,THEMES_PUBLISH,SHOP_UPDATE',
-    'SHOPIFY_BILLING'= true, #false
-    'SHOPIFY_FOOTER'='<div>copyright @copy; all right reserved</div>',
-    'SHOPIFY_IS_EMBEDDED_APP'= true, #false //true if you want to open an app inside shopify else false
-    'SHOPIFY_APPBRIDGE_ENABLED' = true, #true,
-    'SHOPIFY_TEST_STORES' = 'mraganksoni,msdev203'
+    SHOPIFY_API_KEY=63f2fa001d************
+    SHOPIFY_API_SECRET=47f72686a3************
+    SHOPIFY_APP_ID=548698745823
+    SHOPIFY_API_SCOPES=read_products,write_products
+    SHOPIFY_WEBHOOKS=APP_UNINSTALLED,THEMES_PUBLISH,SHOP_UPDATE
+    SHOPIFY_BILLING=true, #false
+    SHOPIFY_FOOTER=<div>copyright @copy; all right reserved</div>
+    SHOPIFY_IS_EMBEDDED_APP=true, #false //true if you want to open an app inside shopify else false
+    SHOPIFY_APPBRIDGE_ENABLED=true #true
+    SHOPIFY_TEST_STORES=mraganksoni,msdev203
 
-    
 ## middleware lists
     msdev2.shopify.verify  //to verify shop exist in url
     msdev2.shopify.auth //to authenticate shopify user
@@ -73,4 +73,13 @@ css reference is https://www.uptowncss.com/
     \Msdev2\Shopify\Utils::successResponse(?$message,?$array,?$code) or mSuccessResponse(?$message,?$array,?$code)
     \Msdev2\Shopify\Utils::errorResponse(?$message,?$array,?$code) or mErrorResponse(?$message,?$array,?$code)
 
+
+## save tabel to metafield
+    class ModelName extend \Msdev2\Shopify\Models\Model
+    {
+        /** set true to save this data into metafield*/
+        public $metaField = true;
+        
+    }
+    
 
