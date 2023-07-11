@@ -8,7 +8,7 @@ Route::fallback([ShopifyController::class , 'fallback'])->middleware('msdev2.sho
 Route::get("install",function(){
     return view('msdev2::install');
 });
-Route::post("shopify/webhooks",[ShopifyController::class,'webhooksAction'])->name('msdev2.shopify.webhooks');
+Route::post("shopify/webhooks/{name?}",[ShopifyController::class,'webhooksAction'])->name('msdev2.shopify.webhooks');
 Route::get("authenticate",[ShopifyController::class,'install'])->name("msdev2.shopify.install");
 Route::get('auth/callback', [ShopifyController::class,'generateToken'])->name("msdev2.shopify.callback");
 

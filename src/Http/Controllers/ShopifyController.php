@@ -132,7 +132,7 @@ class ShopifyController extends Controller{
     {
         $rawHeaders = $request->headers->all();
         $headers = new HttpHeaders($rawHeaders);
-
+        Log::info("Request to webhook!",[$request->all(),$rawHeaders,$headers]);
         $missingHeaders = $headers->diff(
             [HttpHeaders::X_SHOPIFY_HMAC, HttpHeaders::X_SHOPIFY_TOPIC, HttpHeaders::X_SHOPIFY_DOMAIN],
             false,
@@ -149,7 +149,8 @@ class ShopifyController extends Controller{
         $hookClass = ucwords(str_replace('/',' ',$topic));
         $classWebhook = "\\App\\Webhook\\Handlers\\".str_replace(' ','',$hookClass);
         if (!class_exists($classWebhook)) {
-            return false;
+            Log::info("class hot found for hook");
+            return true;
         }
         Registry::addHandler(strtoupper(str_replace(' ','_',$hookClass)), new $classWebhook());
         try {
@@ -166,6 +167,7 @@ class ShopifyController extends Controller{
             // The webhook request was not a valid one, likely a code error or it wasn't fired by Shopify
             Log::error('excepion : '.$error->getMessage(),[$error]);
         }
+        return true;
     }
 }
 ?>
