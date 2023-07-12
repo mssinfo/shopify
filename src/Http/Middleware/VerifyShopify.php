@@ -21,7 +21,14 @@ class VerifyShopify
                 }
             }
             if(config('msdev2.billing')){
-                $shop = \Msdev2\Shopify\Utils::getShop();
+                $shop = mShop();
+                if(!$shop){
+                    $shopName = mShopName();
+                    if($shopName){
+                        return redirect()->route('msdev2.shopify.install',['shop'=>$shopName]);
+                    }
+                    abort(403,'Shop not exist in request');
+                }
                 $charges = $shop->charges()->where('status','active')->whereNull('cancelled_on')->first();
                 if(!$charges && $request->path()!='plan'){
                     return redirect(\Msdev2\Shopify\Utils::Route('msdev2.shopify.plan.index'));
@@ -29,7 +36,6 @@ class VerifyShopify
             }
             if(Context::$IS_EMBEDDED_APP && request()->header('sec-fetch-dest')!='iframe' && $request->server("REQUEST_METHOD")=='GET' && $request->input("host")){
                 $url = Utils::getEmbeddedAppUrl($request->input("host"));
-                // return AuthRedirection::redirect($request);
                 return redirect($url.$request->server("SCRIPT_URL"));
             }
             return $next($request);

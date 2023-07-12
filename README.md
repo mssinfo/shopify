@@ -19,7 +19,7 @@ setup basic shopify app like install and all
 
 ## To install shop
     [domain]/install -- for ui
-    <a htef="{{ reoute('msdev2.install') }}">Install</a> -- for link of ui
+    <a htef="{{ route('msdev2.install') }}">Install</a> -- for link of ui
     https://[domain]/authenticate?shop=[shopify_domain] -- instent redirect
 
 ## Update shopify app callback url 

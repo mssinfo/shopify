@@ -13,7 +13,7 @@ class PlanController extends Controller{
 
     public function plan(Request $request){
         $shop = Utils::getShop();
-        $firstTTimeCharge = $shop->charges()->first();
+        $firstTimeCharge = $shop->charges()->first();
         $appUsed = $shop->appUsedDay();
         $activePlanName = $shop->activeCharge->name ?? '';
         return view('msdev2::plan',compact('activePlanName','appUsed'));
