@@ -21,29 +21,10 @@ class ShopifyController extends Controller{
 
     function fallback(Request $request) {
         return redirect(Utils::getEmbeddedAppUrl($request->query("host", null)) . "/" . $request->path());
-        // if (Context::$IS_EMBEDDED_APP &&  $request->query("embedded", false) === "1") {
-        //     if (env('APP_ENV') === 'production') {
-        //         return file_get_contents(public_path('index.html'));
-        //     } else {
-        //         return file_get_contents(base_path('frontend/index.html'));
-        //     }
-        // } else {
-        //     return redirect(Utils::getEmbeddedAppUrl($request->query("host", null)) . "/" . $request->path());
-        // }
     }
     public function install(Request $request)
     {
         return AuthRedirection::redirect($request);
-        // $shop = $request->shop;
-        // $api_key = config('msdev2.shopify_api_key');
-        // $scopes = config('msdev2.scopes');
-        // $redirect_uri = route("msdev2.shopify.callback");
-        // $shop = Utils::sanitizeShopDomain($shop);
-        // if(!$shop){
-        //     return redirect()->back()->withErrors(['msg'=>'invalid domain']);
-        // }
-        // $install_url = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
-        // return redirect($install_url);
     }
     public function generateToken(Request $request)
     {
@@ -128,7 +109,7 @@ class ShopifyController extends Controller{
         }
         return redirect($redirectUrl);
     }
-    public function webhooksAction(Request $request)
+    public function webhooksAction(Request $request,$name = null)
     {
         $rawHeaders = $request->headers->all();
         $headers = new HttpHeaders($rawHeaders);
@@ -140,34 +121,42 @@ class ShopifyController extends Controller{
 
         if (!empty($missingHeaders)) {
             $missingHeaders = implode(', ', $missingHeaders);
-            throw new InvalidWebhookException(
-                "Missing one or more of the required HTTP headers to process webhooks: [$missingHeaders]"
-            );
+            return mErrorResponse("Missing one or more of the required HTTP headers to process webhooks",[$missingHeaders],401);
         }
+        if($name){
+            $shared_secret = config("msdev2.shopify_api_secret");
+            $hmac = $request->get('hmac');
+            $computed_hmac = hash_hmac('sha256', http_build_query($request->all()), $shared_secret);
 
+            // Use hmac data to check that the response is from Shopify or not
+            if (!isset($hmac) || !hash_equals($hmac, $computed_hmac)) {
+                return mErrorResponse("Invalid HMAC request",[],401);
+            }
+        }
         $topic = $headers->get(HttpHeaders::X_SHOPIFY_TOPIC);
         $hookClass = ucwords(str_replace('/',' ',$topic));
         $classWebhook = "\\App\\Webhook\\Handlers\\".str_replace(' ','',$hookClass);
         if (!class_exists($classWebhook)) {
-            Log::info("class hot found for hook");
-            return true;
+            // Log::info("class hot found for hook");
+            return mSuccessResponse("class hot found for hook");
         }
         Registry::addHandler(strtoupper(str_replace(' ','_',$hookClass)), new $classWebhook());
         try {
-
             $response = Registry::process($rawHeaders, $request->getContent());
             if ($response->isSuccess()) {
                 Log::info("Responded to webhook!",[$response]);
+                return mSuccessResponse("Responded to webhook!",[$response]);
                 // Respond with HTTP 200 OK
             } else {
                 // The webhook request was valid, but the handler threw an exception
                 Log::error("Webhook handler failed with message: " . $response->getErrorMessage());
+                return mErrorResponse("Webhook handler failed with message: " . $response->getErrorMessage());
             }
         } catch (\Exception $error) {
             // The webhook request was not a valid one, likely a code error or it wasn't fired by Shopify
             Log::error('excepion : '.$error->getMessage(),[$error]);
+            return mErrorResponse('excepion : '.$error->getMessage(),[$error]);
         }
-        return true;
     }
 }
 ?>
