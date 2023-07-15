@@ -17,27 +17,27 @@ class Utils
     public static function Route($path,$query = []) {
         $queryList = ShopifyUtils::getQueryParams(URL::full());
         if(isset($queryList["host"])) $query["host"] = $queryList['host'];
-        else $query["host"] = base64_encode('https://'.Context::$HOST_NAME.'/admin');
-        if(isset($queryList["shop"])) $query["shop"] = $queryList['shop'];
-        else $query["shop"] = self::getShopName();
-        if(isset($queryList["embedded"])) $query["embedded"] = $queryList['embedded'];
-        if(isset($queryList["hmac"])) $query["hmac"] = $queryList['hmac'];
-        if(isset($queryList["locale"])) $query["locale"] = $queryList['locale'];
-        if(isset($queryList["session"])) $query["session"] = $queryList['session'];
-        if(isset($queryList["timestamp"])) $query["timestamp"] = $queryList['timestamp'];
+        else $queryBuild["host"] = base64_encode('https://'.Context::$HOST_NAME.'/admin');
+        if(isset($queryList["shop"])) $queryBuild["shop"] = $queryList['shop'];
+        else $queryBuild["shop"] = self::getShopName();
+        if(isset($queryList["embedded"])) $queryBuild["embedded"] = $queryList['embedded'];
+        if(isset($queryList["hmac"])) $queryBuild["hmac"] = $queryList['hmac'];
+        if(isset($queryList["locale"])) $queryBuild["locale"] = $queryList['locale'];
+        if(isset($queryList["session"])) $queryBuild["session"] = $queryList['session'];
+        if(isset($queryList["timestamp"])) $queryBuild["timestamp"] = $queryList['timestamp'];
         if(Context::$IS_EMBEDDED_APP){
             if(request()->header('sec-fetch-dest')!='iframe'){
-                return ShopifyUtils::getEmbeddedAppUrl($query['host']).$path;
+                return ShopifyUtils::getEmbeddedAppUrl($queryBuild['host']).$path;
             }
         }
-        $query = http_build_query($query);
+        $queryBuild = http_build_query($queryBuild);
         if(Route::has($path)){
-            return route($path,$query);
+            return route($path,$query) .'?'. $queryBuild;
         }elseif (filter_var($path, FILTER_VALIDATE_URL)) {
-            return $path.'?'.$query;
+            return $path.'?'.$queryBuild;
         }
         $path = ltrim($path, '/');
-        return 'https://'.Context::$HOST_NAME.'/'.$path.'?'.$query;
+        return 'https://'.Context::$HOST_NAME.'/'.$path.'?'.$queryBuild;
     }
     public static function getShopName(){
         $query = ShopifyUtils::getQueryParams(URL::full());

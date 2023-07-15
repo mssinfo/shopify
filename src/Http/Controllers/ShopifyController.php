@@ -114,6 +114,17 @@ class ShopifyController extends Controller{
         $rawHeaders = $request->headers->all();
         $headers = new HttpHeaders($rawHeaders);
         Log::info("Request to webhook!",[$request->all(),$rawHeaders,$headers]);
+        if($name){
+            $shared_secret = config("msdev2.shopify_api_secret");
+            $hmac = $request->get('hmac') ?? HttpHeaders::X_SHOPIFY_HMAC;
+            $computed_hmac = hash_hmac('sha256', http_build_query($request->all()), $shared_secret);
+
+            // Use hmac data to check that the response is from Shopify or not
+            if (!isset($hmac) || !hash_equals($hmac, $computed_hmac)) {
+                return mErrorResponse("Invalid HMAC request",[],401);
+            }
+            return mSuccessResponse("Valid http request");
+        }
         $missingHeaders = $headers->diff(
             [HttpHeaders::X_SHOPIFY_HMAC, HttpHeaders::X_SHOPIFY_TOPIC, HttpHeaders::X_SHOPIFY_DOMAIN],
             false,
@@ -122,16 +133,6 @@ class ShopifyController extends Controller{
         if (!empty($missingHeaders)) {
             $missingHeaders = implode(', ', $missingHeaders);
             return mErrorResponse("Missing one or more of the required HTTP headers to process webhooks",[$missingHeaders],401);
-        }
-        if($name){
-            $shared_secret = config("msdev2.shopify_api_secret");
-            $hmac = $request->get('hmac');
-            $computed_hmac = hash_hmac('sha256', http_build_query($request->all()), $shared_secret);
-
-            // Use hmac data to check that the response is from Shopify or not
-            if (!isset($hmac) || !hash_equals($hmac, $computed_hmac)) {
-                return mErrorResponse("Invalid HMAC request",[],401);
-            }
         }
         $topic = $headers->get(HttpHeaders::X_SHOPIFY_TOPIC);
         $hookClass = ucwords(str_replace('/',' ',$topic));
