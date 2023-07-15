@@ -16,7 +16,7 @@ class Utils
 {
     public static function Route($path,$query = []) {
         $queryList = ShopifyUtils::getQueryParams(URL::full());
-        if(isset($queryList["host"])) $query["host"] = $queryList['host'];
+        if(isset($queryList["host"])) $queryBuild["host"] = $queryList['host'];
         else $queryBuild["host"] = base64_encode('https://'.Context::$HOST_NAME.'/admin');
         if(isset($queryList["shop"])) $queryBuild["shop"] = $queryList['shop'];
         else $queryBuild["shop"] = self::getShopName();
