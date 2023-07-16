@@ -37,7 +37,7 @@ class AuthRedirection
     private static function clientSideRedirectUrl($shop, array $query): string
     {
         $appHost = Context::$HOST_NAME;
-        $redirectUri = urlencode("https://$appHost/api/auth?shop=$shop");
+        $redirectUri = urlencode("$appHost/api/auth?shop=$shop");
 
         $queryString = http_build_query(array_merge($query, ["redirectUri" => $redirectUri]));
         return "/ExitIframe?$queryString";

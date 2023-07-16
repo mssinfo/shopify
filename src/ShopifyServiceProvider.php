@@ -26,7 +26,7 @@ class ShopifyServiceProvider extends ServiceProvider
         $this->app['router']->aliasMiddleware('msdev2.shopify.verify', VerifyShopify::class);
         $this->app['router']->aliasMiddleware('msdev2.shopify.auth', EnsureShopifySession::class);
         $this->app['router']->aliasMiddleware('msdev2.shopify.installed', EnsureShopifyInstalled::class);
-        $host = str_replace('https://', '', config('app.url'));
+        $host = config('app.url');
         $customDomain = env('SHOP_CUSTOM_DOMAIN', null);
         Context::initialize(
             config('msdev2.shopify_api_key'),
@@ -52,8 +52,8 @@ class ShopifyServiceProvider extends ServiceProvider
             $offlineSession->setExpires(strtotime('+1 day'));
             Context::$SESSION_STORAGE->storeSession($offlineSession);
         }
-        URL::forceRootUrl("https://$host");
-        URL::forceScheme('https');
+        // URL::forceRootUrl("https://$host");
+        // URL::forceScheme('https');
     }
     public function register()
     {

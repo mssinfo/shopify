@@ -17,7 +17,7 @@ class Utils
     public static function Route($path,$query = []) {
         $queryList = ShopifyUtils::getQueryParams(URL::full());
         if(isset($queryList["host"])) $queryBuild["host"] = $queryList['host'];
-        else $queryBuild["host"] = base64_encode('https://'.Context::$HOST_NAME.'/admin');
+        else $queryBuild["host"] = base64_encode(Context::$HOST_NAME.'/admin');
         if(isset($queryList["shop"])) $queryBuild["shop"] = $queryList['shop'];
         else $queryBuild["shop"] = self::getShopName();
         if(isset($queryList["embedded"])) $queryBuild["embedded"] = $queryList['embedded'];
@@ -37,7 +37,7 @@ class Utils
             return $path.'?'.$queryBuild;
         }
         $path = ltrim($path, '/');
-        return 'https://'.Context::$HOST_NAME.'/'.$path.'?'.$queryBuild;
+        return Context::$HOST_NAME.'/'.$path.'?'.$queryBuild;
     }
     public static function getShopName(){
         $query = ShopifyUtils::getQueryParams(URL::full());
