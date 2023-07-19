@@ -39,15 +39,6 @@ class EnsureBilling
     {
         $confirmationUrl = null;
         self::$trialDays = $config["trialDays"];
-        $charges = $shop->activeCharge;
-        if($charges){
-            self::requestCancelSubscription($shop, 'gid://shopify/AppSubscription/'.$charges->charge_id);
-            $charges->status = 'canceled';
-            $charges->description = 'Cancel due to change plan';
-            $charges->cancelled_on = Carbon::now();
-            $status = $charges->save();
-            Log::alert("update charge",[$status,$charges]);
-        }
         $appUsed = $shop->appUsedDay();
         self::$trialDays = $config["trialDays"] > $appUsed ? $config["trialDays"] - $appUsed : 0;
         $hasPayment = false;
@@ -176,7 +167,7 @@ class EnsureBilling
             ]
         );
     }
-    private static function requestCancelSubscription(Shop $shop, $id){
+    public static function requestCancelSubscription(Shop $shop, $id){
         return self::queryOrException(
             $shop,
             [

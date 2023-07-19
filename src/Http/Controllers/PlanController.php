@@ -4,7 +4,6 @@ namespace Msdev2\Shopify\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Carbon;
-use Msdev2\Shopify\Models\Shop;
 use Msdev2\Shopify\Lib\EnsureBilling;
 use Msdev2\Shopify\Utils as ShopifyUtils;
 use Msdev2\Shopify\Utils;
@@ -29,6 +28,12 @@ class PlanController extends Controller{
     }
     public function planAccept(Request $request){
         $shop = ShopifyUtils::getShop();
+        $charges = $shop->activeCharge;
+        EnsureBilling::requestCancelSubscription($shop, 'gid://shopify/AppSubscription/'.$charges->charge_id);
+        $charges->status = 'canceled';
+        $charges->description = 'Cancel due to change plan';
+        $charges->cancelled_on = Carbon::now();
+        $charges->save();
         $plan = $shop->plan($request->plan);
         $planType = 'recurring';
         $billingOn = Carbon::now()->addYear();

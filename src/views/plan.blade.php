@@ -10,7 +10,7 @@
     </article>
 </section>
 @endsection
-@section('style')
+@section('styles')
 <style>
 .card.active,.card:hover {
     transform: scale(1.05);
