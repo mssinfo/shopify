@@ -66,7 +66,8 @@ class Utils
             $accessToken = Cache::get('accessToken');
         }
         elseif(!$accessToken && request()->session){
-            $accessToken = Context::$SESSION_STORAGE->loadSession(request()->session)->getAccessToken();
+            $session = Context::$SESSION_STORAGE->loadSession(request()->session);
+            $accessToken = $session ? $session->getAccessToken() : null;
         }
         if(!$accessToken){
             $shop = self::getShop();
