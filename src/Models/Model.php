@@ -24,11 +24,12 @@ class Model extends LAravelModel {
     {
         if($model->metaField && $model->shop_id){
             $shop = mShop($model->shop_id);
+            $tableData = $model::where('shop_id',$model->shop_id)->get();
             mRest($shop)->post('metafields.json',[
                 "metafield"=>[
                     "namespace"=>config('msdev2.app_id'),
                     "key"=>$model->getTable(),
-                    "value"=>json_encode($model),
+                    "value"=>json_encode($tableData),
                     "type"=>"json"
                 ]
             ]);
