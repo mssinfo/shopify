@@ -29,11 +29,13 @@ class PlanController extends Controller{
     public function planAccept(Request $request){
         $shop = ShopifyUtils::getShop();
         $charges = $shop->activeCharge;
-        EnsureBilling::requestCancelSubscription($shop, 'gid://shopify/AppSubscription/'.$charges->charge_id);
-        $charges->status = 'canceled';
-        $charges->description = 'Cancel due to change plan';
-        $charges->cancelled_on = Carbon::now();
-        $charges->save();
+        if($charges){
+            EnsureBilling::requestCancelSubscription($shop, 'gid://shopify/AppSubscription/'.$charges->charge_id);
+            $charges->status = 'canceled';
+            $charges->description = 'Cancel due to change plan';
+            $charges->cancelled_on = Carbon::now();
+            $charges->save();
+        }
         $plan = $shop->plan($request->plan);
         $planType = 'recurring';
         $billingOn = Carbon::now()->addYear();

@@ -23,7 +23,7 @@ class CreateShopsTable extends Migration
             $table->dateTime('expires_at')->nullable();
             $table->bigInteger('user_id')->nullable();
             $table->json('detail')->nullable();
-            $table->boolean('collaborator')->nullable();
+            $table->boolean('is_uninstalled')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
