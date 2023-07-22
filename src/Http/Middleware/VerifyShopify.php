@@ -25,13 +25,13 @@ class VerifyShopify
                 if(!$shop || $shop->is_uninstalled == 1){
                     $shopName = mShopName();
                     if($shopName){
-                        return redirect()->route('/install',['shop'=>$shopName]);
+                        return redirect()->route('msdev2.shopify.install',['shop'=>$shopName]);
                     }
                     abort(403,'Shop not exist in request');
                 }
                 $charges = $shop->charges()->where('status','active')->whereNull('cancelled_on')->first();
                 if(!$charges && $request->path()!='plan'){
-                    return redirect(\Msdev2\Shopify\Utils::Route('/plan'));
+                    return redirect(\Msdev2\Shopify\Utils::Route('msdev2.shopify.plan.index'));
                 }
             }
             if(Context::$IS_EMBEDDED_APP && request()->header('sec-fetch-dest')!='iframe' && $request->server("REQUEST_METHOD")=='GET' && $request->input("host")){

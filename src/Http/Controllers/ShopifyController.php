@@ -65,7 +65,7 @@ class ShopifyController extends Controller{
         $result = Http::post($url,$query);
         $shop = Shop::updateOrCreate(
             ['shop' => $shopName],
-            ['scope' => $result->json("scope"), 'access_token' => $result->json("access_token")]
+            ['scope' => $result->json("scope"),'is_uninstalled' => 0, 'access_token' => $result->json("access_token")]
         );
         $shop->refresh();
         $redirectUrl = Utils::getEmbeddedAppUrl($host);
