@@ -5,6 +5,31 @@ window.$GLOBALS = {
     host: urlParams.get('host'),
     csrfToken: document.head.querySelector("[name~=csrf-token][content]").content,
     push : (path, param) => {
+        if(typeof window.router == "undefined"){
+            const currentURL = new URL(window.location.href);
+            // Ensure the new URL includes the host
+            const host = currentURL.host || window.location.host;
+            const protocol = currentURL.protocol || window.location.protocol;
+            const newUrlWithHost = protocol + '//' + host + '/'+ (path.startsWith('/') ? path.substring(1) : path);
+            // Append current query parameters to the new URL
+            const searchParams = currentURL.searchParams.toString();
+            // Construct the query parameters string with the custom parameters
+            let newUrlWithParams = newUrlWithHost;
+            if (searchParams) {
+                newUrlWithParams += '?' + searchParams;
+            }
+            if(typeof param != "undefined"){
+                for (const [key, value] of Object.entries(param)) {
+                newUrlWithParams += '&' + key + '=' + encodeURIComponent(value);
+                }
+            }
+            // Append hash fragment to the new URL
+            const hashFragment = currentURL.hash;
+            const newUrlWithParamsAndHash = newUrlWithParams + hashFragment;
+            // Redirect to the new URL with all current parameters and the custom parameters
+            window.location.href = newUrlWithParamsAndHash;
+            return false;
+        }
         if(typeof param == 'object'){
             param = {...param,...window.router.currentRoute.value.query}
         }else{
