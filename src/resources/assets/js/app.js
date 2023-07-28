@@ -1,6 +1,8 @@
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
 window.$GLOBALS = {
-    shop: window.router.currentRoute.value.query.shop,
-    host: window.router.currentRoute.value.query.host,
+    shop: urlParams.get('shop'),
+    host: urlParams.get('host'),
     csrfToken: document.head.querySelector("[name~=csrf-token][content]").content,
     push : (path, param) => {
         if(typeof param == 'object'){
