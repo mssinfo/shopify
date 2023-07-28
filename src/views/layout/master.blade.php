@@ -35,9 +35,10 @@
             var app = window.AppBridge.createApp({
                 apiKey: "{{ config('msdev2.shopify_api_key') }}",
                 host: "{{ \Request::get('host') }}",
-                forceRedirect: {{ config('msdev2.is_embedded_app') }},
+                forceRedirect: {{ config('msdev2.is_embedded_app') ?? false }},
             });
             var actions = window.AppBridge.actions;
+            {{--
             // var createApp = window.AppBridge.default;
             // var utils = window['app-bridge-utils'];
             // var getSessionToken = utils.getSessionToken;
@@ -56,9 +57,8 @@
             // };
             // const myModal = actions.Modal.create(app, modalOptions);
             // myModal.dispatch(actions.Modal.Action.OPEN);
-
+            --}}
             function showToast(msg,isError,subscribeFun,clearFun){
-                console.log(msg);
                 isError = typeof isError == 'undefined' ? false : true
                 let toastOptions = {
                     message: msg,
