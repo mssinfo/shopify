@@ -80,6 +80,12 @@ css reference is https://www.uptowncss.com/
     window.$GLOBALS.push(path, params)
     window.$GLOBALS.push(name)
     window.$GLOBALS.push(name, params)
+    window.$GLOBALS.shop
+    window.$GLOBALS.host
+    window.$GLOBALS.csrfToken
+    window.$GLOBALS.processRequest(url, data, isImageRequest) # url = 'POST /url'  data = {} isImageRequest=false
+    window.$GLOBALS.showToast(msg,isError,subscribeFun,clearFun) # msg = string isError=false subscribeFun=callback function clearFun=callback function
+    showToast(msg,isError,subscribeFun,clearFun) # msg = string isError=false subscribeFun=callback function clearFun=callback function
 
 ## save tabel to metafield
     class ModelName extend \Msdev2\Shopify\Models\Model
