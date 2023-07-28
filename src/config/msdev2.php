@@ -8,6 +8,8 @@ return [
     'appbridge_enabled' => (bool) env('SHOPIFY_APPBRIDGE_ENABLED', true),
     "appbridge_version"=>env('SHOPIFY_APPBRIDGE_VERSION', '3'),
     "is_embedded_app"=> (bool) env('SHOPIFY_IS_EMBEDDED_APP',true) ?? true,
+    "enable_alpinejs"=> (bool) env('SHOPIFY_ENABLE_ALPINEJS',true) ?? true,
+    "enable_turbolinks"=> (bool) env('SHOPIFY_ENABLE_TURBOLINKS',true) ?? true,
     "footer"=>env('SHOPIFY_FOOTER', '<p>Copyright &copy; All right reserved.</p>'),
     "test_stores"=>env('SHOPIFY_TEST_STORES',''),
     "menu"=>[

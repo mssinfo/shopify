@@ -31,10 +31,12 @@ setup basic shopify app like install and all
     SHOPIFY_APP_ID=548698745823
     SHOPIFY_API_SCOPES=read_products,write_products
     SHOPIFY_WEBHOOKS=APP_UNINSTALLED,THEMES_PUBLISH,SHOP_UPDATE
-    SHOPIFY_BILLING=true, #false
+    SHOPIFY_BILLING=true #false
     SHOPIFY_FOOTER=<div>copyright @copy; all right reserved</div>
-    SHOPIFY_IS_EMBEDDED_APP=true, #false //true if you want to open an app inside shopify else false
+    SHOPIFY_IS_EMBEDDED_APP=true #false //true if you want to open an app inside shopify else false
     SHOPIFY_APPBRIDGE_ENABLED=true #true
+    SHOPIFY_ENABLE_ALPINEJS=true #true if you want to use vue make it false
+    SHOPIFY_ENABLE_TURBOLINKS=true #true if you want to use vue make it false
     SHOPIFY_TEST_STORES=mraganksoni,msdev203
 
 ## middleware lists
@@ -73,6 +75,11 @@ css reference is https://www.uptowncss.com/
     \Msdev2\Shopify\Utils::successResponse(?$message,?$array,?$code) or mSuccessResponse(?$message,?$array,?$code)
     \Msdev2\Shopify\Utils::errorResponse(?$message,?$array,?$code) or mErrorResponse(?$message,?$array,?$code)
 
+### for vuejs route helper  
+    window.$GLOBALS.push(path)
+    window.$GLOBALS.push(path, params)
+    window.$GLOBALS.push(name)
+    window.$GLOBALS.push(name, params)
 
 ## save tabel to metafield
     class ModelName extend \Msdev2\Shopify\Models\Model

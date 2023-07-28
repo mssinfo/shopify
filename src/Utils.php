@@ -37,7 +37,7 @@ class Utils
             return $path.'?'.$queryBuild;
         }
         $path = ltrim($path, '/');
-        return Context::$HOST_NAME.'/'.$path.'?'.$queryBuild;
+        return config("app.url").'/'.$path.'?'.$queryBuild;
     }
     public static function getShopName(){
         $query = ShopifyUtils::getQueryParams(URL::full());

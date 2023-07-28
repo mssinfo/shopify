@@ -11,14 +11,11 @@
         @endif
         @foreach (config('msdev2.menu.list') as $menu)
             @if (!isset($menu['position']) || $menu['position'] == "all" || $menu['position'] == "topbar")
-                @if(isset($menu['type']) && $menu['type'] == "vue")
-                @else
-                <a href="{{ isset($menu['type']) && $menu['type']=='vue' ? '' : mRoute($menu['destination']) }}" class="@if(Request::path() == $menu['destination']) active @endif menu">
+                <a href="{{ isset($menu['type']) && $menu['type']=='vue' ? $menu['destination'] : mRoute($menu['destination']) }}" class="@if(Request::path() == $menu['destination']) active @endif menu {{  isset($menu['type']) && $menu['type']=='vue' ? 'vue_link' : ''}}">
                     @if ($menu['icon'])
                         {!! $menu['icon'] !!}
                     @endif
                     {{$menu['label']}}</a>
-                @endif
             @endif
         @endforeach
         @if (config('msdev2.billing'))
