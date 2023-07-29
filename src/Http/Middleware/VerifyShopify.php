@@ -20,15 +20,12 @@ class VerifyShopify
                     abort(403,'Invalid shop domain');
                 }
             }
+            $shop = mShop();
+            if(!$shop || $shop->is_uninstalled == 1){
+                $shopName = mShopName();
+                return redirect()->route('msdev2.shopify.install',['shop'=>$shopName]);
+            }
             if(config('msdev2.billing')){
-                $shop = mShop();
-                if(!$shop || $shop->is_uninstalled == 1){
-                    $shopName = mShopName();
-                    if($shopName){
-                        return redirect()->route('msdev2.shopify.install',['shop'=>$shopName]);
-                    }
-                    abort(403,'Shop not exist in request');
-                }
                 $charges = $shop->charges()->where('status','active')->whereNull('cancelled_on')->first();
                 if(!$charges && $request->path()!='plan'){
                     return redirect(\Msdev2\Shopify\Utils::Route('msdev2.shopify.plan.index'));
