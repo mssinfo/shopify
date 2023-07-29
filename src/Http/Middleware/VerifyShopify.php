@@ -13,16 +13,14 @@ class VerifyShopify
     }
     public function handle(Request $request, Closure $next)
     {
-        if (Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing']) || $request->query('shop')) {
-            if($request->query('shop')){
-                $shop = Utils::sanitizeShopDomain($request->query('shop'));
-                if(!$shop){
-                    abort(403,'Invalid shop domain');
-                }
+        $shopName = mShopName();
+        if (Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing']) || $shopName) {
+            $shop = Utils::sanitizeShopDomain($shopName);
+            if(!$shop){
+                abort(403,'Invalid shop domain');
             }
-            $shop = mShop();
-            if(!$shop || $shop->is_uninstalled == 1){
-                $shopName = mShopName();
+            $shop = mShop(); 
+            if(!$shop || $shop->is_uninstalled == 1){    
                 return redirect()->route('msdev2.shopify.install',['shop'=>$shopName]);
             }
             if(config('msdev2.billing')){
