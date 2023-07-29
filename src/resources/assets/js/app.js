@@ -30,14 +30,13 @@ window.$GLOBALS = {
             window.location.href = newUrlWithParamsAndHash;
             return false;
         }
-        if(typeof param == 'object'){
-            param = {...param,...window.router.currentRoute.value.query}
-        }else{
-            param = window.router.currentRoute.value.query
-        }
+        let query = window.router.currentRoute.value.query
         if(window.router.getRoutes().find((route) => route.name === path))
-            return window.router.push({name: path, params: param})
-        return window.router.push({path: path, query: param})
+            return window.router.push({name: path, params: param, query: query})
+        else {
+           query = {...param,...window.router.currentRoute.value.query}
+           return window.router.push({path: path, query: query})
+        }
     }, 
     processRequest : async (url, data, isImageRequest) => {
         const myHeaders = new Headers();
@@ -82,8 +81,8 @@ window.$GLOBALS = {
         }
         return responseData;
     },
-    showToast : (msg,isError,subscribeFun,clearFun) => {
-        isError = typeof isError == 'undefined' ? false : true
+    showToast : (msg,isError) => {
+        isError = typeof isError == 'undefined' || !isError ? false : true
         let toastOptions = {
             message: msg,
             duration: 5000,
@@ -91,26 +90,52 @@ window.$GLOBALS = {
         };
         if(appBridgeEnabled == "1"){
             const toastNotice = actions.Toast.create(app, toastOptions);
-            toastNotice.subscribe(actions.Toast.Action.SHOW, data => {
+            toastNotice.dispatch(actions.Toast.Action.SHOW);
+        }else{
+            if(confirm(msg)){
                 if(typeof subscribeFun != 'undefined'){
                     subscribeFun()
                 }
-            });
-            toastNotice.subscribe(actions.Toast.Action.CLEAR, data => {
+            }else{
                 if(typeof clearFun != 'undefined'){
                     clearFun()
                 }
-            });
-            toastNotice.dispatch(actions.Toast.Action.SHOW);
-        }else{
-            alert(msg);
-            if(typeof subscribeFun != 'undefined'){
-                subscribeFun()
-            }
-            if(typeof clearFun != 'undefined'){
-                clearFun()
             }
         }
+    },
+    modal : (modalOptions, successFun, errorFun) =>{
+        modalOptions = {...{
+                title: 'title',
+                size: actions.Modal.Size.small,
+            },
+            ...modalOptions
+        };
+        if(typeof successFun == 'function'){
+            const okButton = actions.Button.create(app, {label: 'Ok'});
+            const cancelButton = actions.Button.create(app, {label: 'Cancel'});
+            modalOptions.footer = {
+                buttons: {
+                  primary: okButton,
+                  secondary: [cancelButton],
+                }
+            }
+            okButton.subscribe(actions.Button.Action.CLICK, () => {
+                successFun()
+                myModal.dispatch(actions.Modal.Action.CLOSE);
+            });
+            if(typeof errorFun == 'function'){
+                cancelButton.subscribe(actions.Button.Action.CLICK, () => {
+                    errorFun()
+                    myModal.dispatch(actions.Modal.Action.CLOSE);
+                });
+            }else{
+                cancelButton.subscribe(actions.Button.Action.CLICK, () => {
+                    myModal.dispatch(actions.Modal.Action.CLOSE);
+                });
+            }
+        }
+        const myModal = actions.Modal.create(app, modalOptions);
+        myModal.dispatch(actions.Modal.Action.OPEN);
     }
 }
 document.addEventListener('DOMContentLoaded', function () {
@@ -144,16 +169,7 @@ if(appBridgeEnabled == "1"){
     //     actions.Redirect.toRemote({
     //         url: '{{route("msdev2.shopify.plan.index")}}'
     //     })
-    // );
-
-    // const modalOptions = {
-    //     title: 'My Modal',
-    //     message: 'Hello world!',
-    //     size: actions.Modal.Size.small,
-    // };
-    // const myModal = actions.Modal.create(app, modalOptions);
-    // myModal.dispatch(actions.Modal.Action.OPEN);
-    
+    // );    
 }
 function showToast(msg,isError,subscribeFun,clearFun){
     return window.showToast(msg,isError,subscribeFun,clearFun)
