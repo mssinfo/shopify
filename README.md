@@ -30,7 +30,6 @@ setup basic shopify app like install and all
     SHOPIFY_API_SECRET=47f72686a3************
     SHOPIFY_APP_ID=548698745823
     SHOPIFY_API_SCOPES=read_products,write_products
-    SHOPIFY_WEBHOOKS=APP_UNINSTALLED,THEMES_PUBLISH,SHOP_UPDATE
     SHOPIFY_BILLING=true #false
     SHOPIFY_FOOTER=<div>copyright @copy; all right reserved</div>
     SHOPIFY_IS_EMBEDDED_APP=true #false //true if you want to open an app inside shopify else false
@@ -39,6 +38,14 @@ setup basic shopify app like install and all
     SHOPIFY_ENABLE_TURBOLINKS=true #true if you want to use vue make it false
     SHOPIFY_TEST_STORES=mraganksoni,msdev203
 
+## Setup hooks
+    update env
+    SHOPIFY_WEBHOOKS=APP_UNINSTALLED,THEMES_PUBLISH,SHOP_UPDATE
+    create hook receiver file
+    app/Webhook/Handlers/AppUninstalled.php
+    app/Webhook/Handlers/ShopUpdate.php
+    app/Webhook/Handlers/ThemesPublish.php
+    
 ## middleware lists
     msdev2.shopify.verify  //to verify shop exist in url
     msdev2.shopify.auth //to authenticate shopify user
