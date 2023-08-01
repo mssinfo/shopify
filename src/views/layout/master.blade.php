@@ -20,10 +20,10 @@
                 </article>
             </footer>
         @endif
-        @if (config('msdev2.SHOPIFY_ENABLE_TURBOLINKS'))
+        @if (config('msdev2.enable_turbolinks'))
             <script src="https://unpkg.com/turbolinks"></script>
         @endif
-        @if (config('msdev2.SHOPIFY_ENABLE_ALPINEJS'))
+        @if (config('msdev2.enable_alpinejs'))
             <script src="https://unpkg.com/alpinejs" defer></script>
         @endif
         <script>
