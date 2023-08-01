@@ -94,15 +94,17 @@ class ShopifyController extends Controller{
             null,
             [],
         );
-        if($shop){
-            $offlineSession = new Session(request()->session ?? 'offline_'.$shop->shop, $shop->shop, false, Uuid::uuid4()->toString());
-            $offlineSession->setScope(Context::$SCOPES->toString());
-            $offlineSession->setAccessToken($shop->access_token);
-            $offlineSession->setExpires(strtotime('+1 day'));
-            Context::$SESSION_STORAGE->storeSession($offlineSession);
-            $result = \Msdev2\Shopify\Utils::rest($shop)->get('shop');
-            $shop->detail = $result->getDecodedBody()["shop"];
-            $shop->save();
+        $offlineSession = new Session(request()->session ?? 'offline_'.$shop->shop, $shop->shop, false, Uuid::uuid4()->toString());
+        $offlineSession->setScope(Context::$SCOPES->toString());
+        $offlineSession->setAccessToken($shop->access_token);
+        $offlineSession->setExpires(strtotime('+1 day'));
+        Context::$SESSION_STORAGE->storeSession($offlineSession);
+        $result = \Msdev2\Shopify\Utils::rest($shop)->get('shop');
+        $shop->detail = $result->getDecodedBody()["shop"];
+        $shop->save();
+        $classWebhook = "\\App\\Webhook\\Handlers\\AppInstalled";
+        if (class_exists($classWebhook)) {
+            $classWebhook::dispatch($shop);
         }
         if (config('msdev2.billing') && !$shop->activeCharge) {
             return redirect($redirectUrl.'/plan');
