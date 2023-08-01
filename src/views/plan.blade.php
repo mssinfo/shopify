@@ -83,6 +83,6 @@
             </div></div>`)
         });
         document.querySelector('.plist').innerHTML = el.join('')
-        actions.TitleBar.create(app, { title: 'Plan List' });
+        // actions.TitleBar.create(app, { title: 'Plan List' });
     </script>
 @endsection
