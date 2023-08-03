@@ -37,6 +37,7 @@ setup basic shopify app like install and all
     SHOPIFY_ENABLE_ALPINEJS=true #true if you want to use vue make it false
     SHOPIFY_ENABLE_TURBOLINKS=true #true if you want to use vue make it false
     SHOPIFY_TEST_STORES=mraganksoni,msdev203
+    TAWK_URL=https://https://embed.tawk.to/64cbaca1cc26a871b02d0bcf/1h6tpkmh2
 
 ## Setup hooks
     update env
@@ -102,4 +103,3 @@ css reference is https://www.uptowncss.com/
         
     }
     
-
