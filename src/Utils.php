@@ -39,8 +39,7 @@ class Utils
         $path = ltrim($path, '/');
         return config("app.url").'/'.$path.'?'.$queryBuild;
     }
-    public static function getShop($shopName = null) :Shop|null{
-        $shop = null;
+    public static function getShop($shopName = null) :Shop{
         if(Cache::get('shop')){
             $shop = Cache::get('shop');
             if($shopName){
@@ -54,7 +53,7 @@ class Utils
                     Cache::put('shop',$shop);
                     return $shop;
                 }
-                return null;
+                abort(405,$shopName." - shop name not exist");
             }
             return $shop;
         }
@@ -65,8 +64,9 @@ class Utils
         }
         if($shop){
             Cache::put('shop',$shop);
+            return $shop;
         }
-        return $shop;
+        abort(405,"shop not exist");
     }
     public static function rest(Shop $shop = null): Rest {
         if(!$shop){

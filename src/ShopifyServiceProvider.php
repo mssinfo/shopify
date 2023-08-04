@@ -46,7 +46,7 @@ class ShopifyServiceProvider extends ServiceProvider
             null,
             (array)$customDomain,
         );
-        $shop = mShop();
+        $shop = Utils::getShop();
         $shoName = $shop->shop;
         $accessToken = $shop->access_token;
         if(!session('shopName'))session(['shopName'=>$shoName]);
