@@ -19,7 +19,7 @@ class Utils
         if(isset($queryList["host"])) $queryBuild["host"] = $queryList['host'];
         else $queryBuild["host"] = base64_encode(Context::$HOST_NAME.'/admin');
         if(isset($queryList["shop"])) $queryBuild["shop"] = $queryList['shop'];
-        else $queryBuild["shop"] = self::getShopName();
+        else $queryBuild["shop"] = self::getShop()->shop;
         if(isset($queryList["embedded"])) $queryBuild["embedded"] = $queryList['embedded'];
         if(isset($queryList["hmac"])) $queryBuild["hmac"] = $queryList['hmac'];
         if(isset($queryList["locale"])) $queryBuild["locale"] = $queryList['locale'];
@@ -39,85 +39,51 @@ class Utils
         $path = ltrim($path, '/');
         return config("app.url").'/'.$path.'?'.$queryBuild;
     }
-    public static function getShopName(){
-        $query = ShopifyUtils::getQueryParams(URL::full());
-        $shopName = $query['shop'] ?? null;
-        if(!$shopName && session('shopName')){
-            $shopName = session('shopName');
-        }
-        elseif(!$shopName && request()->header('shop')){
-            $shopName = request()->header('shop');
-        }
-        elseif(!$shopName &&  Cache::get('shopName')){
-            $shopName = Cache::get('shopName');
-        }
-        elseif(!$shopName && request()->session){
-            $shopName = Context::$SESSION_STORAGE->loadSession(request()->session)->getShop();
-        }
-        if(!$shopName){
-            return null;
-        }
-        Cache::put('shopName',$shopName);
-        return $shopName;
-    }
-    public static function getAccessToken(){
-        $accessToken = null;
-        if(Cache::get('accessToken')){
-            $accessToken = Cache::get('accessToken');
-        }
-        elseif(!$accessToken && request()->session){
-            $session = Context::$SESSION_STORAGE->loadSession(request()->session);
-            $accessToken = $session ? $session->getAccessToken() : null;
-        }
-        if(!$accessToken){
-            $shop = self::getShop();
-            if($shop){
-                $accessToken = $shop->access_token;
-            }
-        }
-        if(!$accessToken){
-            return null;
-        }
-        Cache::put('accessToken',$accessToken);
-        return $accessToken;
-    }
     public static function getShop($shopName = null) :Shop|null{
         $shop = null;
-        if(!$shopName){
-            $shopName = self::getShopName();
+        if(Cache::get('shop')){
+            $shop = Cache::get('shop');
+            if($shopName){
+                if($shopName==$shop->id || $shopName==$shop->shop){
+                    return $shop;
+                }
+                $shop = Shop::where(function ($query) use ($shopName) {
+                    $query->where('shop',$shopName)->orWhere('id', $shopName);
+                })->first();
+                if($shop){
+                    Cache::put('shop',$shop);
+                    return $shop;
+                }
+                return null;
+            }
+            return $shop;
         }
         if($shopName){
-            if(is_numeric($shopName)){
-                $shop = Shop::find($shopName);
-            }
-            $shop = Shop::where('shop',$shopName)->first();
+            $shop = Shop::where(function ($query) use ($shopName) {
+                $query->where('shop',$shopName)->orWhere('id', $shopName);
+            })->first();
         }
         if($shop){
-            Cache::put('accessToken',$shop->access_token);
-            Cache::put('shopName',$shop->shop);
+            Cache::put('shop',$shop);
         }
         return $shop;
     }
     public static function rest(Shop $shop = null): Rest {
         if(!$shop){
-            $shopName = self::getShopName();
-            $accessToken = self::getAccessToken();
-        }else{
-            $shopName = $shop->shop;
-            $accessToken = $shop->access_token;
+            $shop = self::getShop();
         }
+        $shopName = $shop->shop;
+        $accessToken = $shop->access_token;
         $client = new Rest($shopName, $accessToken);
         //https://github.com/Shopify/shopify-api-php/blob/main/docs/usage/rest.md
         return $client;
     }
     public static function graph(Shop $shop = null): Graphql {
         if(!$shop){
-            $shopName = self::getShopName();
-            $accessToken = self::getAccessToken();
-        }else{
-            $shopName = $shop->shop;
-            $accessToken = $shop->access_token;
+            $shop = self::getShop();
         }
+        $shopName = $shop->shop;
+        $accessToken = $shop->access_token;
         $client = new Graphql($shopName, $accessToken);
         //https://github.com/Shopify/shopify-api-php/blob/main/docs/usage/graphql.md
         return $client;
