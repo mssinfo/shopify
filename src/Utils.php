@@ -40,6 +40,7 @@ class Utils
         return config("app.url").'/'.$path.'?'.$queryBuild;
     }
     public static function getShop($shopName = null) :Shop{
+        $shop = null;
         if(Cache::get('shop')){
             $shop = Cache::get('shop');
             if($shopName){
