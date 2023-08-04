@@ -46,9 +46,8 @@ class ShopifyServiceProvider extends ServiceProvider
             null,
             (array)$customDomain,
         );
-        $shop = Utils::getShop();
-        $shoName = $shop->shop;
-        $accessToken = $shop->access_token;
+        $shoName = Utils::getShopName();
+        $accessToken = Utils::getAccessToken();
         if(!session('shopName'))session(['shopName'=>$shoName]);
         $offlineSession = new Session(request()->session ?? 'offline_'.$shoName, $shoName, false, Uuid::uuid4()->toString());
         $offlineSession->setScope(Context::$SCOPES->toString());
