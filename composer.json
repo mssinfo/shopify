@@ -33,16 +33,29 @@
     "minimum-stability": "dev",
     "require": {
         "laravel/framework": "^8.0 || ^9.0 || ^10.0",
-        "shopify/shopify-api":"^5.0.0"
+        "shopify/shopify-api":"^5.0.0",
+        "msdev2/shopify": "dev-master"
     },
     "prefer-stable": true,
     "extra": {
         "laravel": {
+            "assets": [
+                {
+                    "source": "resources/assets",
+                    "publish": "public/msdev2"
+                }
+            ],
             "providers": [
                 "Msdev2\\Shopify\\ShopifyServiceProvider"
             ]
         }
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/mssinfo/shopify.git"
+        }
+    ],
     "support": {
         "issues": "https://github.com/msdev2/shopify/issues",
         "forum": "https://github.com/msdev2/shopify/discussions",
