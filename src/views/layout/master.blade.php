@@ -68,6 +68,7 @@
                 Tawk_API.visitor = {
                     name : "{{\Cache::get('shop')->detail['shop_owner']}}",
                     email : "{{\Cache::get('shop')->detail['customer_email']}}",
+                    phone : "{{\Cache::get('shop')->detail['phone']}}",
                     shop : "{{\Cache::get('shop')->detail['myshopify_domain']}}",
                     plan_name : "{{\Cache::get('shop')->detail['plan_name']}}",
                     plan_display_name : "{{\Cache::get('shop')->detail['plan_display_name']}}",
