@@ -63,9 +63,18 @@
         @if (config('msdev2.tawk_url') != '')
         <!--Start of Tawk.to Script-->
         <script type="text/javascript">
-            window.Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-            @if (\Cache::get('shop'))
-            window.Tawk_API.visitor = {
+            window.Tawk_API = window.Tawk_API ||{}, Tawk_LoadStart=new Date();
+            (function(){
+            var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+            s1.async=true;
+            s1.src='{{config("msdev2.tawk_url")}}';
+            s1.charset='UTF-8';
+            s1.setAttribute('crossorigin','*');
+            s0.parentNode.insertBefore(s1,s0);
+            })();
+            setTimeout(() => {
+                @if (\Cache::get('shop'))
+                window.Tawk_API.visitor = {
                     name : "{{\Cache::get('shop')->detail['shop_owner']}}",
                     email : "{{\Cache::get('shop')->detail['email']}}",
                     phone : "{{\Cache::get('shop')->detail['phone']}}",
@@ -81,15 +90,8 @@
                         phone : "{{\Cache::get('shop')->detail['phone']}}",
                     }, function(error){});
                 }
-            @endif
-            (function(){
-            var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-            s1.async=true;
-            s1.src='{{config("msdev2.tawk_url")}}';
-            s1.charset='UTF-8';
-            s1.setAttribute('crossorigin','*');
-            s0.parentNode.insertBefore(s1,s0);
-            })();
+                @endif
+            }, 1000);
         </script>
         <!--End of Tawk.to Script-->
         @endif
