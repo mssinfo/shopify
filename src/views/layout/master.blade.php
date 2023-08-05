@@ -64,10 +64,16 @@
         <!--Start of Tawk.to Script-->
         <script type="text/javascript">
             var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-            Tawk_API.visitor = {
-                name : 'visitor name',
-                email : 'visitor@email.com',
-            };
+            @if (\Cache::get('shop'))
+                Tawk_API.visitor = {
+                    name : {{\Cache::get('shop')->detail['shop_owner']}},
+                    email : {{\Cache::get('shop')->detail['customer_email']}},
+                    shop : {{\Cache::get('shop')->detail['myshopify_domain']}},
+                    plan_name : {{\Cache::get('shop')->detail['plan_name']}},
+                    plan_display_name : {{\Cache::get('shop')->detail['plan_display_name']}},
+                    referrer : document.referrer,
+                };    
+            @endif
             (function(){
             var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
             s1.async=true;
