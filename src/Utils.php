@@ -129,7 +129,8 @@ class Utils
             $accessToken = $shop->access_token;
         }
         $client = new Rest($shopName, $accessToken);
-        //https://github.com/Shopify/shopify-api-php/blob/main/docs/usage/rest.md
+        //https://github.com/Shopify/shopify-api-php/blob/main/docs/usage/rest.md FOR MORE REFFRENCE
+        
         return $client;
     }
     public static function graph(Shop $shop = null): Graphql {
