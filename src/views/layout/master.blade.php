@@ -67,13 +67,20 @@
             @if (\Cache::get('shop'))
                 Tawk_API.visitor = {
                     name : "{{\Cache::get('shop')->detail['shop_owner']}}",
-                    email : "{{\Cache::get('shop')->detail['customer_email']}}",
+                    email : "{{\Cache::get('shop')->detail['email']}}",
                     phone : "{{\Cache::get('shop')->detail['phone']}}",
-                    shop : "{{\Cache::get('shop')->detail['myshopify_domain']}}",
-                    plan_name : "{{\Cache::get('shop')->detail['plan_name']}}",
-                    plan_display_name : "{{\Cache::get('shop')->detail['plan_display_name']}}",
-                    referrer : document.referrer,
                 };    
+                Tawk_API.onLoad = function(){
+                    Tawk_API.setAttributes({
+                        shop : "{{\Cache::get('shop')->detail['myshopify_domain']}}",
+                        plan_name : "{{\Cache::get('shop')->detail['plan_name']}}",
+                        plan_display_name : "{{\Cache::get('shop')->detail['plan_display_name']}}",
+                        referrer : document.referrer,
+                        name : "{{\Cache::get('shop')->detail['name']}}",
+                        email : "{{\Cache::get('shop')->detail['email']}}",
+                        phone : "{{\Cache::get('shop')->detail['phone']}}",
+                    })
+                }
             @endif
             (function(){
             var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
