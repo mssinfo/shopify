@@ -63,15 +63,15 @@
         @if (config('msdev2.tawk_url') != '')
         <!--Start of Tawk.to Script-->
         <script type="text/javascript">
-            var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+            window.Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
             @if (\Cache::get('shop'))
-                Tawk_API.visitor = {
+            window.Tawk_API.visitor = {
                     name : "{{\Cache::get('shop')->detail['shop_owner']}}",
                     email : "{{\Cache::get('shop')->detail['email']}}",
                     phone : "{{\Cache::get('shop')->detail['phone']}}",
                 };    
-                Tawk_API.onLoad = function(){
-                    Tawk_API.setAttributes({
+                window.Tawk_API.onLoad = function(){
+                    window.Tawk_API.setAttributes({
                         shop : "{{\Cache::get('shop')->detail['myshopify_domain']}}",
                         plan_name : "{{\Cache::get('shop')->detail['plan_name']}}",
                         plan_display_name : "{{\Cache::get('shop')->detail['plan_display_name']}}",
@@ -79,7 +79,7 @@
                         name : "{{\Cache::get('shop')->detail['name']}}",
                         email : "{{\Cache::get('shop')->detail['email']}}",
                         phone : "{{\Cache::get('shop')->detail['phone']}}",
-                    })
+                    }, function(error){});
                 }
             @endif
             (function(){
