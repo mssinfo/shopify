@@ -66,11 +66,11 @@
             var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
             @if (\Cache::get('shop'))
                 Tawk_API.visitor = {
-                    name : {{\Cache::get('shop')->detail['shop_owner']}},
-                    email : {{\Cache::get('shop')->detail['customer_email']}},
-                    shop : {{\Cache::get('shop')->detail['myshopify_domain']}},
-                    plan_name : {{\Cache::get('shop')->detail['plan_name']}},
-                    plan_display_name : {{\Cache::get('shop')->detail['plan_display_name']}},
+                    name : "{{\Cache::get('shop')->detail['shop_owner']}}",
+                    email : "{{\Cache::get('shop')->detail['customer_email']}}",
+                    shop : "{{\Cache::get('shop')->detail['myshopify_domain']}}",
+                    plan_name : "{{\Cache::get('shop')->detail['plan_name']}}",
+                    plan_display_name : "{{\Cache::get('shop')->detail['plan_display_name']}}",
                     referrer : document.referrer,
                 };    
             @endif
