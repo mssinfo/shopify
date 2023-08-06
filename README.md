@@ -38,6 +38,7 @@ setup basic shopify app like install and all
     SHOPIFY_ENABLE_TURBOLINKS=true #true if you want to use vue make it false
     SHOPIFY_TEST_STORES=mraganksoni,msdev203
     TAWK_URL=https://https://embed.tawk.to/64cbaca1cc26a871b02d0bcf/1h6tpkmh2
+    SHOPIFY_API_VERSION=2023-04
 
 ## Setup hooks
     update env

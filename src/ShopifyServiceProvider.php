@@ -38,7 +38,7 @@ class ShopifyServiceProvider extends ServiceProvider
             config('msdev2.scopes'),
             $host,
             new DbSessionStorage(),
-            ApiVersion::JANUARY_2023,
+            config('msdev2.api_version'),
             config('msdev2.is_embedded_app'),
             false,
             null,
@@ -48,7 +48,7 @@ class ShopifyServiceProvider extends ServiceProvider
         );
         $shopName = Utils::getShopName();
         $accessToken = Utils::getAccessToken();
-        if($shopName){
+        if($shopName && $accessToken){
             if(!session('shopName'))session(['shopName'=>$shopName]);
             $offlineSession = new Session(request()->session ?? 'offline_'.$$shopName, $shopName, false, Uuid::uuid4()->toString());
             $offlineSession->setScope(Context::$SCOPES->toString());
