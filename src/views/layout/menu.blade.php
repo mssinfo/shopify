@@ -11,7 +11,7 @@
         @endif
         @foreach (config('msdev2.menu.list') as $menu)
             @if (!isset($menu['position']) || $menu['position'] == "all" || $menu['position'] == "topbar")
-                <a href="{{ isset($menu['type']) && $menu['type']=='vue' ? $menu['destination'] : mRoute($menu['destination']) }}" class="@if(Request::path() == $menu['destination']) active @endif menu {{  isset($menu['type']) && $menu['type']=='vue' ? 'vue_link' : ''}}">
+                <a href="{!! isset($menu['type']) && $menu['type']=='vue' ? $menu['destination'] : mRoute($menu['destination']) !!}" class="@if(Request::path() == $menu['destination']) active @endif menu {{  isset($menu['type']) && $menu['type']=='vue' ? 'vue_link' : ''}}">
                     @if ($menu['icon'])
                         {!! $menu['icon'] !!}
                     @endif
@@ -19,7 +19,7 @@
             @endif
         @endforeach
         @if (config('msdev2.billing'))
-            <a class="right" href="{{mRoute('msdev2.shopify.plan.index')}}"><i class="icon-payment"></i> Plan</a>
+            <a class="right" href="{!!mRoute('msdev2.shopify.plan.index')!!}"><i class="icon-payment"></i> Plan</a>
         @endif
     </nav>
 
