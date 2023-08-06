@@ -50,7 +50,7 @@ class ShopifyServiceProvider extends ServiceProvider
         $accessToken = Utils::getAccessToken();
         if($shopName && $accessToken){
             if(!session('shopName'))session(['shopName'=>$shopName]);
-            $offlineSession = new Session(request()->session ?? 'offline_'.$$shopName, $shopName, false, Uuid::uuid4()->toString());
+            $offlineSession = new Session(request()->session ?? 'offline_'.$shopName, $shopName, false, Uuid::uuid4()->toString());
             $offlineSession->setScope(Context::$SCOPES->toString());
             $offlineSession->setAccessToken($accessToken);
             $offlineSession->setExpires(strtotime('+1 day'));
