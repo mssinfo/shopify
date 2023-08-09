@@ -115,7 +115,7 @@ class ShopifyController extends Controller{
     {
         $rawHeaders = $request->headers->all();
         $headers = new HttpHeaders($rawHeaders);
-        Log::info("Request to webhook!",[$request->all(),$rawHeaders,$headers]);
+        Log::info("Request to webhook!",[$request->all(),$rawHeaders,$headers,$name]);
         if($name){
             $shared_secret = config("msdev2.shopify_api_secret");
             $hmac = $request->get('hmac') ?? HttpHeaders::X_SHOPIFY_HMAC;
@@ -156,8 +156,10 @@ class ShopifyController extends Controller{
                 return mErrorResponse("Webhook handler failed with message: " . $response->getErrorMessage());
             }
         } catch (\Exception $error) {
-            // The webhook request was not a valid one, likely a code error or it wasn't fired by Shopify
+            $cls = new $classWebhook();
             Log::error('excepion : '.$error->getMessage(),[$error]);
+            $cls->handle($topic, $headers->get(HttpHeaders::X_SHOPIFY_DOMAIN), $request->all());
+            // The webhook request was not a valid one, likely a code error or it wasn't fired by Shopify
             return mErrorResponse('excepion : '.$error->getMessage(),[$error]);
         }
     }

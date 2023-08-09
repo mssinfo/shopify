@@ -17,6 +17,7 @@ class CreateShopsTable extends Migration
             $table->id();
             $table->string('session_id')->nullable()->unique();
             $table->string('shop')->nullable(false);
+            $table->string('domain')->nullable();
             $table->boolean('is_online')->default(false);
             $table->string('scope')->nullable(false);
             $table->string('access_token')->nullable(false);

@@ -97,7 +97,7 @@ class Utils
                     return $shop;
                 }
                 $shop = Shop::where(function ($query) use ($shopName) {
-                    $query->where('shop',$shopName)->orWhere('id', $shopName);
+                    $query->where('shop',$shopName)->orWhere('id', $shopName)->orWhere('domain', $shopName);
                 })->first();
                 if($shop){
                     Cache::put('shop',$shop);
