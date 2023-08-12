@@ -20,13 +20,21 @@ use Shopify\Utils;
 class ShopifyController extends Controller{
 
     function fallback(Request $request) {
+        Log::info("install fallback app on ",$request->all());
+        $shopName = $request->shop ?? null;
+        if($shopName){
+            $shop = mShop($shopName);
+            if(!$shop){
+                return redirect(config("app.url").'/authenticate?shop='.$shopName);
+            }
+        }
         return redirect(Utils::getEmbeddedAppUrl($request->query("host", null)) . "/" . $request->path());
     }
     public function install(Request $request)
     {
-        try {
-            return AuthRedirection::redirect($request);
-        } catch (\Throwable $th) {
+        // try {
+        //     return AuthRedirection::redirect($request);
+        // } catch (\Throwable $th) {
             $shop = $request->shop;
             $api_key = config('msdev2.shopify_api_key');
             $scopes = config('msdev2.scopes');
@@ -36,8 +44,9 @@ class ShopifyController extends Controller{
                 return redirect()->back()->withErrors(['msg'=>'invalid domain']);
             }
             $install_url = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
+            Log::info("install app on ".$install_url);
             return redirect($install_url);
-        }
+        // }
     }
     public function generateToken(Request $request)
     {
@@ -51,6 +60,7 @@ class ShopifyController extends Controller{
         //     $cookieCallback,
         // );
         // dd($session);
+        Log::info("generateToken app on ",$request->all());
         $shared_secret = config("msdev2.shopify_api_secret");
         $api_key = config('msdev2.shopify_api_key');
         $params = $request->all(); // Retrieve all request parameters
