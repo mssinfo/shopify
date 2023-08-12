@@ -25,6 +25,7 @@ class CreateShopsTable extends Migration
             $table->bigInteger('user_id')->nullable();
             $table->json('detail')->nullable();
             $table->boolean('is_uninstalled')->nullable();
+            $table->date('uninstalled_at')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

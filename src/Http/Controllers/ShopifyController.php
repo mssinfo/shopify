@@ -24,7 +24,20 @@ class ShopifyController extends Controller{
     }
     public function install(Request $request)
     {
-        return AuthRedirection::redirect($request);
+        try {
+            return AuthRedirection::redirect($request);
+        } catch (\Throwable $th) {
+            $shop = $request->shop;
+            $api_key = config('msdev2.shopify_api_key');
+            $scopes = config('msdev2.scopes');
+            $redirect_uri = route("msdev2.shopify.callback");
+            $shop = Utils::sanitizeShopDomain($shop);
+            if(!$shop){
+                return redirect()->back()->withErrors(['msg'=>'invalid domain']);
+            }
+            $install_url = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
+            return redirect($install_url);
+        }
     }
     public function generateToken(Request $request)
     {
