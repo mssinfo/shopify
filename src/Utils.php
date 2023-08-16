@@ -45,7 +45,7 @@ class Utils
         if(!$shopName && request()->header('shop')){
             $shopName = request()->header('shop');
         }
-        elseif(!$shopName &&  Cache::get('shop')){
+        elseif(!$shopName && Cache::get('shop')){
             $shopName = Cache::get('shop')->shop;
         }
         elseif(!$shopName && Cache::get('shopName')){

@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Artisan;
 use Msdev2\Shopify\Lib\AuthRedirection;
 use Msdev2\Shopify\Lib\DbSessionStorage;
 use Msdev2\Shopify\Models\Shop;
@@ -20,6 +21,7 @@ use Shopify\Utils;
 class ShopifyController extends Controller{
 
     function fallback(Request $request) {
+        $this->clearCache();
         Log::info("install fallback app on ",$request->all());
         $shopName = $request->shop ?? null;
         if($shopName){
@@ -32,6 +34,7 @@ class ShopifyController extends Controller{
     }
     public function install(Request $request)
     {
+        $this->clearCache();
         // try {
         //     return AuthRedirection::redirect($request);
         // } catch (\Throwable $th) {
@@ -50,6 +53,7 @@ class ShopifyController extends Controller{
     }
     public function generateToken(Request $request)
     {
+        $this->clearCache();
         // $cookieCallback = function (OAuthCookie $cookie) use (&$cookiesSet) {
         //     $cookiesSet[$cookie->getName()] = $cookie;
         //     return !empty($cookie->getValue());
@@ -185,6 +189,17 @@ class ShopifyController extends Controller{
             // The webhook request was not a valid one, likely a code error or it wasn't fired by Shopify
             return mErrorResponse('excepion : '.$error->getMessage(),[$error]);
         }
+    }
+    private function clearCache(): void
+    {
+        Artisan::call('key:generate');
+        Artisan::call('cache:clear');
+        Artisan::call('config:cache');
+        Artisan::call('event:clear');
+        Artisan::call('view:clear');
+        Artisan::call('route:clear');
+        Artisan::call('queue:clear');
+        Artisan::call('optimize:clear');
     }
 }
 ?>
