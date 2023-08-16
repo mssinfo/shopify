@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Msdev2\Shopify\Http\Controllers\ShopifyController;
 use Msdev2\Shopify\Http\Controllers\PlanController;
+use Msdev2\Shopify\Http\Controllers\LogsController;
 
 Route::fallback([ShopifyController::class , 'fallback'])->middleware('msdev2.shopify.installed');
 Route::get("install",function(){
@@ -17,4 +18,5 @@ Route::get('plan/approve',[PlanController::class,'planAccept'])->name('msdev2.sh
 
 Route::middleware(['msdev2.shopify.verify','web'])->group(function(){
     Route::get('plan',[PlanController::class,'plan'])->name("msdev2.shopify.plan.index");
+    Route::get('logs',[LogsController::class,'index'])->name("msdev2.shopify.logs.index");
 });

@@ -6,6 +6,9 @@ use Exception;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+
 class Shop extends Model
 {
     use \App\Models\Shop;
@@ -85,7 +88,16 @@ class Shop extends Model
         }
         return false;
     }
-    public function log($type){
-        $shop = $this->shop;
+    public static function log($message, $ary = [], $logLevel = 'info', $channel = 'local')
+    {
+        $logPath = storage_path('logs/'.mShopName());
+
+        if(!empty($ary))$message .= json_encode($ary);
+        $logMessage = "[" . date('Y-m-d H:i:s') . "] $channel." . strtoupper($logLevel) . ": " . $message . PHP_EOL;
+        if (!is_dir($logPath)) {
+            mkdir($logPath, 0777, true);
+        }
+        $fileName = '/'.date("Y-m-d").'.log';
+        file_put_contents($logPath.$fileName, $logMessage, FILE_APPEND);
     }
 }
