@@ -1,7 +1,7 @@
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 window.$GLOBALS = {
-    shop: urlParams.get('shop'),
+    shopName: urlParams.get('shop'),
     host: urlParams.get('host'),
     csrfToken: document.head.querySelector("[name~=csrf-token][content]").content,
     push : (path, param) => {
@@ -43,7 +43,7 @@ window.$GLOBALS = {
         myHeaders.append("Accept", "application/json");
         myHeaders.append("Content-Type", "application/json");
         myHeaders.append("X-CSRF-TOKEN", window.$GLOBALS.csrfToken);
-        myHeaders.append("shop", window.$GLOBALS.shop);
+        myHeaders.append("shop", window.$GLOBALS.shopName);
         if(localStorage.getItem("token")){
             myHeaders.append("Authorization", "Bearer "+atob(localStorage.getItem("token")));
         }
