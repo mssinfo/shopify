@@ -3,10 +3,10 @@
 namespace Msdev2\Shopify\Http\Middleware;
 
 use Msdev2\Shopify\Lib\AuthRedirection;
-use Msdev2\Shopify\Models\Session;
 use Closure;
 use Illuminate\Http\Request;
-use Shopify\Utils;
+use Illuminate\Support\Facades\Log;
+use Msdev2\Shopify\Models\Shop;
 
 class EnsureShopifyInstalled
 {
@@ -19,11 +19,10 @@ class EnsureShopifyInstalled
      */
     public function handle(Request $request, Closure $next)
     {
-        $shop = $request->query('shop') ? Utils::sanitizeShopDomain($request->query('shop')) : null;
+        $shopName = mShopName();
+        $appInstalled = $shopName && Shop::where('shop', $shopName)->where('access_token', '<>', null)->exists();
+        // $isExitingIframe = preg_match("/^ExitIframe/i", $request->path());
 
-        $appInstalled = $shop && Session::where('shop', $shop)->where('access_token', '<>', null)->exists();
-        $isExitingIframe = preg_match("/^ExitIframe/i", $request->path());
-
-        return ($appInstalled || $isExitingIframe) ? $next($request) : AuthRedirection::redirect($request);
+        return ($appInstalled) ? $next($request) : AuthRedirection::redirect($request);
     }
 }

@@ -1,6 +1,7 @@
 <?php
 namespace Msdev2\Shopify;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Msdev2\Shopify\Http\Middleware\EnsureShopifyInstalled;
@@ -48,14 +49,15 @@ class ShopifyServiceProvider extends ServiceProvider
         );
         $shopName = Utils::getShopName();
         $accessToken = Utils::getAccessToken();
-        if($shopName && $accessToken){
-            if(!session('shopName'))session(['shopName'=>$shopName]);
-            $offlineSession = new Session(request()->session ?? 'offline_'.$shopName, $shopName, false, Uuid::uuid4()->toString());
-            $offlineSession->setScope(Context::$SCOPES->toString());
-            $offlineSession->setAccessToken($accessToken);
-            $offlineSession->setExpires(strtotime('+1 day'));
-            Context::$SESSION_STORAGE->storeSession($offlineSession);
-        }
+        // if($shopName && $accessToken){
+        //     if(!session('shopName'))session(['shopName'=>$shopName]);
+        //     Log::info('Shopify: '.$shopName.' - '.$accessToken.' - ',[session()->all()]);
+        //     $offlineSession = new Session(request()->session ?? 'offline_'.$shopName, $shopName, false, Uuid::uuid4()->toString());
+        //     $offlineSession->setScope(Context::$SCOPES->toString());
+        //     $offlineSession->setAccessToken($accessToken);
+        //     $offlineSession->setExpires(strtotime('+1 day'));
+        //     Context::$SESSION_STORAGE->storeSession($offlineSession);
+        // }
         // URL::forceRootUrl("https://$host");
         // URL::forceScheme('https');
     }

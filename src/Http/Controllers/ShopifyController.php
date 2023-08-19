@@ -34,32 +34,11 @@ class ShopifyController extends Controller{
     }
     public function install(Request $request)
     {
-        $this->clearCache();
-        $shop = $request->shop;
-        $api_key = config('msdev2.shopify_api_key');
-        $scopes = config('msdev2.scopes');
-        $redirect_uri = route("msdev2.shopify.callback");
-        $shop = Utils::sanitizeShopDomain($shop);
-        if(!$shop){
-            return redirect()->back()->withErrors(['msg'=>'invalid domain']);
-        }
-        $install_url = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
-        Log::info("install app on ".$install_url);
-        return redirect($install_url);
+        return AuthRedirection::redirect($request);
     }
     public function generateToken(Request $request)
     {
         $this->clearCache();
-        // $cookieCallback = function (OAuthCookie $cookie) use (&$cookiesSet) {
-        //     $cookiesSet[$cookie->getName()] = $cookie;
-        //     return !empty($cookie->getValue());
-        // };
-        // $session = OAuth::callback(
-        //     $request->cookie(),
-        //     $request->query(),
-        //     $cookieCallback,
-        // );
-        // dd($session);
         Log::info("generateToken app on ",$request->all());
         $shared_secret = config("msdev2.shopify_api_secret");
         $api_key = config('msdev2.shopify_api_key');
@@ -188,7 +167,7 @@ class ShopifyController extends Controller{
     }
     private function clearCache(): void
     {
-        Artisan::call('cache:forget shop');
+        // Artisan::call('cache:forget shop');
         Artisan::call('cache:forget shopname');
     }
 }

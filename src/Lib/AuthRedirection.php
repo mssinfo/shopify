@@ -4,7 +4,8 @@ namespace Msdev2\Shopify\Lib;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Shopify\Auth\OAuth;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Shopify\Context;
 use Shopify\Utils;
 
@@ -19,20 +20,22 @@ class AuthRedirection
         if (Context::$IS_EMBEDDED_APP && $request->query("embedded", false) === "1") {
             $redirectUrl = self::clientSideRedirectUrl($shop, $request->query());
         } else {
-            $redirectUrl = self::serverSideRedirectUrl($shop, $isOnline);
+            Artisan::call('cache:forget shop');
+            Artisan::call('cache:forget shopname');
+            $shop = $request->shop;
+            $api_key = config('msdev2.shopify_api_key');
+            $scopes = config('msdev2.scopes');
+            $redirect_uri = route("msdev2.shopify.callback");
+            $shop = Utils::sanitizeShopDomain($shop);
+            if(!$shop){
+                return redirect()->back()->withErrors(['msg'=>'invalid domain']);
+            }
+            $redirectUrl = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
+            Log::info("install app on ".$redirectUrl);
         }
         return redirect($redirectUrl);
     }
 
-    private static function serverSideRedirectUrl(string $shop, bool $isOnline): string
-    {
-        return OAuth::begin(
-            $shop,
-            '/auth/callback',
-            $isOnline,
-            [CookieHandler::class, 'saveShopifyCookie'],
-        );
-    }
 
     private static function clientSideRedirectUrl($shop, array $query): string
     {
