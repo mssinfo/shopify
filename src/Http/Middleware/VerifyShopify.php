@@ -27,9 +27,9 @@ class VerifyShopify
             }
             if(config('msdev2.billing')){
                 $charges = $shop->charges()->where('status','active')->whereNull('cancelled_on')->first();
-                if(!$charges && $request->path()!='plan'){
-                    Log::info("redirect to install billing",[$shop]);
-                    return redirect(\Msdev2\Shopify\Utils::Route('/plan'));
+                if(!$charges && !$request->is('plan')){
+                    Log::info("redirect to install billing",[$request->path(),$request->all(),$shop]);
+                    return redirect(mRoute('/plan'));
                 }
             }
             if(Context::$IS_EMBEDDED_APP && request()->header('sec-fetch-dest')!='iframe' && $request->server("REQUEST_METHOD")=='GET' && $request->input("host")){
