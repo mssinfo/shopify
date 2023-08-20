@@ -83,6 +83,7 @@ css reference is https://www.uptowncss.com/
     \Msdev2\Shopify\Utils::makeUrltoLinkFromString($string) or mUrltoLinkFromString($string)
     \Msdev2\Shopify\Utils::successResponse(?$message,?$array,?$code) or mSuccessResponse(?$message,?$array,?$code)
     \Msdev2\Shopify\Utils::errorResponse(?$message,?$array,?$code) or mErrorResponse(?$message,?$array,?$code)
+    mLog($message, ?$array, ?$logLevel, ?$channel)
 
 ### for vuejs route helper  
     window.$GLOBALS.push(path)

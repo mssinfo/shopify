@@ -1,7 +1,6 @@
 <?php
 namespace Msdev2\Shopify;
 
-use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +38,27 @@ class Utils
         $path = ltrim($path, '/');
         return config("app.url").'/'.$path.'?'.$queryBuild;
     }
+    
+    public static function getSession($shopName = null){
+        $query = ShopifyUtils::getQueryParams(URL::full());
+        $session = $query['session'] ?? null;
+        if(!$session && request()->header('session')){
+            $session = request()->header('session');
+        }
+        elseif(!$session && Cache::get('session')){
+            $session = Cache::get('session');
+        }
+        elseif(!$session && session('session')){
+            $session = session('session');
+        }
+        if(!$session && $shopName){
+            $session = 'offline_'.$shopName;
+        }else{
+            return null;
+        }
+        Cache::put('session',$session);
+        return $session;
+    }
     public static function getShopName(){
         $query = ShopifyUtils::getQueryParams(URL::full());
         $shopName = $query['shop'] ?? null;
@@ -48,14 +68,14 @@ class Utils
         elseif(!$shopName && Cache::get('shop')){
             $shopName = Cache::get('shop')->shop;
         }
+        elseif(!$shopName && self::getSession()){
+            $shopName = Context::$SESSION_STORAGE->loadSession(self::getSession())->getShop();
+        }
         elseif(!$shopName && Cache::get('shopName')){
             $shopName = Cache::get('shopName');
         }
         elseif(!$shopName && session('shopName')){
             $shopName = session('shopName');
-        }
-        elseif(!$shopName && request()->session){
-            $shopName = Context::$SESSION_STORAGE->loadSession(request()->session)->getShop();
         }
         if(!$shopName){
             return null;
@@ -66,15 +86,15 @@ class Utils
     }
     public static function getAccessToken(){
         $accessToken = null;
+        if(self::getSession()){
+            $session = Context::$SESSION_STORAGE->loadSession(self::getSession());
+            $accessToken = $session ? $session->getAccessToken() : null;
+        }
         if(!$accessToken && Cache::get('shop')){
             $accessToken = Cache::get('shop')->access_token;
         }
         if(!$accessToken && Cache::get('accessToken')){
             $accessToken = Cache::get('accessToken');
-        }
-        elseif(!$accessToken && request()->session){
-            $session = Context::$SESSION_STORAGE->loadSession(request()->session);
-            $accessToken = $session ? $session->getAccessToken() : null;
         }
         if(!$accessToken){
             $shop = self::getShop();
@@ -96,9 +116,7 @@ class Utils
                 if($shopName==$shop->id || $shopName==$shop->shop){
                     return $shop;
                 }
-                $shop = Shop::where(function ($query) use ($shopName) {
-                    $query->where('shop',$shopName)->orWhere('id', $shopName)->orWhere('domain', $shopName);
-                })->first();
+                $shop = Shop::where('shop',$shopName)->orWhere('id', $shopName)->orWhere('domain', $shopName)->first();
                 if($shop){
                     Cache::put('shop',$shop);
                     return $shop;
@@ -121,10 +139,19 @@ class Utils
         return $shop;
     }
     public static function rest(Shop $shop = null): Rest {
+        $shopName = null;
+        $accessToken = null;
         if(!$shop){
             $shopName = self::getShopName();
             $accessToken = self::getAccessToken();
-        }else{
+        }elseif(self::getSession()){
+            $session = Context::$SESSION_STORAGE->loadSession(self::getSession());
+            if($session){
+                $shopName = $session->getShop();
+                $accessToken = $session->getAccessToken();
+            }
+        }
+        if(!$shopName || !$accessToken){
             $shopName = $shop->shop;
             $accessToken = $shop->access_token;
         }
@@ -208,7 +235,7 @@ class Utils
 
             $json = json_decode($asset['value'], true);
             $query = 'main-';
-            // Log::info(print_r($json, 1));
+            // mLog(print_r($json, 1));
 
             if (array_key_exists('sections', (array)$json) && count($json['sections']) > 0) {
                 foreach ($json['sections'] as $key => $value) {
@@ -248,9 +275,9 @@ class Utils
 
                 $match = preg_match('/\{\%\s+schema\s+\%\}([\s\S]*?)\{\%\s+endschema\s+\%\}/m', $asset['value'], $matches);
 
-                // Log::info(print_r($matches,1));
+                // mLog(print_r($matches,1));
                 $schema = json_decode($matches[1], true);
-                // Log::info(print_r($schema,1));
+                // mLog(print_r($schema,1));
 
                 if ($schema && array_key_exists('blocks', $schema)) {
                     foreach ($schema['blocks'] as $block) {

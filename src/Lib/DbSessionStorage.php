@@ -74,7 +74,7 @@ class DbSessionStorage implements SessionStorage
         try {
             return $dbSession->save();
         } catch (Exception $err) {
-            Log::error("Failed to save session to database: " . $err->getMessage());
+            mLog("Failed to save session to database: ", [$err->getMessage()],'error');
             return false;
         }
     }

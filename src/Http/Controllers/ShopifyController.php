@@ -3,7 +3,6 @@ namespace Msdev2\Shopify\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Artisan;
 use Msdev2\Shopify\Lib\AuthRedirection;
@@ -14,7 +13,6 @@ use Shopify\ApiVersion;
 use Shopify\Auth\Session;
 use Shopify\Clients\HttpHeaders;
 use Shopify\Context;
-use Shopify\Exception\InvalidWebhookException;
 use Shopify\Webhooks\Registry;
 use Shopify\Utils;
 
@@ -22,10 +20,10 @@ class ShopifyController extends Controller{
 
     function fallback(Request $request) {
         $this->clearCache();
-        Log::info("install fallback app on ",$request->all());
+        mLog("install fallback app on ",$request->all());
         $shopName = $request->shop ?? null;
         if($shopName){
-            $shop = mShop($shopName);
+            $shop = Shop::where('shop',$shopName)->orWhere('domain', $shopName)->first();
             if(!$shop){
                 return redirect(config("app.url").'/authenticate?shop='.$shopName);
             }
@@ -39,7 +37,7 @@ class ShopifyController extends Controller{
     public function generateToken(Request $request)
     {
         $this->clearCache();
-        Log::info("generateToken app on ",$request->all());
+        mLog("generateToken app on ",$request->all());
         $shared_secret = config("msdev2.shopify_api_secret");
         $api_key = config('msdev2.shopify_api_key');
         $params = $request->all(); // Retrieve all request parameters
@@ -76,9 +74,9 @@ class ShopifyController extends Controller{
             foreach ($webhooks as $webhook) {
                 $response = Registry::register('/shopify/webhooks', $webhook, $shopName, $result->json("access_token"));
                 if ($response->isSuccess()) {
-                    Log::debug("Registered $webhook webhook for shop ".$shopName);
+                    mLog("Registered $webhook webhook for shop ".$shopName,[],'debug');
                 } else {
-                    Log::error( "Failed to register $webhook  webhook for shop ".$shopName." with response body: " ,[$response->getBody()]);
+                    mLog( "Failed to register $webhook  webhook for shop ".$shopName." with response body: " ,[$response->getBody()],'error');
                 }
             }
         }
@@ -117,7 +115,7 @@ class ShopifyController extends Controller{
     {
         $rawHeaders = $request->headers->all();
         $headers = new HttpHeaders($rawHeaders);
-        Log::info("Request to webhook!",[$request->all(),$rawHeaders,$headers,$name]);
+        mLog("Request to webhook!",[$request->all(),$rawHeaders,$headers,$name]);
         if($name){
             $shared_secret = config("msdev2.shopify_api_secret");
             $hmac = $request->get('hmac') ?? HttpHeaders::X_SHOPIFY_HMAC;
@@ -141,33 +139,36 @@ class ShopifyController extends Controller{
         $topic = $headers->get(HttpHeaders::X_SHOPIFY_TOPIC);
         $hookClass = ucwords(str_replace('/',' ',$topic));
         $classWebhook = "\\App\\Webhook\\Handlers\\".str_replace(' ','',$hookClass);
+        if($hookClass == "AppUninstalled"){
+            $this->clearCache(true);
+        }
         if (!class_exists($classWebhook)) {
-            // Log::info("class hot found for hook");
+            // mLog("class hot found for hook");
             return mSuccessResponse("class hot found for hook");
         }
         Registry::addHandler(strtoupper(str_replace(' ','_',$hookClass)), new $classWebhook());
         try {
             $response = Registry::process($rawHeaders, $request->getContent());
             if ($response->isSuccess()) {
-                Log::info("Responded to webhook!",[$response]);
+                mLog("Responded to webhook!",[$response]);
                 return mSuccessResponse("Responded to webhook!",[$response]);
                 // Respond with HTTP 200 OK
             } else {
                 // The webhook request was valid, but the handler threw an exception
-                Log::error("Webhook handler failed with message: " . $response->getErrorMessage());
+                mLog("Webhook handler failed with message: " . $response->getErrorMessage(),[],'error');
                 return mErrorResponse("Webhook handler failed with message: " . $response->getErrorMessage());
             }
         } catch (\Exception $error) {
             $cls = new $classWebhook();
-            Log::error('excepion : '.$error->getMessage(),[$error]);
+            mLog('excepion : '.$error->getMessage(),[$error],'error');
             $cls->handle($topic, $headers->get(HttpHeaders::X_SHOPIFY_DOMAIN), $request->all());
             // The webhook request was not a valid one, likely a code error or it wasn't fired by Shopify
             return mErrorResponse('excepion : '.$error->getMessage(),[$error]);
         }
     }
-    private function clearCache(): void
+    private function clearCache($all = false): void
     {
-        // Artisan::call('cache:forget shop');
+        if($all) Artisan::call('cache:forget shop');
         Artisan::call('cache:forget shopname');
     }
 }

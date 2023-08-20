@@ -49,15 +49,14 @@ class ShopifyServiceProvider extends ServiceProvider
         );
         $shopName = Utils::getShopName();
         $accessToken = Utils::getAccessToken();
-        // if($shopName && $accessToken){
-        //     if(!session('shopName'))session(['shopName'=>$shopName]);
-        //     Log::info('Shopify: '.$shopName.' - '.$accessToken.' - ',[session()->all()]);
-        //     $offlineSession = new Session(request()->session ?? 'offline_'.$shopName, $shopName, false, Uuid::uuid4()->toString());
-        //     $offlineSession->setScope(Context::$SCOPES->toString());
-        //     $offlineSession->setAccessToken($accessToken);
-        //     $offlineSession->setExpires(strtotime('+1 day'));
-        //     Context::$SESSION_STORAGE->storeSession($offlineSession);
-        // }
+        if($shopName && $accessToken){
+            $session = Utils::getSession($shopName);
+            $sessionStore = new Session($session, $shopName, true, Uuid::uuid4()->toString());
+            $sessionStore->setScope(Context::$SCOPES->toString());
+            $sessionStore->setAccessToken($accessToken);
+            $sessionStore->setExpires(strtotime('+1 day'));
+            Context::$SESSION_STORAGE->storeSession($sessionStore);
+        }
         // URL::forceRootUrl("https://$host");
         // URL::forceScheme('https');
     }
