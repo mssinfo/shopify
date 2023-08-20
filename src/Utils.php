@@ -109,8 +109,11 @@ class Utils
         Cache::put('accessToken',$accessToken);
         return $accessToken;
     }
-    public static function getShop($shopName = null) :Shop|null{
+    public static function getShop($shopName = null, $cache = true) :Shop|null{
         $shop = null;
+        if(!$cache){
+            return Shop::where('shop',$shopName)->orWhere('domain', $shopName)->orWhere('id', $shopName)->first();
+        }
         if(Cache::get('shop')){
             $shop = Cache::get('shop');
             if($shopName){
