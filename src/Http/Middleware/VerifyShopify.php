@@ -14,7 +14,7 @@ class VerifyShopify
     }
     public function handle(Request $request, Closure $next)
     {
-        // Artisan::call('cache:forget shop');
+        Artisan::call('cache:forget shop');
         Artisan::call('cache:forget shopname');
         $shopName = mShopName();
         mLog('VerifyShopify:'.$shopName,$request->all());
