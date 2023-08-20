@@ -53,7 +53,8 @@ class Utils
         }
         if(!$session && $shopName){
             $session = 'offline_'.$shopName;
-        }else{
+        }
+        if(!$session){
             return null;
         }
         Cache::put('session',$session);

@@ -49,16 +49,14 @@ class ShopifyServiceProvider extends ServiceProvider
         );
         $shopName = Utils::getShopName();
         $accessToken = Utils::getAccessToken();
-        if($shopName && $accessToken){
-            $session = Utils::getSession($shopName);
+        $session = Utils::getSession($shopName);
+        if($shopName && $accessToken && $session){
             $sessionStore = new Session($session, $shopName, true, Uuid::uuid4()->toString());
             $sessionStore->setScope(Context::$SCOPES->toString());
             $sessionStore->setAccessToken($accessToken);
             $sessionStore->setExpires(strtotime('+1 day'));
             Context::$SESSION_STORAGE->storeSession($sessionStore);
         }
-        // URL::forceRootUrl("https://$host");
-        // URL::forceScheme('https');
     }
     public function register()
     {
