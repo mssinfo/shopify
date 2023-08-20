@@ -14,12 +14,12 @@ class VerifyShopify
     }
     public function handle(Request $request, Closure $next)
     {
-        // Artisan::call('cache:forget shop');
+        Artisan::call('cache:forget shop');
         Artisan::call('cache:forget shopname');
         $shopName = mShopName();
         mLog('VerifyShopify:'.$shopName,$request->all());
         if (Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing']) || $shopName) {
-            $shop = mShop($shopName, false); 
+            $shop = mShop($shopName); 
             if(!$shop || $shop->is_uninstalled == 1){    
                 mLog("redirect to install -- ".$shopName);
                 return redirect()->route('msdev2.shopify.install',['shop'=>$shopName]);

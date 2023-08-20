@@ -12,8 +12,8 @@ function mShopName(){
 function mAccessToken(){
     return Utils::getAccessToken();
 }
-function mShop($shopName = null, $cache = true){
-    return Utils::getShop($shopName, $cache);
+function mShop($shopName = null){
+    return Utils::getShop($shopName);
 }
 function mRest($shop = null){
     return Utils::rest($shop);
