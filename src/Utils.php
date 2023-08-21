@@ -88,9 +88,6 @@ class Utils
             $session = Context::$SESSION_STORAGE->loadSession(self::getSession());
             $accessToken = $session ? $session->getAccessToken() : null;
         }
-        if(!$accessToken && Cache::get('accessToken')){
-            $accessToken = Cache::get('accessToken');
-        }
         if(!$accessToken){
             $shop = self::getShop();
             if($shop){
@@ -100,7 +97,6 @@ class Utils
         if(!$accessToken){
             return null;
         }
-        Cache::put('accessToken',$accessToken);
         return $accessToken;
     }
     public static function getShop($shopName = null) :Shop|null{
