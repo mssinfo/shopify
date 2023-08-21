@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>{{ config('app.name') }} |  @if (\Cache::get('shop')) {{\Cache::get('shop')->shop}}  @endif</title>
+        <title>{{ config('app.name') }} |  @if (\Cache::get('shopName')) {{\Cache::get('shopName')}}  @endif</title>
         <link rel="stylesheet" href="{{ asset('msdev2/app.css') }}">
         @yield('styles')
     </head>

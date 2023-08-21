@@ -66,9 +66,6 @@ class Utils
         if(!$shopName && request()->header('shop')){
             $shopName = request()->header('shop');
         }
-        elseif(!$shopName && Cache::get('shop')){
-            $shopName = Cache::get('shop')->shop;
-        }
         elseif(!$shopName && self::getSession()){
             $shopName = Context::$SESSION_STORAGE->loadSession(self::getSession())->getShop();
         }
@@ -91,9 +88,6 @@ class Utils
             $session = Context::$SESSION_STORAGE->loadSession(self::getSession());
             $accessToken = $session ? $session->getAccessToken() : null;
         }
-        if(!$accessToken && Cache::get('shop')){
-            $accessToken = Cache::get('shop')->access_token;
-        }
         if(!$accessToken && Cache::get('accessToken')){
             $accessToken = Cache::get('accessToken');
         }
@@ -111,21 +105,6 @@ class Utils
     }
     public static function getShop($shopName = null) :Shop|null{
         $shop = null;
-        if(Cache::get('shop')){
-            $shop = Cache::get('shop');
-            if($shopName){
-                if($shopName==$shop->id || $shopName==$shop->shop){
-                    return $shop;
-                }
-                $shop = Shop::where('shop',$shopName)->orWhere('id', $shopName)->orWhere('domain', $shopName)->first();
-                if($shop){
-                    Cache::put('shop',$shop);
-                    return $shop;
-                }
-                return null;
-            }
-            return $shop;
-        }
         if(!$shopName){
             $shopName = self::getShopName();
         }
@@ -133,9 +112,6 @@ class Utils
             $shop = Shop::where(function ($query) use ($shopName) {
                 $query->where('shop',$shopName)->orWhere('id', $shopName);
             })->first();
-        }
-        if($shop){
-            Cache::put('shop',$shop);
         }
         return $shop;
     }
@@ -162,10 +138,19 @@ class Utils
         return $client;
     }
     public static function graph(Shop $shop = null): Graphql {
+        $shopName = null;
+        $accessToken = null;
         if(!$shop){
             $shopName = self::getShopName();
             $accessToken = self::getAccessToken();
-        }else{
+        }elseif(self::getSession()){
+            $session = Context::$SESSION_STORAGE->loadSession(self::getSession());
+            if($session){
+                $shopName = $session->getShop();
+                $accessToken = $session->getAccessToken();
+            }
+        }
+        if(!$shopName || !$accessToken){
             $shopName = $shop->shop;
             $accessToken = $shop->access_token;
         }

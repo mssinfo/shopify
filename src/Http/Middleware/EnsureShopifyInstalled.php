@@ -22,7 +22,6 @@ class EnsureShopifyInstalled
         $shopName = mShopName();
         $appInstalled = $shopName && Shop::where('shop', $shopName)->where('access_token', '<>', null)->exists();
         // $isExitingIframe = preg_match("/^ExitIframe/i", $request->path());
-
         return ($appInstalled) ? $next($request) : AuthRedirection::redirect($request);
     }
 }
