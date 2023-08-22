@@ -76,6 +76,7 @@ css reference is https://www.uptowncss.com/
     \Msdev2\Shopify\Utils::Route('home.name') or mRoute('home.name')
     \Msdev2\Shopify\Utils::Route('/pagename') or mRoute('/pagename')
 ### other common helper functions
+    \Msdev2\Shopify\Utils::$shop;
     \Msdev2\Shopify\Utils::getShop(?$shopname) or mShop(?$shopname)
     \Msdev2\Shopify\Utils::getShopName() or mShopName()
     \Msdev2\Shopify\Utils::rest(?$shop) or mRest(?$shop)

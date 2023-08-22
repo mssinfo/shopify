@@ -145,8 +145,9 @@ class ShopifyController extends Controller{
         $topic = $headers->get(HttpHeaders::X_SHOPIFY_TOPIC);
         $hookClass = ucwords(str_replace('/',' ',$topic));
         $classWebhook = "\\App\\Webhook\\Handlers\\".str_replace(' ','',$hookClass);
+        $shopName = $headers->get(HttpHeaders::X_SHOPIFY_DOMAIN);
         if($hookClass == "AppUninstalled"){
-            ModelsSession::where('shop', $headers->get(HttpHeaders::X_SHOPIFY_DOMAIN))->delete();
+            ModelsSession::where('shop', $shopName)->delete();
             $this->clearCache(true);
         }
         if (!class_exists($classWebhook)) {
@@ -168,7 +169,7 @@ class ShopifyController extends Controller{
         } catch (\Exception $error) {
             $cls = new $classWebhook();
             mLog('excepion : '.$error->getMessage(),[$error],'error');
-            $cls->handle($topic, $headers->get(HttpHeaders::X_SHOPIFY_DOMAIN), $request->all());
+            $cls->handle($topic, $shopName, $request->all());
             // The webhook request was not a valid one, likely a code error or it wasn't fired by Shopify
             return mErrorResponse('excepion : '.$error->getMessage(),[$error]);
         }

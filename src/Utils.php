@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Cache;
 
 class Utils
 {
+    public static $shop = null;
+    public static function setShopData($shop){
+        self::$shop = $shop;
+    }
     public static function Route($path,$query = []) {
         $queryList = ShopifyUtils::getQueryParams(URL::full());
         if(isset($queryList["host"])) $queryBuild["host"] = $queryList['host'];
@@ -104,10 +108,22 @@ class Utils
         if(!$shopName){
             $shopName = self::getShopName();
         }
+        if(Utils::$shop){
+            $shop = Utils::$shop;
+            if($shopName){
+                if($shopName==$shop->id || $shopName==$shop->shop){
+                    return $shop;
+                }
+                $shop = Shop::where('shop',$shopName)->orWhere('id', $shopName)->orWhere('domain', $shopName)->first();
+                if($shop){
+                    return $shop;
+                }
+                return null;
+            }
+            return $shop;
+        }
         if($shopName){
-            $shop = Shop::where(function ($query) use ($shopName) {
-                $query->where('shop',$shopName)->orWhere('id', $shopName);
-            })->first();
+            $shop = Shop::where('shop',$shopName)->orWhere('id', $shopName)->orWhere('domain', $shopName)->first();
         }
         return $shop;
     }

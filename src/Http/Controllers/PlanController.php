@@ -5,7 +5,6 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Carbon;
 use Msdev2\Shopify\Lib\EnsureBilling;
-use Msdev2\Shopify\Utils as ShopifyUtils;
 use Msdev2\Shopify\Utils;
 
 class PlanController extends Controller{
@@ -27,7 +26,7 @@ class PlanController extends Controller{
         return null;
     }
     public function planAccept(Request $request){
-        $shop = ShopifyUtils::getShop();
+        $shop = Utils::getShop();
         $charges = $shop->activeCharge;
         if($charges){
             EnsureBilling::requestCancelSubscription($shop, 'gid://shopify/AppSubscription/'.$charges->charge_id);

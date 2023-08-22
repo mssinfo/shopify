@@ -73,21 +73,21 @@
             s0.parentNode.insertBefore(s1,s0);
             })();
             setTimeout(() => {
-                @if (\Cache::get('shop'))
+                @if ($shop)
                 window.Tawk_API.visitor = {
-                    name : "{{\Cache::get('shop')->detail['shop_owner']}}",
-                    email : "{{\Cache::get('shop')->detail['email']}}",
-                    phone : "{{\Cache::get('shop')->detail['phone']}}",
+                    name : "{{$shop->detail['shop_owner']}}",
+                    email : "{{$shop->detail['email']}}",
+                    phone : "{{$shop->detail['phone']}}",
                 };    
                 window.Tawk_API.onLoad = function(){
                     window.Tawk_API.setAttributes({
-                        shop : "{{\Cache::get('shop')->detail['myshopify_domain']}}",
-                        plan_name : "{{\Cache::get('shop')->detail['plan_name']}}",
-                        plan_display_name : "{{\Cache::get('shop')->detail['plan_display_name']}}",
+                        shop : "{{$shop->detail['myshopify_domain']}}",
+                        plan_name : "{{$shop->detail['plan_name']}}",
+                        plan_display_name : "{{$shop->detail['plan_display_name']}}",
                         referrer : document.referrer,
-                        name : "{{\Cache::get('shop')->detail['name']}}",
-                        email : "{{\Cache::get('shop')->detail['email']}}",
-                        phone : "{{\Cache::get('shop')->detail['phone']}}",
+                        name : "{{$shop->detail['name']}}",
+                        email : "{{$shop->detail['email']}}",
+                        phone : "{{$shop->detail['phone']}}",
                     }, function(error){});
                 }
                 @endif

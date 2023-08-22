@@ -47,9 +47,15 @@ class ShopifyServiceProvider extends ServiceProvider
             null,
             (array)$customDomain,
         );
+
         $shopName = Utils::getShopName();
         $accessToken = Utils::getAccessToken();
         $session = Utils::getSession($shopName);
+        $shop = Utils::getShop();
+        Utils::setShopData($shop);
+        view()->composer('*', function ($view) use ($shop) {
+            $view->with('shop', $shop);
+        });
         if($shopName && $accessToken && $session){
             $sessionStore = new Session($session, $shopName, true, Uuid::uuid4()->toString());
             $sessionStore->setScope(Context::$SCOPES->toString());

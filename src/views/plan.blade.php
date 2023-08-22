@@ -55,16 +55,23 @@
                     </div>
                 </td></tr>`)
             });
+            let enable = ''; 
+            if(typeof element.feature.plan != "undefined"){
+                enable = 'disabled="disabled" readonly="readonly"';
+                if(element.feature.plan == '{{\Msdev2\Shopify\Utils::$shop->detail["plan_name"]}}' || (element.feature.plan == 'basic' && '{{\Msdev2\Shopify\Utils::$shop->detail["plan_name"]}}' == 'partner_test')){
+                    enable = '';
+                }
+            }
             let buttonForm = `<button type="button" disabled="disabled">Current Plan</button>`;
             let isActive = 'active'
             if(currentPlan != element.chargeName){
                 isActive = ''
-                buttonForm = `<form target="_parent" method="post" action="{{mRoute('msdev2.shopify.plan.subscribe')}}">
+                buttonForm = `<form target="_parent" method="post" action="{{mRoute('msdev2.shopify.plan.subscribe')}}" ${enable} >
                     <input type="hidden" name="plan" value="${element.chargeName}">`;
                 if(appUsed < element.trialDays && element.trialDays > 0){
-                    buttonForm += `<button>${'Start '+ (element.trialDays-appUsed) +' Day Trial'}</button>`
+                    buttonForm += `<button ${enable}>${'Start '+ (element.trialDays-appUsed) +' Day Trial'}</button>`
                 }else{
-                    buttonForm += `<button>Purchase</button>`
+                    buttonForm += `<button ${enable}>Purchase</button>`
                 }
                 buttonForm += `</form>`;
             }
