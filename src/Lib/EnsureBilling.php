@@ -120,7 +120,7 @@ class EnsureBilling
         }
 
         if (!empty($data["userErrors"])) {
-            abort("Error while billing the store". $data["userErrors"]);
+            dd($data);
         }
 
         return $data["confirmationUrl"];

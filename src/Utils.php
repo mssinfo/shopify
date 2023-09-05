@@ -70,8 +70,11 @@ class Utils
         if(!$shopName && request()->header('shop')){
             $shopName = request()->header('shop');
         }
-        elseif(!$shopName && self::getSession()){
-            $shopName = Context::$SESSION_STORAGE->loadSession(self::getSession())->getShop();
+        if(!$shopName && request()->session){
+            $session = Context::$SESSION_STORAGE->loadSession(request()->session);
+            if($session){
+                $shopName = $session->getShop();
+            }
         }
         elseif(!$shopName && Cache::get('shopName')){
             $shopName = Cache::get('shopName');

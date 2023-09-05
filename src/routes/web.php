@@ -19,4 +19,5 @@ Route::get('plan/approve',[PlanController::class,'planAccept'])->name('msdev2.sh
 Route::middleware(['msdev2.shopify.verify','web'])->group(function(){
     Route::get('plan',[PlanController::class,'plan'])->name("msdev2.shopify.plan.index");
     Route::get('logs',[LogsController::class,'index'])->name("msdev2.shopify.logs.index");
+    Route::get('help',[ShopifyController::class,'help'])->name("msdev2.shopify.help");
 });
