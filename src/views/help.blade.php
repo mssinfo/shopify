@@ -63,7 +63,7 @@
 
 </span>
 @endsection
-@section('style')
+@section('styles')
 <style>
 #home header {
     color: #fff;
