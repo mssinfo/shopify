@@ -15,7 +15,7 @@ class CreateTicketsTable extends Migration
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('shop');
+            $table->foreignId('shop_id');
             $table->string('email');
             $table->string('subject');
             $table->string('category');
@@ -26,6 +26,7 @@ class CreateTicketsTable extends Migration
             $table->string('ip_address', 45)->nullable();
             $table->integer('status')->default(0);
             $table->timestamps();
+            $table->foreign('shop_id')->references('id')->on('shops')->onDelete('cascade');
         });
     }
 

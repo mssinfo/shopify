@@ -9,7 +9,7 @@
     <form method="post" class="card columns " id="TicketForm">
         <div class="row">
             <label for="email">Email*</label>
-            <input type="email" name="email" id="email" value="{{$shop->detail['email']}}" disabled="disabled" />
+            <input type="email" name="email" id="email" value="{{$shop->detail['email']}}" />
         </div>
         <div class="row">
             <label for="subject">Subject*</label>
@@ -49,7 +49,7 @@
         </div>
         <div class="row">
             <label for="file">Attach File</label>
-            <input type="file" id="file" name="file[]" multiple>
+            <input type="file" id="file" multiple>
             <span id="js-error" style="color:red;"></span>
             <div id="file-list-display" class="mt-20"></div>
         </div>
@@ -68,7 +68,7 @@
         </div>
         <div class="row" id="statusTicket"></div>
         <button type="submit" id="ticketSubmit">Submit</button>
-        <button class="secondary" type="reset">Reset</button>
+        <button class="secondary" id="ticketReset" type="reset">Reset</button>
     </form>    
 </article>
 </section>
@@ -203,14 +203,24 @@
     }
 
     sendFile = function () {
-        let formEntries = new FormData(form);
-        if(files.length > 0) formEntries.append('files',files)
-        formEntries = formEntries.entries()
+        let formEntries = new FormData(form).entries();
         const json = Object.assign(...Array.from(formEntries, ([x,y]) => ({[x]:y})));
+        if(files.length > 0) json['files'] = files
         console.log(json);
         let request = window.$GLOBALS.processRequest('POST ticket', json)
         request.then(result => {
-            console.log(result);
+            status.innerHTML = result.message
+            status.classList.add("alert")
+            if(result.status == "success"){
+                status.classList.remove("error")
+                status.classList.add("success")
+                document.getElementById("ticketReset").click();
+                fileListDisplay.innerHTML = "";
+                errorContainer.innerHTML = "";
+            }else{
+                status.classList.remove("success")
+                status.classList.add("error")
+            }
         })
     };
 })();
