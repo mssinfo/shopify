@@ -19,7 +19,15 @@ class Shop extends Model
     protected $casts = [
         'detail' => 'array',
     ];
-
+    /**
+     * Get all of the tickets for the Shop
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class);
+    }
     /**
      * Get all of the metadata for the Shop
      *

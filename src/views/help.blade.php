@@ -23,7 +23,9 @@
                     <dd>We want to hear from you! Share your experience today and let's create something extraordinary together!
                     </dd>
                 </dl>
-                <button control-id="ControlID-55">Change</button>
+                @if (config('msdev2.shopify_app_url') != '')
+                <a href="{{config('msdev2.shopify_app_url')}}" target="_blank" class="button" control-id="ControlID-55">Rate</a>
+                @endif
             </div>
         </div>
     </section>
@@ -36,8 +38,8 @@
                     <h5>Live Chat</h5>
 
                     <p>Need Assistance? Our Live Chat Support is ready.</p>
-
-                    <p><a href="#" class="button download" target="_blank">Chat Now</a></p>
+                        <a href="#" class="button download twak_chat disabled" id="tawk_chat_button">Chat Now</a>
+                    </p>
                 </div>
                 <div class="card columns four">
                     <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 106.9 124.5"><title>css</title><path d="M47.48,6.32H20.79V109.74h-4.5V1.82h92.58V109.74A16.59,16.59,0,0,1,92.3,126.32v-4.5a12.09,12.09,0,0,0,12.07-12.08V6.32H47.48Z" transform="translate(-1.97 -1.82)" fill="#919eab"/><path d="M92.29,126.32H18.54A16.6,16.6,0,0,1,2,109.75V107.5H80.22v2.25a12.09,12.09,0,0,0,12.08,12.08v4.5ZM6.68,112a12.1,12.1,0,0,0,11.87,9.83H81A16.56,16.56,0,0,1,75.87,112H6.68Z" transform="translate(-1.97 -1.82)" fill="#919eab"/><rect x="27.96" y="14.03" width="23.99" height="4.5" fill="#919eab"/><rect x="27.96" y="22.75" width="15.24" height="4.5" fill="#919eab"/><rect x="27.96" y="31.46" width="23.99" height="4.5" fill="#919eab"/><rect x="27.96" y="40.18" width="10.74" height="4.5" fill="#919eab"/><rect x="27.96" y="48.89" width="34.74" height="4.5" fill="#919eab"/><rect x="27.96" y="57.61" width="44.49" height="4.5" fill="#919eab"/><rect x="27.96" y="66.32" width="23.99" height="4.5" fill="#919eab"/><rect x="27.96" y="75.04" width="27.99" height="4.5" fill="#919eab"/><rect x="27.96" y="83.79" width="59.74" height="4.5" fill="#919eab"/><rect x="27.96" y="92.54" width="36.74" height="4.5" fill="#919eab"/></svg>
@@ -46,7 +48,7 @@
 
                     <p>Get any issue? send a ticket to our expert.</p>
 
-                    <p><a href="#" class="button download" target="_blank">Download Source</a></p>
+                    <p><a href="{{ mRoute('msdev2.shopify.ticket') }}" class="button download">Create</a></p>
                 </div>
                 <div class="card columns four">
                     <svg fill="#000000" version="1.1" viewBox="0 0 337.56 337.56" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><path d="m337.56 67.704v-28.33c0-17.506-14.242-31.748-31.748-31.748h-54.572c-4.932-3.021-10.727-4.765-16.922-4.765h-201.82c-17.92-1e-3 -32.5 14.579-32.5 32.499v266.84c0 17.921 14.58 32.5 32.5 32.5h201.82c6.196 0 11.992-1.745 16.925-4.767h54.569c17.506 0 31.748-14.242 31.748-31.748v-28.33c0-9.715-4.391-18.42-11.287-24.248 6.896-5.828 11.287-14.533 11.287-24.248v-28.331c0-9.715-4.391-18.42-11.287-24.248 6.896-5.828 11.287-14.533 11.287-24.248v-28.33c0-9.715-4.391-18.42-11.287-24.248 6.897-5.829 11.288-14.534 11.288-24.248zm-85.743 234.49c0 9.649-7.851 17.5-17.5 17.5h-201.82c-9.649 0-17.5-7.851-17.5-17.5v-266.84c0-9.649 7.851-17.5 17.5-17.5h201.82c9.649 0 17.5 7.851 17.5 17.5v266.84zm70.743-4.014c0 9.235-7.513 16.748-16.748 16.748h-41.595c1.673-3.912 2.601-8.216 2.601-12.733v-49.093h38.994c9.235 0 16.748 7.513 16.748 16.748v28.33zm0-76.827c0 9.235-7.513 16.748-16.748 16.748h-38.994v-61.827h38.994c9.235 0 16.748 7.513 16.748 16.748v28.331zm0-76.827c0 9.235-7.513 16.748-16.748 16.748h-38.994v-61.827h38.994c9.235 0 16.748 7.513 16.748 16.748v28.331zm0-76.826c0 9.235-7.513 16.748-16.748 16.748h-38.994v-49.092c0-4.518-0.929-8.822-2.602-12.735h41.596c9.235 0 16.748 7.513 16.748 16.748v28.331z"/><rect x="40.413" y="230.02" width="185.99" height="15"/><path d="m66.891 206.2h133.04c2.263 0 4.405-1.021 5.829-2.78s1.978-4.066 1.507-6.279c-3.595-16.907-13.071-32.176-26.474-43.02 8.782-10.818 13.689-24.438 13.689-38.522 0-33.674-27.396-61.07-61.07-61.07s-61.07 27.396-61.07 61.07c0 14.084 4.908 27.704 13.689 38.522-13.402 10.844-22.878 26.112-26.472 43.02-0.471 2.213 0.083 4.521 1.507 6.279 1.425 1.759 3.567 2.78 5.83 2.78zm34.452-44.617c1.988-1.245 3.279-3.35 3.488-5.687s-0.687-4.637-2.422-6.216c-9.579-8.718-15.072-21.14-15.072-34.081 0-25.403 20.667-46.07 46.07-46.07s46.07 20.667 46.07 46.07c0 12.941-5.494 25.363-15.072 34.081-1.735 1.579-2.631 3.879-2.422 6.216s1.5 4.441 3.488 5.687c11.154 6.989 19.735 17.49 24.42 29.618h-112.97c4.685-12.128 13.266-22.631 24.42-29.618z"/><rect x="63.83" y="259.69" width="139.16" height="15"/></svg>
@@ -55,13 +57,33 @@
 
                     <p>Need more help? Contact us vue a our contact us page.</p>
 
-                    <p><a href="#" class="button secondary" target="_blank">View Project</a></p>
+                    <p><a href="{{config('msdev2.contact_url')}}" class="button secondary" target="_blank">Contact</a></p>
                 </div>
             </article>
         </div>
     </section>
 
 </span>
+@endsection
+@section('scripts')
+@if (config('msdev2.tawk_url') != '')
+    <script>
+        window.Tawk_API.onLoad = function(){
+            var pageStatus = window.Tawk_API.getStatus();
+            var btnTwak = document.getElementById('tawk_chat_button')
+            if(pageStatus === 'online'){
+                btnTwak.classList.remove('disabled');
+                btnTwak.addEventListener("click", (e) =>{
+                    e.preventDefault();
+                    window.Tawk_API.maximize();
+                    return  false;
+                });
+            }else{
+                btnTwak.classList.add('disabled');
+            }
+        };
+    </script>
+@endif    
 @endsection
 @section('styles')
 <style>

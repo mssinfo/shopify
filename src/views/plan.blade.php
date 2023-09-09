@@ -58,7 +58,7 @@
             let enable = ''; 
             if(typeof element.feature.plan != "undefined"){
                 enable = 'disabled="disabled" readonly="readonly"';
-                if(element.feature.plan == 'all' || element.feature.plan == '{{\Msdev2\Shopify\Utils::$shop->detail["plan_name"]}}' || (element.feature.plan == 'basic' && '{{\Msdev2\Shopify\Utils::$shop->detail["plan_name"]}}' == 'partner_test')){
+                if(element.feature.plan == 'all' || element.feature.plan == '{{\Msdev2\Shopify\Utils::$shop->detail["plan_name"]}}' || '{{\Msdev2\Shopify\Utils::$shop->detail["plan_name"]}}' == 'partner_test' || '{{\Msdev2\Shopify\Utils::$shop->detail["plan_name"]}}' == 'staff'){
                     enable = '';
                 }
             }

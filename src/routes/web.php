@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Msdev2\Shopify\Http\Controllers\ShopifyController;
 use Msdev2\Shopify\Http\Controllers\PlanController;
 use Msdev2\Shopify\Http\Controllers\LogsController;
+use Msdev2\Shopify\Http\Controllers\TicketController;
 
 Route::fallback([ShopifyController::class , 'fallback'])->middleware('msdev2.shopify.installed');
 Route::get("install",function(){
@@ -20,4 +21,6 @@ Route::middleware(['msdev2.shopify.verify','web'])->group(function(){
     Route::get('plan',[PlanController::class,'plan'])->name("msdev2.shopify.plan.index");
     Route::get('logs',[LogsController::class,'index'])->name("msdev2.shopify.logs.index");
     Route::get('help',[ShopifyController::class,'help'])->name("msdev2.shopify.help");
+    Route::get('ticket',[TicketController::class,'index'])->name("msdev2.shopify.ticket");
+    Route::post('ticket',[TicketController::class,'store'])->name("msdev2.shopify.saveticket");
 });

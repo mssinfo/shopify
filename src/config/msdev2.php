@@ -14,6 +14,8 @@ return [
     "tawk_url"=> env('TAWK_URL',''),
     "footer"=>env('SHOPIFY_FOOTER', '<p>Copyright &copy; All right reserved.</p>'),
     "test_stores"=>env('SHOPIFY_TEST_STORES',''),
+    "shopify_app_url"=>env('SHOPIFY_APP_URL',''),
+    'contact_url'=>env('SHOPIFY_CONTACT_URL',''),
     "menu"=>[
         'logo'=>[
             'type'=>'url',//image,url,
