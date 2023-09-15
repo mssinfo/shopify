@@ -84,23 +84,17 @@ window.$GLOBALS = {
     showToast : (msg,isError) => {
         isError = typeof isError == 'undefined' || !isError ? false : true
         let toastOptions = {
-            message: msg,
             duration: 5000,
             isError: isError,
         };
         if(appBridgeEnabled == "1"){
+            shopify.toast.show(msg, {
+                duration: 5000,
+            });
             const toastNotice = actions.Toast.create(app, toastOptions);
             toastNotice.dispatch(actions.Toast.Action.SHOW);
         }else{
-            if(confirm(msg)){
-                if(typeof subscribeFun != 'undefined'){
-                    subscribeFun()
-                }
-            }else{
-                if(typeof clearFun != 'undefined'){
-                    clearFun()
-                }
-            }
+            alert(msg)
         }
     },
     modal : (modalOptions, successFun, errorFun) =>{
@@ -152,25 +146,3 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
-if(appBridgeEnabled == "1"){
-    window.AppBridge = window['app-bridge'];
-    var app = window.AppBridge.createApp({
-        apiKey: apiKey,
-        host: window.$GLOBALS.host,
-        forceRedirect: isEmbeddedApp=="1" ? true : false,
-    });
-    var actions = window.AppBridge.actions;
-    // var createApp = window.AppBridge.default;
-    // var utils = window['app-bridge-utils'];
-    // var getSessionToken = utils.getSessionToken;
-    // console.log(getSessionToken,'getSessionToken');
-
-    // app.dispatch(
-    //     actions.Redirect.toRemote({
-    //         url: '{{route("msdev2.shopify.plan.index")}}'
-    //     })
-    // );    
-}
-function showToast(msg,isError,subscribeFun,clearFun){
-    return window.showToast(msg,isError,subscribeFun,clearFun)
-}
