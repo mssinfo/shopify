@@ -82,17 +82,12 @@ window.$GLOBALS = {
         return responseData;
     },
     showToast : (msg,isError) => {
-        isError = typeof isError == 'undefined' || !isError ? false : true
-        let toastOptions = {
-            duration: 5000,
-            isError: isError,
-        };
         if(appBridgeEnabled == "1"){
+            isError = typeof isError == 'undefined' || !isError ? false : true
             shopify.toast.show(msg, {
                 duration: 5000,
+                isError: isError,
             });
-            const toastNotice = actions.Toast.create(app, toastOptions);
-            toastNotice.dispatch(actions.Toast.Action.SHOW);
         }else{
             alert(msg)
         }
