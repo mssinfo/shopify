@@ -32,13 +32,22 @@
     <section>
         <div class="column">
             <article class="margin-0">
-                <div class="card columns four">
+                <div class="card columns four" id="liveChat" style="display: none">
                     <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 149.5 131.14"><title>source</title><rect x="72.5" y="83.95" width="4.5" height="21.88" fill="#919eab"/><path d="M90.54,132.48H63V104.91H90.54v27.57ZM67.47,128H86V109.41H67.47V128Z" transform="translate(-2 -1.34)" fill="#919eab"/><rect x="69.75" y="115.11" width="10" height="4.5" fill="#919eab"/><path d="M151.5,120.94H123.93V93.37H151.5v27.57Zm-23.07-4.5H147V97.87H128.43v18.57Z" transform="translate(-2 -1.34)" fill="#919eab"/><rect x="130.72" y="103.57" width="10" height="4.5" fill="#919eab"/><polygon points="124.18 108.07 102.98 108.07 102.98 83.94 107.48 83.94 107.48 103.57 124.18 103.57 124.18 108.07" fill="#919eab"/><path d="M29.57,120.94H2V93.37H29.57v27.57ZM6.5,116.44H25.07V97.87H6.5v18.57Z" transform="translate(-2 -1.34)" fill="#919eab"/><rect x="8.79" y="103.57" width="10" height="4.5" fill="#919eab"/><polygon points="46.52 108.07 25.32 108.07 25.32 103.57 42.02 103.57 42.02 83.94 46.52 83.94 46.52 108.07" fill="#919eab"/><path d="M128.43,87.53H25.07V17.34H128.43V87.53ZM29.57,83h94.36V21.84H29.57V83Z" transform="translate(-2 -1.34)" fill="#919eab"/><path d="M128.43,21.84H25.07V1.34H128.43V21.84Zm-98.86-4.5h94.36V5.84H29.57V17.34Z" transform="translate(-2 -1.34)" fill="#919eab"/><rect x="34.07" y="8" width="4.5" height="4.5" fill="#919eab"/><rect x="43.06" y="8" width="4.5" height="4.5" fill="#919eab"/><rect x="52.06" y="8" width="4.5" height="4.5" fill="#919eab"/><polygon points="64.7 59.58 55.05 49.92 64.7 40.27 67.89 43.45 61.42 49.92 67.89 56.39 64.7 59.58" fill="#919eab"/><polygon points="84.79 59.58 81.61 56.39 88.08 49.92 81.61 43.45 84.79 40.27 94.44 49.92 84.79 59.58" fill="#919eab"/><rect x="63.25" y="49.01" width="27" height="4.5" transform="translate(4.48 109.77) rotate(-74.16)" fill="#919eab"/></svg>
 
                     <h5>Live Chat</h5>
 
                     <p>Need Assistance? Our Live Chat Support is ready.</p>
                         <a href="#" class="button download twak_chat disabled" id="tawk_chat_button">Chat Now</a>
+                    </p>
+                </div>
+                <div class="card columns four" id="liveSupport">
+                    <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 149.5 131.14"><title>source</title><rect x="72.5" y="83.95" width="4.5" height="21.88" fill="#919eab"/><path d="M90.54,132.48H63V104.91H90.54v27.57ZM67.47,128H86V109.41H67.47V128Z" transform="translate(-2 -1.34)" fill="#919eab"/><rect x="69.75" y="115.11" width="10" height="4.5" fill="#919eab"/><path d="M151.5,120.94H123.93V93.37H151.5v27.57Zm-23.07-4.5H147V97.87H128.43v18.57Z" transform="translate(-2 -1.34)" fill="#919eab"/><rect x="130.72" y="103.57" width="10" height="4.5" fill="#919eab"/><polygon points="124.18 108.07 102.98 108.07 102.98 83.94 107.48 83.94 107.48 103.57 124.18 103.57 124.18 108.07" fill="#919eab"/><path d="M29.57,120.94H2V93.37H29.57v27.57ZM6.5,116.44H25.07V97.87H6.5v18.57Z" transform="translate(-2 -1.34)" fill="#919eab"/><rect x="8.79" y="103.57" width="10" height="4.5" fill="#919eab"/><polygon points="46.52 108.07 25.32 108.07 25.32 103.57 42.02 103.57 42.02 83.94 46.52 83.94 46.52 108.07" fill="#919eab"/><path d="M128.43,87.53H25.07V17.34H128.43V87.53ZM29.57,83h94.36V21.84H29.57V83Z" transform="translate(-2 -1.34)" fill="#919eab"/><path d="M128.43,21.84H25.07V1.34H128.43V21.84Zm-98.86-4.5h94.36V5.84H29.57V17.34Z" transform="translate(-2 -1.34)" fill="#919eab"/><rect x="34.07" y="8" width="4.5" height="4.5" fill="#919eab"/><rect x="43.06" y="8" width="4.5" height="4.5" fill="#919eab"/><rect x="52.06" y="8" width="4.5" height="4.5" fill="#919eab"/><polygon points="64.7 59.58 55.05 49.92 64.7 40.27 67.89 43.45 61.42 49.92 67.89 56.39 64.7 59.58" fill="#919eab"/><polygon points="84.79 59.58 81.61 56.39 88.08 49.92 81.61 43.45 84.79 40.27 94.44 49.92 84.79 59.58" fill="#919eab"/><rect x="63.25" y="49.01" width="27" height="4.5" transform="translate(4.48 109.77) rotate(-74.16)" fill="#919eab"/></svg>
+
+                    <h5>Quick Support</h5>
+
+                    <p>Need Assistance? Our Quick Support is ready.</p>
+                        <a href="mailto:{{config('msdev2.contact_email')}}" class="button download" >Mail us</a>
                     </p>
                 </div>
                 <div class="card columns four">
@@ -71,7 +80,11 @@
         window.Tawk_API.onLoad = function(){
             var pageStatus = window.Tawk_API.getStatus();
             var btnTwak = document.getElementById('tawk_chat_button')
+            var liveChatDiv = document.getElementById('liveChat')
+            var liveSupportDiv = document.getElementById('liveSupport')
             if(pageStatus === 'online'){
+                liveChatDiv.style.display = 'inline-block'
+                liveSupportDiv.style.display = 'none'
                 btnTwak.classList.remove('disabled');
                 btnTwak.addEventListener("click", (e) =>{
                     e.preventDefault();
@@ -79,6 +92,8 @@
                     return  false;
                 });
             }else{
+                liveChatDiv.style.display = 'none'
+                liveSupportDiv.style.display = 'inline-block'
                 btnTwak.classList.add('disabled');
             }
         };

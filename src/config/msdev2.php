@@ -16,6 +16,7 @@ return [
     "test_stores"=>env('SHOPIFY_TEST_STORES',''),
     "shopify_app_url"=>env('SHOPIFY_APP_URL',''),
     'contact_url'=>env('SHOPIFY_CONTACT_URL',''),
+    'contact_email'=>env('SHOPIFY_CONTACT_EMAIL',''),
     "menu"=>[
         'logo'=>[
             'type'=>'url',//image,url,

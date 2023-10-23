@@ -44,9 +44,6 @@ window.$GLOBALS = {
         myHeaders.append("Content-Type", "application/json");
         myHeaders.append("X-CSRF-TOKEN", window.$GLOBALS.csrfToken);
         myHeaders.append("shop", window.$GLOBALS.shopName);
-        if(localStorage.getItem("token")){
-            myHeaders.append("Authorization", "Bearer "+atob(localStorage.getItem("token")));
-        }
         let urlInfo = url.split(' ')
         if(typeof isImageRequest !== 'undefined' && isImageRequest){
             myHeaders.delete('Accept');
@@ -66,19 +63,6 @@ window.$GLOBALS = {
         }
         const response = await fetch(window.URL_ROOT+'/'+urlInfo[1], params)
         let responseData = await response.json();
-        if ( responseData.code == 401) {
-            if(typeof responseData.data === 'undefined' || responseData.data ===  null){
-                this.$store.commit('isLogin', false)
-                localStorage.removeItem("token");
-                myHeaders.delete('Authorization');
-                window.location.reload();
-                return false;
-            }
-            localStorage.setItem("token", btoa(responseData.data.token));
-            myHeaders.delete('Authorization');
-            myHeaders.append("Authorization", "Bearer "+responseData.data.token);
-            return this.processRequest(url, data, isImageRequest)
-        }
         return responseData;
     },
     showToast : (msg,isError) => {
