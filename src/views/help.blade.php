@@ -47,7 +47,7 @@
                     <h5>Quick Support</h5>
 
                     <p>Need Assistance? Our Quick Support is ready.</p>
-                        <a href="mailto:{{config('msdev2.contact_email')}}" class="button download" >Mail us</a>
+                        <a href="mailto:{{config('msdev2.contact_email')}}" target="_blank" class="button download" >Mail us</a>
                     </p>
                 </div>
                 <div class="card columns four">
