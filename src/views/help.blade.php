@@ -84,7 +84,7 @@
             var liveSupportDiv = document.getElementById('liveSupport')
             if(pageStatus === 'online'){
                 liveChatDiv.style.display = 'inline-block'
-                liveSupportDiv.style.display = 'none'
+                liveSupportDiv.remove();
                 btnTwak.classList.remove('disabled');
                 btnTwak.addEventListener("click", (e) =>{
                     e.preventDefault();
@@ -92,7 +92,7 @@
                     return  false;
                 });
             }else{
-                liveChatDiv.style.display = 'none'
+                liveChatDiv.remove()
                 liveSupportDiv.style.display = 'inline-block'
                 btnTwak.classList.add('disabled');
             }
