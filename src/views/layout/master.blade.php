@@ -6,6 +6,9 @@
         <title>{{ config('app.name') }} |  @if (\Cache::get('shopName')) {{\Cache::get('shopName')}}  @endif</title>
         <link rel="stylesheet" href="{{ asset('msdev2/app.css') }}">
         <meta name="shopify-api-key" content="{{config('msdev2.shopify_api_key')}}" />
+        @if (config('msdev2.appbridge_enabled'))
+        <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" ></script>
+        @endif
         @yield('styles')
     </head>
     <body>
@@ -33,9 +36,7 @@
             var isEmbeddedApp = '{{ config("msdev2.is_embedded_app") == true ? "1" : "0" }}';
             var apiKey = '{{ config("msdev2.shopify_api_key") }}';
         </script>
-        @if (config('msdev2.appbridge_enabled'))
-        <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" ></script>
-        @endif
+        
         <script src="{{ asset('msdev2/app.js') }}"></script>
         @if (config('msdev2.appbridge_enabled'))
             @if (config('msdev2.menu.list'))
