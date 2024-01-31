@@ -5,6 +5,10 @@ use Msdev2\Shopify\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Msdev2\Shopify\Models\Charge;
+use Msdev2\Shopify\Models\Shop;
+use Msdev2\Shopify\Models\Ticket;
 
 class AgentController extends Controller{
     public function login() {
@@ -33,7 +37,6 @@ class AgentController extends Controller{
         }
         // $pass = \Illuminate\Support\Facades\Hash::make("123456");
         // \Msdev2\Shopify\Models\User::create([ 'name'=> "admin", 'first_name'=> "admin", 'email'=> "admin@codevibez.com",'password'=> $pass, 'token'=> rand(99999999,999999994)]);
-        dd($check, $request->all());
         return back()->withErrors([
             'email' => 'Your provided credentials do not match in our records.',
         ])->onlyInput('email');
@@ -48,7 +51,16 @@ class AgentController extends Controller{
     {
         if(Auth::check())
         {
-            return view('msdev2::agent.dashboard');
+            $total = [
+                "shop" => Shop::count(),
+                "ticket" => [
+                    "resolve" => Ticket::where("status",1)->count(),
+                    "pending" => Ticket::where("status",0)->count()
+                ],
+            ];
+            $changes = Charge::select('name', DB::raw('COUNT(*) as count'))->where("status","active")->groupBy('name')->get();
+            
+            return view('msdev2::agent.dashboard',compact('total','changes'));
         }
 
         return redirect()->route('msdev2.agent.login')->withErrors([
