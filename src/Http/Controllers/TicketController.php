@@ -4,11 +4,24 @@ namespace Msdev2\Shopify\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
+use Msdev2\Shopify\Models\Ticket;
 
 class TicketController extends Controller {
+
     public function index(Request $request)
     {
         return view("msdev2::ticket");
+    }
+    public function tickets(Request $request)
+    {
+        $tickets = Ticket::where("status","0")->latest()->paginate("20");
+        return view("msdev2::agent.ticket",compact('tickets'));
+    }
+    public function ticketsResolve($id){
+        $ticket = Ticket::find($id);
+        $ticket->status = 1;
+        $ticket->save();
+        return back()->with('success',['msg'=>'ticket resolve successfully']);
     }
     public function store(Request $request)
     {

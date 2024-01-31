@@ -4,6 +4,7 @@ namespace Msdev2\Shopify;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Msdev2\Shopify\Http\Middleware\Authenticate;
 use Msdev2\Shopify\Http\Middleware\EnsureShopifyInstalled;
 use Msdev2\Shopify\Http\Middleware\VerifyShopify;
 use Msdev2\Shopify\Http\Middleware\EnsureShopifySession;
@@ -31,6 +32,7 @@ class ShopifyServiceProvider extends ServiceProvider
         $this->app['router']->aliasMiddleware('msdev2.shopify.verify', VerifyShopify::class);
         $this->app['router']->aliasMiddleware('msdev2.shopify.auth', EnsureShopifySession::class);
         $this->app['router']->aliasMiddleware('msdev2.shopify.installed', EnsureShopifyInstalled::class);
+        $this->app['router']->aliasMiddleware('msdev2.agent.auth', Authenticate::class);
         $host = config('app.url');
         $customDomain = env('SHOP_CUSTOM_DOMAIN', null);
         Context::initialize(
