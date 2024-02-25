@@ -53,17 +53,19 @@
                                         <tbody>
                                             <tr>
                                                 <td align="left" style="font-family:Arial;font-style:normal;font-weight:normal;line-height:22px;font-size:14px;color:#333333;">
-                                                   Hi Admin<br>
-                                                   New Ticket has been create in {{ $shop }}
-                                                   <table>
-                                                        <tr> <td>Email</td><td>{{$data["email"]}}</td></tr>
-                                                        <tr> <td>Subject</td><td>{{$data["subject"]}}</td> </tr>
-                                                        <tr> <td>Category</td><td>{{$data["category"]}}</td> </tr>
-                                                        <tr> <td>Detail</td><td>{{$data["detail"]}}</td> </tr>
-                                                        <tr> <td>Password</td><td>{{$data["password"]}}</td> </tr>
-                                                        <tr> <td>Priority</td><td>{{$data["priority"]}}</td> </tr>
-                                                        <tr> <td>IP</td><td>{{$data["ip_address"]}}</td> </tr>
-                                                   </table>
+                                                    Dear shop owner<br>
+                                                    I hope this email finds you well.<br><br>
+
+                                                    I am writing to inform you that your ticket has been successfully created in our system. Our representative will reach out to you within the next 24 hours to address your query or concern.<br><br>
+                                                    
+                                                    We appreciate you taking the time to contact us. Your satisfaction is our priority, and we are committed to resolving any issues you may have.<br><br>
+                                                    
+                                                    Thank you for reaching out to us.<br><br>
+                                                    
+                                                    Warm regards,<br><br>
+                                                    
+                                                    {{config('msdev2.contact_url')}}<br>
+                                                    {{config('msdev2.contact_email')}}<br>
                                                 </td>
                                             </tr>
                                             <!--spacing-->

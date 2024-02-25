@@ -64,7 +64,7 @@ class TicketController extends Controller {
         ]);
         if($data){
             Mail::to(config('msdev2.contact_email'))->queue(new TicketAdminMail($request->all(), $shop->name, "New ticket Created"));
-            Mail::to(config($request->email))->queue(new TicketUserEmail($request->all(), $shop->name, "New ticket Created"));
+            Mail::to(config($request->email))->queue(new TicketUserEmail($request->all(), $shop->name, "Acknowledgement of Your Ticket Creation"));
             
             return mSuccessResponse($data);
         }
