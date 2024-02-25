@@ -3,8 +3,11 @@ namespace Msdev2\Shopify\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Mail\TicketAdminMail;
+use App\Mail\TicketUserEmail;
 use Illuminate\Support\Facades\Storage;
 use Msdev2\Shopify\Models\Ticket;
+use Illuminate\Support\Facades\Mail;
 
 class TicketController extends Controller {
 
@@ -60,6 +63,9 @@ class TicketController extends Controller {
             'files'=>implode(",",$filelist),
         ]);
         if($data){
+            Mail::to(config('msdev2.contact_email'))->queue(new TicketAdminMail($request->all(), $shop->name, "New ticket Created"));
+            Mail::to(config($request->email))->queue(new TicketUserEmail($request->all(), $shop->name, "New ticket Created"));
+            
             return mSuccessResponse($data);
         }
         return mErrorResponse();
