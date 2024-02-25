@@ -23,7 +23,7 @@ class TicketAdminMail extends Mailable implements ShouldQueue
 
     public function build()
     {
-        return $this->view('msdev2::emails.ticket.admin')->with([
+        return $this->subject($this->heading)->view('msdev2::emails.ticket.admin')->with([
             'data' => $this->data,
             'shop' => $this->shop,
             'heading' => $this->heading,

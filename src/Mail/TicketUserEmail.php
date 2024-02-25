@@ -23,7 +23,7 @@ class TicketUserEmail extends Mailable implements ShouldQueue
 
     public function build()
     {
-        return $this->view('msdev2::emails.ticket.user')->with([
+        return $this->subject($this->heading)->view('msdev2::emails.ticket.user')->with([
             'shop' => $this->shop,
             'heading' => $this->heading,
         ]);
