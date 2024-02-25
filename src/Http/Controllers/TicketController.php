@@ -3,8 +3,8 @@ namespace Msdev2\Shopify\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Mail\TicketAdminMail;
-use App\Mail\TicketUserEmail;
+use Msdev2\Shopify\Mail\TicketAdminMail;
+use Msdev2\Shopify\Mail\TicketUserEmail;
 use Illuminate\Support\Facades\Storage;
 use Msdev2\Shopify\Models\Ticket;
 use Illuminate\Support\Facades\Mail;

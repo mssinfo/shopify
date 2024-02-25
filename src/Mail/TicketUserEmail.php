@@ -1,5 +1,5 @@
 <?php
-namespace App\Mail;
+namespace Msdev2\Shopify\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,7 +23,7 @@ class TicketUserEmail extends Mailable implements ShouldQueue
 
     public function build()
     {
-        return $this->view('emails.ticket.user')->with([
+        return $this->view('msdev2::emails.ticket.user')->with([
             'name' => $this->data->name,
             'shop' => $this->shop,
             'heading' => $this->heading,
