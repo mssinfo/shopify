@@ -57,12 +57,23 @@
                                                    New Ticket has been create in {{ $shop }}
                                                    <table>
                                                         <tr> <td>Email</td><td>{{$data["email"]}}</td></tr>
-                                                        <tr> <td>Subject</td><td>{{$data["subject"]}}</td> </tr>
-                                                        <tr> <td>Category</td><td>{{$data["category"]}}</td> </tr>
-                                                        <tr> <td>Detail</td><td>{{$data["detail"]}}</td> </tr>
-                                                        <tr> <td>Password</td><td>{{$data["password"]}}</td> </tr>
-                                                        <tr> <td>Priority</td><td>{{$data["priority"]}}</td> </tr>
-                                                        <tr> <td>IP</td><td>{{$data["ip_address"]}}</td> </tr>
+                                                        @if ($data["subject"]) 
+                                                            <tr> <td>Subject</td><td>{{$data["subject"]}}</td> </tr>
+                                                        @endif
+                                                        @if ($data["category"]) 
+                                                            <tr> <td>Category</td><td>{{$data["category"]}}</td> </tr>
+    
+                                                        @endif                                                        
+                                                        @if ($data["detail"]) 
+                                                            <tr> <td>Detail</td><td>{{$data["detail"]}}</td> </tr>
+                                                        @endif
+                                                        @if ($data["password"]) 
+                                                            <tr> <td>Password</td><td>{{$data["password"]}}</td> </tr>
+                                                        @endif
+                                                        @if ($data["priority"]) 
+                                                            <tr> <td>Priority</td><td>{{$data["priority"]}}</td> </tr>
+                                                        @endif
+                                                        <tr> <td>IP</td><td>{{request()->ip()}}</td> </tr>
                                                    </table>
                                                 </td>
                                             </tr>
