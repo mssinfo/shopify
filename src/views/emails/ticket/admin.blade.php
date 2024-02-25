@@ -7,7 +7,7 @@
 </head>
 <body>
     <!--wrapper grey-->
-    <table align="center" bgcolor="#EAECED" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <table align="center" bgcolor="#EAECED" border="0" cellpadding="0" cellspacing="0"  width="600">
         <tbody>
             <!--spacing-->
             <tr>
@@ -31,11 +31,9 @@
                                         <tbody>
                                             <tr style="background: #333333; line-height: 3.5">
                                                 <td align="Left" valign="top" style="width: 55px; padding:1px 5px 5px 32px;">
-                                                    <p style="font-family:Arial;font-style:normal;font-weight:bold;font-size:14px;text-align:right;color:#ffffff; padding:1px 32px 5px 4px;">
+                                                    <p style="font-family:Arial;font-style:normal;font-weight:bold;font-size:14px;text-align:left;color:#ffffff; padding:1px 32px 5px 4px;">
                                                         <span> {{ $heading }} </span>
                                                     </p>
-                                                </td>
-                                                <td align="Left" valign="top">
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -49,7 +47,7 @@
                         <tbody>
                             <tr>
                                 <td align="center">
-                                    <table width="85%">
+                                    <table width="600"
                                         <tbody>
                                             <tr>
                                                 <td align="left" style="font-family:Arial;font-style:normal;font-weight:normal;line-height:22px;font-size:14px;color:#333333;">
