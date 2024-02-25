@@ -52,7 +52,7 @@
                                             <tr>
                                                 <td align="left" style="font-family:Arial;font-style:normal;font-weight:normal;line-height:22px;font-size:14px;color:#333333;">
                                                    Hi Admin<br>
-                                                   New Ticket has been create in {{ $shop }}
+                                                   New Ticket has been create in {{ $shop->domain }}
                                                    <table>
                                                         <tr> <td>Email</td><td>{{$data["email"]}}</td></tr>
                                                         @if ($data["subject"]) 

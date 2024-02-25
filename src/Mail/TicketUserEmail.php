@@ -10,21 +10,16 @@ class TicketUserEmail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public $data;
-    public $shop;
     public $heading;
 
-    public function __construct($data,$shop,$heading)
+    public function __construct($heading)
     {
-        $this->data = $data;
-        $this->shop = $shop;
         $this->heading = $heading;
     }
 
     public function build()
     {
         return $this->subject($this->heading)->view('msdev2::emails.ticket.user')->with([
-            'shop' => $this->shop,
             'heading' => $this->heading,
         ]);
     }
