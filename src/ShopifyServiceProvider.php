@@ -58,7 +58,7 @@ class ShopifyServiceProvider extends ServiceProvider
         view()->composer('*', function ($view) use ($shop) {
             $view->with('shop', $shop);
         });
-        if($shopName && $accessToken && $session){
+        if($shopName && $shopName!=null && $accessToken && $accessToken!=null && $session && $session!=null){
             $sessionStore = new Session($session, $shopName, true, Uuid::uuid4()->toString());
             $sessionStore->setScope(Context::$SCOPES->toString());
             $sessionStore->setAccessToken($accessToken);
