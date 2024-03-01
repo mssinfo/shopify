@@ -17,23 +17,19 @@ class VerifyShopify
         Artisan::call('cache:forget shop');
         Artisan::call('cache:forget shopname');
         $shopName = mShopName();
-        mLog('VerifyShopify:'.$shopName,$request->all());
         if (Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing']) || $shopName) {
             $shop = mShop($shopName); 
-            if(!$shop || $shop->is_uninstalled == 1){    
-                mLog("redirect to install -- ".$shopName);
+            if(!$shop || $shop->is_uninstalled == 1){
                 return redirect()->route('msdev2.shopify.install',['shop'=>$shopName]);
             }
             if(config('msdev2.billing')){
                 $charges = $shop->charges()->where('status','active')->whereNull('cancelled_on')->first();
                 if(!$charges && !$request->is('plan')){
-                    mLog("redirect to install billing",[$request->path(),$request->all(),$shop]);
                     return redirect(mRoute('/plan'));
                 }
             }
             if(Context::$IS_EMBEDDED_APP && request()->header('sec-fetch-dest')!='iframe' && $request->server("REQUEST_METHOD")=='GET' && $request->input("host")){
                 $url = Utils::getEmbeddedAppUrl($request->input("host"));
-                mLog("redirect to url -- ".$url.$request->server("SCRIPT_URL"),[$shop]);
                 return redirect($url.$request->server("SCRIPT_URL"));
             }
             return $next($request);

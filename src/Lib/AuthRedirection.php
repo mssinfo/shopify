@@ -30,7 +30,6 @@ class AuthRedirection
                 return redirect()->back()->withErrors(['msg'=>'invalid domain']);
             }
             $redirectUrl = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
-            mLog("install app on ".$redirectUrl);
         }
         return redirect($redirectUrl);
     }

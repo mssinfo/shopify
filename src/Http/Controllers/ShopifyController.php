@@ -43,7 +43,6 @@ class ShopifyController extends Controller{
     public function generateToken(Request $request)
     {
         $this->clearCache();
-        mLog("generateToken app on ",$request->all());
         $shared_secret = config("msdev2.shopify_api_secret");
         $api_key = config('msdev2.shopify_api_key');
         $params = $request->all(); // Retrieve all request parameters
@@ -79,11 +78,11 @@ class ShopifyController extends Controller{
             $webhooks = explode(",",config('msdev2.webhooks'));
             foreach ($webhooks as $webhook) {
                 $response = Registry::register('/shopify/webhooks', $webhook, $shopName, $result->json("access_token"));
-                if ($response->isSuccess()) {
-                    mLog("Registered $webhook webhook for shop ".$shopName,[],'debug');
-                } else {
-                    mLog( "Failed to register $webhook  webhook for shop ".$shopName." with response body: " ,[$response->getBody()],'error');
-                }
+                // if ($response->isSuccess()) {
+                //     mLog("Registered $webhook webhook for shop ".$shopName,[],'debug');
+                // } else {
+                //     mLog( "Failed to register $webhook  webhook for shop ".$shopName." with response body: " ,[$response->getBody()],'error');
+                // }
             }
         }
         Context::initialize(
@@ -109,7 +108,6 @@ class ShopifyController extends Controller{
             Context::$SESSION_STORAGE->storeSession($sessionStore);
         }
         $result = ShopifyUtils::rest($shop)->get('shop');
-        mLog("shop detail",$result->getDecodedBody());
         $shop->detail = $result->getDecodedBody()["shop"];
         $shop->save();
         $classWebhook = "\\App\\Webhook\\Handlers\\AppInstalled";
@@ -125,7 +123,6 @@ class ShopifyController extends Controller{
     {
         $rawHeaders = $request->headers->all();
         $headers = new HttpHeaders($rawHeaders);
-        mLog("Request to webhook!",[$request->all(),$rawHeaders,$headers,$name]);
         if($name){
             $shared_secret = config("msdev2.shopify_api_secret");
             $hmac = $request->get('hmac') ?? HttpHeaders::X_SHOPIFY_HMAC;
@@ -162,7 +159,6 @@ class ShopifyController extends Controller{
         try {
             $response = Registry::process($rawHeaders, $request->getContent());
             if ($response->isSuccess()) {
-                mLog("Responded to webhook!",[$response]);
                 return mSuccessResponse("Responded to webhook!",[$response]);
                 // Respond with HTTP 200 OK
             } else {
