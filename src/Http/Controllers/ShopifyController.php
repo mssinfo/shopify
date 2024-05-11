@@ -67,7 +67,7 @@ class ShopifyController extends Controller{
         );
         // Generate access token URL
         $url = "https://" . $shopName . "/admin/oauth/access_token";
-        $result = Http::post($url,$query);
+        $result = Http::withOptions(['verify' => false])->post($url,$query);
         $shop = Shop::updateOrCreate(
             ['shop' => $shopName],
             ['scope' => $result->json("scope"),'is_uninstalled' => 0, 'access_token' => $result->json("access_token")]
@@ -75,14 +75,13 @@ class ShopifyController extends Controller{
         $shop->refresh();
         $redirectUrl = Utils::getEmbeddedAppUrl($host);
         if(config('msdev2.webhooks')){
-            $webhooks = explode(",",config('msdev2.webhooks'));
-            foreach ($webhooks as $webhook) {
-                $response = Registry::register('/shopify/webhooks', $webhook, $shopName, $result->json("access_token"));
-                // if ($response->isSuccess()) {
-                //     mLog("Registered $webhook webhook for shop ".$shopName,[],'debug');
-                // } else {
-                //     mLog( "Failed to register $webhook  webhook for shop ".$shopName." with response body: " ,[$response->getBody()],'error');
-                // }
+            try {
+                $webhooks = explode(",",config('msdev2.webhooks'));
+                foreach ($webhooks as $webhook) {
+                    Registry::register('/shopify/webhooks', $webhook, $shopName, $result->json("access_token"));
+                }
+            } catch (\Throwable $th) {
+                //throw $th;
             }
         }
         Context::initialize(
@@ -152,7 +151,6 @@ class ShopifyController extends Controller{
             $this->clearCache(true);
         }
         if (!class_exists($classWebhook)) {
-            // mLog("class hot found for hook");
             return mSuccessResponse("class hot found for hook");
         }
         Registry::addHandler(strtoupper(str_replace(' ','_',$hookClass)), new $classWebhook());
@@ -162,7 +160,6 @@ class ShopifyController extends Controller{
                 return mSuccessResponse("Responded to webhook!",[$response]);
                 // Respond with HTTP 200 OK
             } else {
-                // The webhook request was valid, but the handler threw an exception
                 mLog("Webhook handler failed with message: " . $response->getErrorMessage(),[],'error');
                 return mErrorResponse("Webhook handler failed with message: " . $response->getErrorMessage());
             }

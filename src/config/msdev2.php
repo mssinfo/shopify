@@ -27,13 +27,20 @@ return [
                 'label'=> 'Dashboard',
                 'destination'=> '/',
                 'icon'=>'<i class="icon-home"></i>', //optional
-                'position'=>'topbar',//sidebar,topbar*,all,
+                'position'=>'all',//sidebar,topbar*,all,
                 'type'=>'web' //vue,web*,laravel
             ],
             [
                 'label'=> 'Setting',
                 'destination'=> 'setting',
+                'position'=>'all',//sidebar,topbar*,all,
                 'icon'=>'<i class="icon-gear"></i>'
+            ],
+            [
+                'label'=> 'Support',
+                'destination'=> 'help',
+                'position'=>'all',//sidebar,topbar*,all,
+                'icon'=>'<i class="icon-users"></i>'
             ]
         ]
     ],
@@ -78,11 +85,7 @@ return [
                 ]
             ],
             'feature'=>[ // for develoepr
-                'rain'=>true,
-                'url'=>false,
-                'timing'=>false,
-                'speed'=>false,
-                'rain_image'=>false
+                'plan'=>'all'
             ]
         ],
         [
@@ -124,11 +127,7 @@ return [
                 ]
             ],
             'feature'=>[ // for develoepr
-                'rain'=>true,
-                'url'=>true,
-                'timing'=>true,
-                'speed'=>true,
-                'rain_image'=>true
+                'plan'=>'all'
             ]
         ]
     ]
