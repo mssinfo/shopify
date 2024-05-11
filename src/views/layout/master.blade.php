@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>{{ config('app.name') }} |  @if (\Cache::get('shopName')) {{\Cache::get('shopName')}}  @endif</title>
-        <link rel="stylesheet" href="{{ asset('msdev2/app.css') }}?v=1.0">
+        <link rel="stylesheet" href="{{ asset('msdev2/app.css') }}?v=1.1">
         <meta name="shopify-api-key" content="{{config('msdev2.shopify_api_key')}}" />
         @if (config('msdev2.appbridge_enabled'))
         <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" ></script>
