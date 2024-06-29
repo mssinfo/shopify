@@ -2,12 +2,11 @@
 namespace Msdev2\Shopify\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Carbon;
 use Msdev2\Shopify\Lib\EnsureBilling;
 use Msdev2\Shopify\Utils;
 
-class PlanController extends Controller{
+class PlanController extends BaseController{
 
     public function plan(Request $request){
         $shop = Utils::getShop();
@@ -17,7 +16,7 @@ class PlanController extends Controller{
         $planList = config('msdev2.plan');
         $properties = [];
         $plans = [];
-        $hasYearlyPlan = false;
+        $hasPlans = [];
         // dd($shop->detail);
         foreach ($planList as $plan) {
             $pList = [];
@@ -30,9 +29,7 @@ class PlanController extends Controller{
                     $enable = true;
                 }
             }
-            if($plan['interval'] == 'ANNUAL'){
-                $hasYearlyPlan = true;
-            }
+            $hasPlans[$plan['interval']] = true;
             foreach ($plan['properties'] as $property) {
                 $pList[$property["name"]] = [
                     "value" => $property["value"] ?? "false",
@@ -45,7 +42,7 @@ class PlanController extends Controller{
             $plan["enable"] = $enable;
             $plans[] = $plan;
         }
-        return view('msdev2::plan',compact('activePlanName','appUsed','properties','plans','hasYearlyPlan'));
+        return view('msdev2::plan',compact('activePlanName','appUsed','properties','plans','hasPlans'));
     }
     public function planSubscribe(Request $request){
         $shop = Utils::getShop();

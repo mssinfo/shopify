@@ -2,14 +2,13 @@
 namespace Msdev2\Shopify\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Msdev2\Shopify\Mail\TicketAdminMail;
 use Msdev2\Shopify\Mail\TicketUserEmail;
 use Illuminate\Support\Facades\Storage;
 use Msdev2\Shopify\Models\Ticket;
 use Illuminate\Support\Facades\Mail;
 
-class TicketController extends Controller {
+class TicketController extends BaseController {
 
     public function index(Request $request)
     {

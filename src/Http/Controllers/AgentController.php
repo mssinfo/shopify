@@ -3,14 +3,13 @@ namespace Msdev2\Shopify\Http\Controllers;
 
 use Msdev2\Shopify\Models\User;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Msdev2\Shopify\Models\Charge;
 use Msdev2\Shopify\Models\Shop;
 use Msdev2\Shopify\Models\Ticket;
 
-class AgentController extends Controller{
+class AgentController extends BaseController{
     public function login() {
         return view("msdev2::agent.login");
     }

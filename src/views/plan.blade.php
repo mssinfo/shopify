@@ -34,12 +34,21 @@
                     </div>
                     <div class="planBoxItemRight">
                         <div class="planstabs">
-                            <div class="planstabsItem active" data-plan="EVERY_30_DAYS">
+                            @if (isset($hasPlans["ONE_TIME"]))
+                            <div class="planstabsItem active" data-plan="ONE_TIME">
                                 <div class="planTabBtn">
-                                    <span class="plantbText">Monthly</span>
+                                    <span class="plantbText">One Time</span>
                                 </div>
                             </div>
-                            @if ($hasYearlyPlan)
+                            @endif
+                            @if (isset($hasPlans["EVERY_30_DAYS"]))
+                            <div class="planstabsItem @if (!iset($hasPlans["ONE_TIME"])) active @endif" data-plan="EVERY_30_DAYS">
+                                <div class="planTabBtn">
+                                    <span class="plantbText">OneTime</span>
+                                </div>
+                            </div>
+                            @endif
+                            @if (isset($hasPlans["ANNUAL"]))
                             <div class="planstabsItem" data-plan="ANNUAL">
                                 <div class="planTabBtn">
                                     <span class="plantbText">

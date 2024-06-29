@@ -3,7 +3,6 @@ namespace Msdev2\Shopify\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Artisan;
 use Msdev2\Shopify\Lib\AuthRedirection;
 use Msdev2\Shopify\Lib\DbSessionStorage;
@@ -18,7 +17,7 @@ use Shopify\Context;
 use Shopify\Webhooks\Registry;
 use Shopify\Utils;
 
-class ShopifyController extends Controller{
+class ShopifyController extends BaseController{
 
     function fallback(Request $request) {
         $this->clearCache();

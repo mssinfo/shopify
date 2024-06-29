@@ -2,9 +2,8 @@
 namespace Msdev2\Shopify\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 
-class LogsController extends Controller{
+class LogsController extends BaseController{
 
     private function getLogFileDates()
     {

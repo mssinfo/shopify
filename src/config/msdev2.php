@@ -45,6 +45,15 @@ return [
         ]
     ],
     "billing" => env('SHOPIFY_BILLING', true),
+    "plan_offer"=>[
+        "enable"=>false,
+        "heading"=>"Annual Plan Offer",
+        "detail"=>"<p align='left'>Maximize your savings with the Annual Plan. Enjoy<strong> up to 17% </strong>off. Sign up now!</p>",
+        "yearly"=>[
+            "info"=>"save 16%+",
+            "offer"=>"get_2_months_free"
+        ]
+    ],
     "plan"=>[
         [
             'chargeName'=>'FREE',

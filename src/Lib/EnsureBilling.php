@@ -2,13 +2,9 @@
 
 namespace Msdev2\Shopify\Lib;
 
-use Carbon\Carbon;
 use Exception;
-use Illuminate\Support\Facades\Log;
 use Msdev2\Shopify\Models\Shop;
-use Msdev2\Shopify\Utils;
 use Shopify\Clients\Graphql;
-use Shopify\Context;
 
 class EnsureBilling
 {
@@ -120,7 +116,7 @@ class EnsureBilling
         }
 
         if (!empty($data["userErrors"])) {
-            dd($data);
+            throw new Exception("Error while billing the store". json_encode($data["userErrors"]));
         }
 
         return $data["confirmationUrl"];
@@ -162,7 +158,7 @@ class EnsureBilling
                     "price" => ["amount" => $config["amount"], "currencyCode" => $config["currencyCode"]],
                     "returnUrl" => $returnUrl,
                     "test" => $shop->isTestStore(),
-                    "trialDays" => self::$trialDays
+                    // "trialDays" => self::$trialDays
                 ],
             ]
         );
@@ -194,7 +190,7 @@ class EnsureBilling
         $response = $client->query($query);
         $responseBody = $response->getDecodedBody();
         if (!empty($responseBody["errors"])) {
-            throw new Exception("Error while billing the store", $responseBody["errors"]);
+            throw new Exception("Error while billing the store". json_encode($responseBody["errors"]));
         }
 
         return $responseBody;
@@ -255,15 +251,13 @@ class EnsureBilling
         $name: String!
         $price: MoneyInput!
         $returnUrl: URL!
-        $test: Boolean,
-        $trialDays: Int
+        $test: Boolean
     ) {
         appPurchaseOneTimeCreate(
             name: $name
             price: $price
             returnUrl: $returnUrl
             test: $test
-            trialDays: $trialDays
         ) {
             confirmationUrl
             userErrors {

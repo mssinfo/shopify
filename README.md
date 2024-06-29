@@ -109,3 +109,7 @@ css reference is https://www.uptowncss.com/
 ## use shopify logs
     $shop->log('message',[],'type','channel') 
     $shop->log('log added successfully',['test'=>'info'],'alert','shopify')
+
+## load without ssl
+    \vendor\shopify\shopify-api\src\Clients\HttpClientFactory.php    
+    return new Client(['verify' => false]);
