@@ -89,6 +89,7 @@ class Shop extends Model
         return $this->metadata()->where('key', $key)->delete();
     }
     public function isTestStore() : bool {
+        if(app()->environment() === 'production') return false;
         $domain = explode('.',$this->shop);
         $testStore = explode(',',config('msdev2.test_stores'));
         if(in_array($domain[0],$testStore)){
