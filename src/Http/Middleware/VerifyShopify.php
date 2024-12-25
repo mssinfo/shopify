@@ -20,10 +20,10 @@ class VerifyShopify
         $shopName = mShopName();
         if (Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing']) || $shopName) {
             $shop = mShop($shopName);
-            $missingScopes = $this->compareShopifyScopes();
             if(!$shop || $shop->is_uninstalled == 1 || !empty($missingScopes)){
                 return redirect()->route('msdev2.shopify.install',['shop'=>$shopName]);
             }
+            $missingScopes = $this->compareShopifyScopes();
             if(config('msdev2.billing')){
                 $charges = $shop->charges()->where('status','active')->whereNull('cancelled_on')->first();
                 if(!$charges && !$request->is('plan')){
