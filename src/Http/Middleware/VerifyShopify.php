@@ -20,10 +20,13 @@ class VerifyShopify
         $shopName = mShopName();
         if (Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing']) || $shopName) {
             $shop = mShop($shopName);
-            if(!$shop || $shop->is_uninstalled == 1 || !empty($missingScopes)){
+            if(!$shop || $shop->is_uninstalled == 1){
                 return redirect()->route('msdev2.shopify.install',['shop'=>$shopName]);
             }
             $missingScopes = $this->compareShopifyScopes();
+            if(!empty($missingScopes)){
+                return redirect()->route('msdev2.shopify.permission',['shop'=>$shopName,'scopes'=>implode(", ",$missingScopes)]);
+            }
             if(config('msdev2.billing')){
                 $charges = $shop->charges()->where('status','active')->whereNull('cancelled_on')->first();
                 if(!$charges && !$request->is('plan')){
@@ -41,13 +44,20 @@ class VerifyShopify
     }
     public function compareShopifyScopes() {
         $scopes = explode(",",config('msdev2.scopes'));
+        // // get scopes from shopfiy
         $data = mRest()->get('/admin/oauth/access_scopes.json');
+        // dd($data->getDecodedBody());
         $shopifyScopes = $data->getDecodedBody();
+        // Desired scopes (remove duplicates)
         $scopes = array_unique($scopes);
+
         if(!isset($shopifyScopes['access_scopes'])){
             return $scopes;
         }
+        // Granted scopes (flatten 'access_scopes')
         $grantedScopes = Arr::pluck($shopifyScopes['access_scopes'], 'handle');
+
+        // Compare scopes
         return array_diff($scopes, $grantedScopes);
     }
 }

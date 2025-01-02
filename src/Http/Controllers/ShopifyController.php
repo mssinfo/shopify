@@ -21,15 +21,16 @@ class ShopifyController extends BaseController{
 
     function fallback(Request $request) {
         $this->clearCache();
-        mLog("install fallback app on ",$request->all());
+        \Log::error("install fallback app on ",[$request->all(),$_SERVER]);
         $shopName = $request->shop ?? null;
         if($shopName){
             $shop = Shop::where('shop',$shopName)->orWhere('domain', $shopName)->first();
             if(!$shop){
                 return redirect(config("app.url").'/authenticate?shop='.$shopName);
             }
+            return redirect(Utils::getEmbeddedAppUrl($request->query("host", null)) . "/" . $request->path());
         }
-        return redirect(Utils::getEmbeddedAppUrl($request->query("host", null)) . "/" . $request->path());
+        return ["status"=>"success"];
     }
     public function install(Request $request)
     {
@@ -115,6 +116,7 @@ class ShopifyController extends BaseController{
         if (config('msdev2.billing') && !$shop->activeCharge) {
             return redirect($redirectUrl.'/plan');
         }
+
         return redirect($redirectUrl);
     }
     public function webhooksAction(Request $request,$name = null)
