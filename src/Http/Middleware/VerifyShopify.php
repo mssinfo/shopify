@@ -25,7 +25,7 @@ class VerifyShopify
             }
             $missingScopes = $this->compareShopifyScopes();
             if(!empty($missingScopes)){
-                return redirect()->route('msdev2.shopify.permission',['shop'=>$shopName,'scopes'=>implode(", ",$missingScopes)]);
+                return redirect()->route('msdev2.shopify.install',['shop'=>$shopName,'scopes'=>implode(", ",$missingScopes)]);
             }
             if(config('msdev2.billing')){
                 $charges = $shop->charges()->where('status','active')->whereNull('cancelled_on')->first();
