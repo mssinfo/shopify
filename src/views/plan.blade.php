@@ -42,7 +42,7 @@
                             </div>
                             @endif
                             @if (isset($hasPlans["EVERY_30_DAYS"]))
-                            <div class="planstabsItem @if (!iset($hasPlans["ONE_TIME"])) active @endif" data-plan="EVERY_30_DAYS">
+                            <div class="planstabsItem @if (!isset($hasPlans["ONE_TIME"])) active @endif" data-plan="EVERY_30_DAYS">
                                 <div class="planTabBtn">
                                     <span class="plantbText">OneTime</span>
                                 </div>
