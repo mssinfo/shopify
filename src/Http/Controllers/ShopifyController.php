@@ -4,6 +4,7 @@ namespace Msdev2\Shopify\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Msdev2\Shopify\Lib\AuthRedirection;
 use Msdev2\Shopify\Lib\DbSessionStorage;
 use Msdev2\Shopify\Models\Session as ModelsSession;
@@ -21,7 +22,7 @@ class ShopifyController extends BaseController{
 
     function fallback(Request $request) {
         $this->clearCache();
-        \Log::error("install fallback app on ",[$request->all(),$_SERVER]);
+        Log::error("install fallback app on ",[$request->all(),$_SERVER]);
         $shopName = $request->shop ?? null;
         if($shopName){
             $shop = Shop::where('shop',$shopName)->orWhere('domain', $shopName)->first();
@@ -81,7 +82,7 @@ class ShopifyController extends BaseController{
                     Registry::register('/shopify/webhooks', $webhook, $shopName, $result->json("access_token"));
                 }
             } catch (\Throwable $th) {
-                //throw $th;
+                Log::error("Webhook registration failed", ['error' => $th->getMessage()]);
             }
         }
         Context::initialize(
@@ -91,12 +92,7 @@ class ShopifyController extends BaseController{
             $host,
             new DbSessionStorage(),
             ApiVersion::LATEST,
-            config('msdev2.is_embedded_app'),
-            false,
-            null,
-            '',
-            null,
-            [],
+            config('msdev2.is_embedded_app')
         );
         $session = ShopifyUtils::getSession($shop->shop);
         if($session){
