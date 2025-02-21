@@ -8,6 +8,7 @@ class Model extends LAravelModel {
 
     use HasFactory;
     public $metaField = false;
+    public $singleMetaField = false;
     protected static function boot() {
         parent::boot();
         static::created(function($model){
@@ -29,6 +30,18 @@ class Model extends LAravelModel {
                 "metafield"=>[
                     "namespace"=>config('msdev2.app_id'),
                     "key"=>$model->getTable(),
+                    "value"=>json_encode($tableData),
+                    "type"=>"json"
+                ]
+            ]);
+        }
+        if($model->singleMetaField && $model->shop_id){
+            $shop = mShop($model->shop_id);
+            $tableData = $model::find($model->id);
+            mRest($shop)->post('metafields.json',[
+                "metafield"=>[
+                    "namespace"=>config('msdev2.app_id'),
+                    "key"=>$model->getTable()."_".$model->id,
                     "value"=>json_encode($tableData),
                     "type"=>"json"
                 ]
