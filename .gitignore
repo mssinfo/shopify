@@ -1,4 +1,6 @@
 /bin
 /build
 /vendor
+/.vscode
 composer.lock
+.DS_Store

@@ -1,6 +1,7 @@
 <?php
 namespace Msdev2\Shopify;
 
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +17,23 @@ class Utils
     public static $shop = null;
     public static function setShopData($shop){
         self::$shop = $shop;
+    }
+    public static function shouldRedirectToEmbeddedApp(Request $request): bool
+    {
+        $redirectToIframe = $request->get("redirect_to_iframe") || session('redirect_to_iframe') ?? null;
+        if($redirectToIframe && ($redirectToIframe==0 || $redirectToIframe==false)){
+            return false;
+        }
+        return Context::$IS_EMBEDDED_APP
+            && $request->header('sec-fetch-dest') !== 'iframe'
+            && $request->isMethod('GET')
+            && $request->input('host');
+    }
+
+    public static function redirectToEmbeddedApp(Request $request)
+    {
+        $url = ShopifyUtils::getEmbeddedAppUrl($request->input('host'));
+        return redirect($url . $request->server('SCRIPT_URL'));
     }
     public static function Route($path,$query = []) {
         $queryList = ShopifyUtils::getQueryParams(URL::full());
@@ -42,7 +60,7 @@ class Utils
         $path = ltrim($path, '/');
         return config("app.url").'/'.$path.'?'.$queryBuild;
     }
-    
+
     public static function getSession($shopName = null){
         $query = ShopifyUtils::getQueryParams(URL::full());
         $session = $query['session'] ?? null;
@@ -149,7 +167,7 @@ class Utils
         }
         $client = new Rest($shopName, $accessToken);
         //https://github.com/Shopify/shopify-api-php/blob/main/docs/usage/rest.md FOR MORE REFFRENCE
-        
+
         return $client;
     }
     public static function graph(Shop $shop = null): Graphql {

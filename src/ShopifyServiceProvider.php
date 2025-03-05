@@ -70,6 +70,9 @@ class ShopifyServiceProvider extends ServiceProvider
     }
     public function register()
     {
+        $this->commands([
+            \Msdev2\Shopify\Console\Commands\SendCustomerEmails::class,
+        ]);
         require_once __DIR__.'/Lib/Functions.php';
     }
 }

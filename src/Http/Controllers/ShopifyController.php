@@ -15,8 +15,8 @@ use Shopify\ApiVersion;
 use Shopify\Auth\Session;
 use Shopify\Clients\HttpHeaders;
 use Shopify\Context;
-use Shopify\Webhooks\Registry;
 use Shopify\Utils;
+use Shopify\Webhooks\Registry;
 
 class ShopifyController extends BaseController{
 
@@ -24,22 +24,23 @@ class ShopifyController extends BaseController{
         $this->clearCache();
         Log::error("install fallback app on ",[$request->all(),$_SERVER]);
         $shopName = $request->shop ?? null;
+        if (strpos($request->getRequestUri(),config("msdev2.proxy_path")) !== false && !isset($request->shop)) {
+            $shopName = $_SERVER['HTTP_HOST'];
+        }
         if($shopName){
             $shop = Shop::where('shop',$shopName)->orWhere('domain', $shopName)->first();
             if(!$shop){
                 return redirect(config("app.url").'/authenticate?shop='.$shopName);
             }
-            return redirect(Utils::getEmbeddedAppUrl($request->query("host", null)) . "/" . $request->path());
+            if(ShopifyUtils::shouldRedirectToEmbeddedApp($request))
+                return redirect(Utils::getEmbeddedAppUrl($request->query("host", null)) . "/" . $request->path());
+            return false;
         }
-        return ["status"=>"success"];
+        return ["status"=>"fallback success"];
     }
     public function install(Request $request)
     {
         return AuthRedirection::redirect($request);
-    }
-    public function help(Request $request)
-    {
-        return view("msdev2::help");
     }
     public function generateToken(Request $request)
     {
