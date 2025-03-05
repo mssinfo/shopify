@@ -18,7 +18,6 @@ return [
     'contact_url'=>env('SHOPIFY_CONTACT_URL',''),
     'contact_email'=>env('SHOPIFY_CONTACT_EMAIL',''),
     'proxy_path' => env('SHOPIFY_PROXY_PATH', '/a/styfly'),
-    'openai_api_key' => env('OPENAI_API_KEY','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'),
     "menu"=>[
         'logo'=>[
             'type'=>'url',//image,url,
