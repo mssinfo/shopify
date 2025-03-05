@@ -17,6 +17,7 @@ return [
     "shopify_app_url"=>env('SHOPIFY_APP_URL',''),
     'contact_url'=>env('SHOPIFY_CONTACT_URL',''),
     'contact_email'=>env('SHOPIFY_CONTACT_EMAIL',''),
+    'proxy_path' => env('SHOPIFY_PROXY_PATH', '/a/styfly'),
     "menu"=>[
         'logo'=>[
             'type'=>'url',//image,url,

@@ -73,19 +73,49 @@ class Shop extends Model
         return 0;
     }
     public function setMetaData($key, $value) {
-        return $this->metadata()->updateOrCreate(
-            ['key' => $key],
-            ['value' => $value]
-        );
+        return $this->meta($key, $value);
     }
     public function getMetaData($key){
-        $value = $this->metadata()->where('key', $key)->first();
-        if($value){
-            return $value->value;
-        }
-        return null;
+        return $this->meta($key);
     }
-    public function deleteMetaData($key){
+    /**
+     * Get or set the meta data.
+     *
+     * @param  string|array  $key
+     * @param  mixed|null  $value
+     * @return mixed
+     */
+    public function meta($key, $value = null)
+    {
+        // If value is provided, we're setting the meta data
+        if ($value !== null) {
+            $newVal = $value;
+            // Check if the value is an array, in which case we store it as JSON
+            if (is_array($value)) {
+                // Encode array to JSON and save
+                $newVal = json_encode($newVal);
+            }
+
+            // Update or create metadata in the database
+            $this->metadata()->updateOrCreate(
+                ['key' => $key],
+                ['value' => $newVal]
+            );
+            return $value;
+        }
+
+        // If no value is provided, we're getting the meta data
+        $value = $this->metadata()->where('key', $key)->first();
+
+        // If value exists and it's stored as JSON, decode it
+        if ($value) {
+            $decodedValue = json_decode($value->value, true);
+            return json_last_error() === JSON_ERROR_NONE ? $decodedValue : $value->value;
+        }
+
+        return null; // Return null if no metadata exists for the given key
+    }
+    public function deleteMeta($key){
         return $this->metadata()->where('key', $key)->delete();
     }
     public function isTestStore() : bool {

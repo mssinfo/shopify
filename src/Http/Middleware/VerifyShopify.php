@@ -4,9 +4,9 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use Shopify\Utils;
-use Shopify\Context;
+
 use Illuminate\Support\Arr;
+use Msdev2\Shopify\Utils;
 
 class VerifyShopify
 {
@@ -15,8 +15,10 @@ class VerifyShopify
         // Forget cache values
         Cache::forget('shop');
         Cache::forget('shopname');
-
         $shopName = mShopName();
+        if (strpos($request->getRequestUri(),config("msdev2.proxy_path")) !== false && !isset($request->shop)) {
+            $shopName = $_SERVER['HTTP_HOST'];
+        }
 
         // Allow auth-related requests or if shop exists
         if ($this->isAllowedRequest($request) || $shopName) {
@@ -45,8 +47,8 @@ class VerifyShopify
             }
 
             // Handle embedded app redirection
-            if ($this->shouldRedirectToEmbeddedApp($request)) {
-                return $this->redirectToEmbeddedApp($request);
+            if (Utils::shouldRedirectToEmbeddedApp($request)) {
+                return Utils::redirectToEmbeddedApp($request);
             }
 
             return $next($request);
@@ -78,21 +80,7 @@ class VerifyShopify
         return array_diff($scopes, $grantedScopes);
     }
 
-    private function shouldRedirectToEmbeddedApp(Request $request): bool
-    {
-        return Context::$IS_EMBEDDED_APP
-            && $request->header('sec-fetch-dest') !== 'iframe'
-            && $request->isMethod('GET')
-            && $request->input('host');
-    }
-
-    private function redirectToEmbeddedApp(Request $request)
-    {
-        $url = Utils::getEmbeddedAppUrl($request->input('host'));
-        return redirect($url . $request->server('SCRIPT_URL'));
-    }
-
-    private function redirectToInstall(string $shopName, string $scopes = null)
+    private function redirectToInstall(string $shopName, $scopes = null)
     {
         $routeParams = ['shop' => $shopName];
         if ($scopes) {
