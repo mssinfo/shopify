@@ -6,6 +6,7 @@
         <title>{{ config('app.name') }} |  @if (\Cache::get('shopName')) {{\Cache::get('shopName')}}  @endif</title>
         <link rel="stylesheet" href="{{ asset('msdev2/app.css') }}?v=1.2">
         <meta name="shopify-api-key" content="{{config('msdev2.shopify_api_key')}}" />
+        <script>window.URL_ROOT = '{{ config("app.url") }}';</script>
         @if (config('msdev2.appbridge_enabled'))
         <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" ></script>
         @endif
@@ -31,12 +32,11 @@
             <script src="https://unpkg.com/alpinejs" defer></script>
         @endif
         <script>
-            window.URL_ROOT = '{{ config("app.url") }}';
             var appBridgeEnabled = '{{ (config("msdev2.appbridge_enabled")) == true ? "1" : "0" }}';
             var isEmbeddedApp = '{{ config("msdev2.is_embedded_app") == true ? "1" : "0" }}';
             var apiKey = '{{ config("msdev2.shopify_api_key") }}';
         </script>
-        
+
         <script src="{{ asset('msdev2/app.js') }}"></script>
         @if (config('msdev2.appbridge_enabled'))
             @if (config('msdev2.menu.list'))
@@ -68,7 +68,7 @@
                     name : "{{$shop->detail['shop_owner']}}",
                     email : "{{$shop->detail['email']}}",
                     phone : "{{$shop->detail['phone']}}",
-                };    
+                };
                 window.Tawk_API.onLoad = function(){
                     window.Tawk_API.setAttributes({
                         shop : "{{$shop->detail['myshopify_domain']}}",

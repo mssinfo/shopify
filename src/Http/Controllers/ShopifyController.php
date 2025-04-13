@@ -42,6 +42,10 @@ class ShopifyController extends BaseController{
     {
         return AuthRedirection::redirect($request);
     }
+    public function help(Request $request)
+    {
+        return view("msdev2::help");
+    }
     public function generateToken(Request $request)
     {
         $this->clearCache();
