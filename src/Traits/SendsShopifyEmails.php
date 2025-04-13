@@ -12,7 +12,7 @@ trait SendsShopifyEmails
     public static function sendShopifyEmail(string $type,Shop $shop)
     {
         $emailContent = self::generateEmailContent($type, $shop->detail["name"], $shop);
-        Log::info("send mail",["to",$shop->detail["email"], "content"=>$emailContent]);
+        Log::info("send mail",["to",$shop->detail["email"], "type"=>$type]);
         Mail::to($shop->detail["email"])->send(new ShopifyEmail($type, $emailContent));
     }
 
