@@ -3,12 +3,23 @@
     <head>
         <meta charset="utf-8">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>{{ config('app.name') }} |  @if (\Cache::get('shopName')) {{\Cache::get('shopName')}}  @endif</title>
-        <link rel="stylesheet" href="{{ asset('msdev2/app.css') }}?v=1.2">
         <meta name="shopify-api-key" content="{{config('msdev2.shopify_api_key')}}" />
+        <title>{{ config('app.name') }} |  @if (\Cache::get('shopName')) {{\Cache::get('shopName')}}  @endif</title>
         <script>window.URL_ROOT = '{{ config("app.url") }}';</script>
         @if (config('msdev2.appbridge_enabled'))
         <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" ></script>
+        @endif
+        <link rel="stylesheet" href="{{ asset('msdev2/css/app.css') }}?v=1.5">
+        @php
+        $cssFile = null;
+        if (!empty($css)) {
+            // Allow simple name ("help") or path ("pages/help")
+            $cssPath = "msdev2/css/pages/{$css}.css";
+            $cssFile = public_path($cssPath);
+        }
+        @endphp
+        @if ($cssFile && file_exists($cssFile))
+           <link rel="stylesheet" href="{{ asset($cssPath) }}?v={{ filemtime($cssFile) }}">
         @endif
         @yield('styles')
     </head>

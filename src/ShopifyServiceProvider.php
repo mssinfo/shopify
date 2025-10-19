@@ -26,7 +26,7 @@ class ShopifyServiceProvider extends ServiceProvider
         $this->publishes([__DIR__.'/config/msdev2.php'=>config_path("msdev2.php")]);
         $this->publishes([
             __DIR__.'/resources/assets/js' => public_path('msdev2'),
-            __DIR__.'/resources/assets/css' => public_path('msdev2'),
+            __DIR__.'/resources/assets/css' => public_path('msdev2/css'),
             __DIR__.'/resources/assets/images/' => public_path('msdev2').'/images',
             __DIR__.'/resources/assets/fonts/' => public_path('msdev2').'/fonts'
         ], 'public');

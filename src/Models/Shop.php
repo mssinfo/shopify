@@ -11,8 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class Shop extends Model
 {
-    use \App\Models\Shop;
-    use SoftDeletes;
+    use \App\Models\Shop, SoftDeletes;
     protected $guarded = [];
     public $timestamps = true;
 

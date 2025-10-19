@@ -1,4 +1,4 @@
-@extends('msdev2::layout.master')
+@extends('msdev2::layout.master', ['css' => 'help'])
 @section('content')
 <span class="toc-block" id="home">
     <header>
@@ -99,34 +99,4 @@
         };
     </script>
 @endif    
-@endsection
-@section('styles')
-<style>
-#home header {
-    color: #fff;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-    background-color: #43467f;
-}
-#home article .card {
-    border-top: 0.5rem solid #c4cdd5;
-}
-#home svg {
-    display: inline-block;
-    float: right;
-    width: 60px;
-    height: 60px;
-    margin: 0 0 0 1rem;
-}
-#home h5 {
-    margin-bottom: 1.5rem;
-}
-#home p:last-child {
-    margin-bottom: 0;
-}
-.margin-0{
-    margin: 0
-}
-</style>
 @endsection
