@@ -1,4 +1,5 @@
-@extends('msdev2::layout.master',["css"=>"ticket"])
+@extends('msdev2::layout.master')
+@section('css', 'ticket')
 @section('content')
 <header>
     <h1>Create a ticket</h1>

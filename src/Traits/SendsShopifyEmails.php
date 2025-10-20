@@ -1,6 +1,7 @@
 <?php
 namespace Msdev2\Shopify\Traits;
 
+use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Msdev2\Shopify\Mail\ShopifyEmail;
@@ -12,8 +13,13 @@ trait SendsShopifyEmails
     public static function sendShopifyEmail(string $type,Shop $shop)
     {
         $emailContent = self::generateEmailContent($type, $shop->detail["name"], $shop);
-        Log::info("send mail",["to",$shop->detail["email"], "type"=>$type]);
-        Mail::to($shop->detail["email"])->send(new ShopifyEmail($type, $emailContent));
+        try {
+            Log::info("send mail",["to",$shop->detail["email"], "type"=>$type]);
+            Mail::to($shop->detail["email"])->send(new ShopifyEmail($type, $emailContent));
+        } catch (Exception $e) {
+            // Optionally check if it's a 450 error and retry later
+            Log::error($e->getMessage());
+        }
     }
 
     private static function generateEmailContent($type, $name, $shop)

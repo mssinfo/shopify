@@ -1,4 +1,5 @@
-@extends('msdev2::layout.master',["css"=>"plan"])
+@extends('msdev2::layout.master')
+@section('css', 'plan')
 @section('content')
 <link href="https://fonts.googleapis.com/css2?family=Satisfy&display=swap" rel="stylesheet">
 <style>

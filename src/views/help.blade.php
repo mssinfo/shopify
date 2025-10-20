@@ -1,4 +1,5 @@
-@extends('msdev2::layout.master', ['css' => 'help'])
+@extends('msdev2::layout.master')
+@section('css', 'help')
 @section('content')
 <span class="toc-block" id="home">
     <header>
@@ -17,7 +18,7 @@
     </section>
     <section>
         <div class="column">
-            <div class="alert">
+            <div class="alert position-relative">
                 <dl>
                     <dt>Rate our app</dt>
                     <dd>We want to hear from you! Share your experience today and let's create something extraordinary together!

@@ -12,13 +12,14 @@
         <link rel="stylesheet" href="{{ asset('msdev2/css/app.css') }}?v=1.5">
         @php
         $cssFile = null;
-        if (!empty($css)) {
-            // Allow simple name ("help") or path ("pages/help")
-            $cssPath = "msdev2/css/pages/{$css}.css";
+        // Prefer a Blade section 'css' so child views can set it using @section('css','name')
+        $cssName = trim($__env->yieldContent('css')) ?: ($css ?? null);
+        if (!empty($cssName)) {
+            $cssPath = "msdev2/css/pages/{$cssName}.css";
             $cssFile = public_path($cssPath);
         }
         @endphp
-        @if ($cssFile && file_exists($cssFile))
+        @if (!empty($cssFile) && file_exists($cssFile))
            <link rel="stylesheet" href="{{ asset($cssPath) }}?v={{ filemtime($cssFile) }}">
         @endif
         @yield('styles')

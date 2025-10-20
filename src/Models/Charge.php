@@ -9,6 +9,7 @@ class Charge extends Model
 
     protected $guarded = [];
     public $timestamps = true;
+    public $metaField = true;
     /**
      * Get the shop that owns the Plan
      *
