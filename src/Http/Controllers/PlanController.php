@@ -5,11 +5,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Msdev2\Shopify\Lib\EnsureBilling;
 use Msdev2\Shopify\Utils;
+use Msdev2\Shopify\Events\PlanPageViewed;
+use Msdev2\Shopify\Events\PlanProceeded;
+use Msdev2\Shopify\Events\PlanPurchaseCompleted;
 
 class PlanController extends BaseController{
 
     public function plan(Request $request){
         $shop = Utils::getShop();
+        if (class_exists(PlanPageViewed::class)) {
+            PlanPageViewed::dispatch($shop);
+        }
         // $firstTimeCharge = $shop->charges()->first();
         $appUsed = $shop->appUsedDay();
         $activePlanName = $shop->activeCharge->name ?? '';
@@ -47,6 +53,9 @@ class PlanController extends BaseController{
     public function planSubscribe(Request $request){
         $shop = Utils::getShop();
         $plan = $shop->plan($request->input("plan"));
+        if (class_exists(PlanProceeded::class)) {
+            PlanProceeded::dispatch($shop, $plan);
+        }
         list($hasPayment, $confirmationUrl) = EnsureBilling::check($shop, $plan);
         if ($confirmationUrl) {
             return redirect($confirmationUrl);
@@ -90,6 +99,10 @@ class PlanController extends BaseController{
             'activated_on'=>Carbon::now(),
             'trial_ends_on'=>Carbon::now()->addDays($trialDay),
         ]);
+
+        if (class_exists(PlanPurchaseCompleted::class)) {
+            PlanPurchaseCompleted::dispatch($shop, $request->charge_id ?? null, $plan["chargeName"]);
+        }
         return redirect(Utils::Route('/'));
     }
 }

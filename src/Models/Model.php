@@ -36,10 +36,8 @@ class Model extends LAravelModel {
     {
         try {
             if (!$model->shop_id || (!$model->metaField && !$model->singleMetaField)) {
-                Log::warning(($model->metaField?'yes ':'no ').'-'.($model->singleMetaField?'yes ':'no ').':($model->metaField) No shop_id found for metafield sync', ['model' => static::class]);
                 return;
             }
-
             // Special handling: if the underlying model being synced is the Metadata model
             // we want to publish a single public app metafield key named 'settings' that
             // contains only keys that start with 'frontend_' as a flat JSON object.
@@ -59,32 +57,13 @@ class Model extends LAravelModel {
                         $frontend[$row->key] = json_last_error() === JSON_ERROR_NONE ? $decoded : $val;
                     }
                 }
-
-                if ($action === 'delete') {
-                    // If this delete removed only a single metadata row, ensure we only remove
-                    // that key from the published settings object. The $frontend object above
-                    // already reflects current DB state (delete fired after DB delete), so
-                    // simply write the updated object or delete the metafield if empty.
-                    if (empty($frontend)) {
-                        $shop->deleteMetaField('settings', config('msdev2.app_id'), false);
-                    } else {
-                        $shop->setMetaField([
-                            'namespace' => config('msdev2.app_id'),
-                            'key'       => 'settings',
-                            'value'     => json_encode($frontend),
-                            'type'      => 'json',
-                        ], false);
-                    }
-                    return;
-                }
-
                 // For create/update, write the settings metafield with all frontend_ keys
                 $shop->setMetaField([
                     'namespace' => config('msdev2.app_id'),
                     'key'       => 'settings',
                     'value'     => json_encode($frontend),
                     'type'      => 'json',
-                ], false); // make public
+                ], !$model->metaPublic); // make public
                 return;
             }
 
@@ -100,7 +79,7 @@ class Model extends LAravelModel {
                         'key'       => 'plan_feature',
                         'value'     => json_encode($features),
                         'type'      => 'json',
-                    ], false);
+                    ], !$model->metaPublic);
                 } catch (\Throwable $e) {
                     Log::error('Failed to write plan_feature metafield: '.$e->getMessage());
                 }
@@ -136,6 +115,7 @@ class Model extends LAravelModel {
         } catch (\Throwable $e) {
             Log::error("Failed metafield sync [{$action}]: {$e->getMessage()}", [
                 'model' => get_class($model),
+                'class' => class_basename($model),
                 'id'    => $model->id ?? null,
             ]);
         }

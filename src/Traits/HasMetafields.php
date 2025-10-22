@@ -8,7 +8,7 @@ trait HasMetafields
 {
     public function setMetaField(array $metaField, bool $isPrivateMeta = true): void
     {
-        $shop = method_exists($this, 'shop') ? $this->shop : $this;
+        $shop = (is_string($this->shop) ? mShop($this->shop) : $this->shop) ?? mShop();
         if (!$shop) {
             return;
         }
@@ -28,12 +28,12 @@ trait HasMetafields
         }
     }
 
-    public function deleteMetaField(string $key, string $namespace = null, bool $isPrivateMeta = true): void
+    public function deleteMetaField(string $key, string $namespace = '', bool $isPrivateMeta = true): void
     {
         $shop = method_exists($this, 'shop') ? $this->shop : $this;
         if (!$shop) return;
 
-        $namespace = $namespace ?? config('msdev2.app_id');
+        $namespace = $namespace !== '' ? $namespace : config('msdev2.app_id');
 
         if ($isPrivateMeta) {
             self::deletePrivateMetaField($shop, $namespace, $key);
@@ -63,7 +63,8 @@ trait HasMetafields
         GQL;
 
         $variables = ['metafields' => [$metaField]];
-        mGraph($shop)->query(["query" => $query, "variables" => $variables])->getDecodedBody();
+        $data = mGraph($shop)->query(["query" => $query, "variables" => $variables])->getDecodedBody();
+        Log::debug("setPrivateMetaField set response: ". json_encode($data), $variables);
     }
 
     private static function deletePrivateMetaField($shop, string $namespace, string $key): void
@@ -104,6 +105,7 @@ trait HasMetafields
 
     private static function setPublicMetaField($shop, array $metaField): void
     {
+        
         $query = <<<'GQL'
             mutation metafieldsSet($input: [MetafieldsSetInput!]!) {
                 metafieldsSet(input: $input) {
@@ -118,7 +120,8 @@ trait HasMetafields
         $metaField['ownerId'] = $shopGid;
 
         $variables = ['input' => [$metaField]];
-        mGraph($shop)->query($query, $variables)->getDecodedBody();
+        $data = mGraph($shop)->query($query, $variables)->getDecodedBody();
+        Log::debug("setPublicMetaField set response: ". json_encode($data), $variables);
     }
 
     private static function deletePublicMetaField($shop, string $namespace, string $key): void

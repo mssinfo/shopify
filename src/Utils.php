@@ -148,7 +148,7 @@ class Utils
         }
         return $shop;
     }
-    public static function rest(Shop $shop = null): Rest {
+    public static function rest(?Shop $shop = null): Rest {
         $shopName = null;
         $accessToken = null;
         if(!$shop){
@@ -170,7 +170,7 @@ class Utils
 
         return $client;
     }
-    public static function graph(Shop $shop = null): Graphql {
+    public static function graph(?Shop $shop = null): Graphql {
         $shopName = null;
         $accessToken = null;
         if(!$shop){
