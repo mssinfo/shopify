@@ -66,26 +66,7 @@ class Model extends LAravelModel {
                 ], !$model->metaPublic); // make public
                 return;
             }
-
-            // If a Charge changed, update the published plan_feature metafield so
-            // storefront blocks can read the current plan features.
-            if (class_basename($model) === 'Charge') {
-                $shop = $model->shop ?? mShop($model->shop_id);
-                try {
-                    $plan = $shop->plan();
-                    $features = $plan['feature'] ?? $plan;
-                    $shop->setMetaField([
-                        'namespace' => config('msdev2.app_id'),
-                        'key'       => 'plan_feature',
-                        'value'     => json_encode($features),
-                        'type'      => 'json',
-                    ], !$model->metaPublic);
-                } catch (\Throwable $e) {
-                    Log::error('Failed to write plan_feature metafield: '.$e->getMessage());
-                }
-                return;
-            }
-
+            
             $shop = $model->shop ?? mShop($model->shop_id);
             if ($model->singleMetaField) {
                 $key = "{$model->getTable()}_{$model->id}";
