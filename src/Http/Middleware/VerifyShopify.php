@@ -7,6 +7,8 @@ use Illuminate\Support\Str;
 
 use Illuminate\Support\Arr;
 use Msdev2\Shopify\Utils;
+use Shopify\Utils as ShopifyUtils;
+use Illuminate\Support\Facades\URL;
 
 class VerifyShopify
 {
@@ -14,16 +16,14 @@ class VerifyShopify
     {
         // Forget cache values
         Cache::forget('shop');
-        Cache::forget('shopname');
+        Cache::forget('shopName');
         $shopName = mShopName();
         if (strpos($request->getRequestUri(),config("msdev2.proxy_path")) !== false && !isset($request->shop)) {
-            $shopName = $_SERVER['HTTP_HOST'];
+            $shopName = $_SERVER['HTTP_HOST'] != str_replace(["https://"],"",config("app.url")) ? $_SERVER['HTTP_HOST'] : null;
         }
-
         // Allow auth-related requests or if shop exists
         if ($this->isAllowedRequest($request) || $shopName) {
             $shop = mShop($shopName);
-
             if (!$shop || $shop->is_uninstalled) {
                 return $this->redirectToInstall($shopName);
             }
@@ -86,7 +86,6 @@ class VerifyShopify
         if ($scopes) {
             $routeParams['scopes'] = $scopes;
         }
-
         return response()->view('msdev2::iframe_redirect', [
             'url' => route('msdev2.shopify.install', $routeParams)
         ]);
