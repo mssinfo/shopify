@@ -9,6 +9,9 @@
         @if (config('msdev2.appbridge_enabled'))
         <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" ></script>
         @endif
+        @if (config('msdev2.enable_polaris'))
+        <script src="https://cdn.shopify.com/shopifycloud/polaris.js"></script>
+        @endif
         <link rel="stylesheet" href="{{ asset('msdev2/css/app.css') }}?v=1.5">
         @php
         $cssFile = null;

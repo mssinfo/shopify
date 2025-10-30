@@ -11,6 +11,7 @@ return [
     "is_embedded_app"=> (bool) env('SHOPIFY_IS_EMBEDDED_APP',true) ?? true,
     "enable_alpinejs"=> (bool) env('SHOPIFY_ENABLE_ALPINEJS',true) ?? true,
     "enable_turbolinks"=> (bool) env('SHOPIFY_ENABLE_TURBOLINKS',true) ?? true,
+    "enable_polaris"=> (bool) env('SHOPIFY_ENABLE_POLARIS',false) ?? false,
     "tawk_url"=> env('TAWK_URL',''),
     "footer"=>env('SHOPIFY_FOOTER', '<p>Copyright &copy; All right reserved.</p>'),
     "test_stores"=>env('SHOPIFY_TEST_STORES',''),
