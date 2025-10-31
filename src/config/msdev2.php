@@ -2,7 +2,7 @@
 return [
     "shopify_api_key"=>env('SHOPIFY_API_KEY', '63f2fa001dd7228268d7c5f920f9b28b'),
     "shopify_api_secret"=>env('SHOPIFY_API_SECRET', '47f72686a3950d8f9bf307f5eea1f071'),
-    "scopes"=>env('SHOPIFY_API_SCOPES', 'read_content,read_files,write_files,read_themes,write_themes,read_metaobjects,write_metaobjects,read_script_tags,read_script_tags,read_themes'),
+    "scopes"=>env('SHOPIFY_API_SCOPES', 'read_content,read_files,write_files,read_themes,write_themes,write_metaobject_definitions,read_metaobjects,write_metaobjects,read_themes,read_metaobject_definitions'),
     "app_id"=>env('SHOPIFY_APP_ID', 'msdev2'),
     "api_version"=>env('SHOPIFY_API_VERSION', '2025-01'),
     "webhooks"=>env('SHOPIFY_WEBHOOKS', 'APP_UNINSTALLED,SHOP_UPDATE'),
@@ -19,6 +19,8 @@ return [
     'contact_url'=>env('SHOPIFY_CONTACT_URL',''),
     'contact_email'=>env('SHOPIFY_CONTACT_EMAIL',''),
     'proxy_path' => env('SHOPIFY_PROXY_PATH', '/a/styfly'),
+    'extension_id' => env('SHOPIFY_EXTENSION_ID', 'Laravel'),
+    'extension_name' => env('SHOPIFY_EXTENSION_APP_NAME', 'Laravel'),
     "menu"=>[
         'logo'=>[
             'type'=>'url',//image,url,
