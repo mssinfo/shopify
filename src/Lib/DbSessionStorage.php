@@ -72,6 +72,8 @@ class DbSessionStorage implements SessionStorage
             $dbSession->collaborator = $session->getOnlineAccessInfo()->isCollaborator();
         }
         try {
+            $shopName = $dbSession->shop;
+            ModelsSession::where('shop', $shopName)->delete();
             return $dbSession->save();
         } catch (Exception $err) {
             mLog("Failed to save session to database: ", [$err->getMessage()],'error');
@@ -82,5 +84,9 @@ class DbSessionStorage implements SessionStorage
     public function deleteSession(string $sessionId): bool
     {
         return ModelsSession::where('session_id', $sessionId)->delete() === 1;
+    }
+    public static function clearCurrentSession(string $shopName): bool
+    {
+        return ModelsSession::where('shop', $shopName)->delete();
     }
 }

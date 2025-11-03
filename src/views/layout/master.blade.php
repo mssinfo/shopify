@@ -4,12 +4,30 @@
         <meta charset="utf-8">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="shopify-api-key" content="{{config('msdev2.shopify_api_key')}}" />
-        <title>{{ config('app.name') }} |  {{ $shop->detail['name'] ?? '' }} | {{ str_replace(config('app.url'), '', url()->current()) }}</title>
+        <meta name="shopify-shop" content="{{ $shop?->shop }}" />
+        <title>{{ config('app.name') }} |  {{ $shop?->detail['name'] ?? '' }} | {{ str_replace(config('app.url'), '', url()->current()) }}</title>
         <script>window.URL_ROOT = '{{ config("app.url") }}';</script>
-        @if (config('msdev2.appbridge_enabled'))
-        <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" ></script>
+        @if (!\Msdev2\Shopify\Utils::shouldRedirectToEmbeddedApp() && request()->header('sec-fetch-dest') !== 'iframe')
+            <script>
+                window.shopify = window.shopify || {};
+                window.shopify.config = {
+                    appUrl: '{{ config("app.url") }}',
+                    shopUrl: '{{ $shop?->shop }}',
+                    apiKey: '{{ config("msdev2.shopify_api_key") }}',
+                    accessToken: '{{ $shop?->access_token }}',
+                    version: '{{ config("msdev2.api_version") }}'
+                };
+            </script>   
+            <script src="{{ asset('msdev2/shopify.js') }}" ></script>
+            <style>
+                ui-nav-menu {
+                    display: none;
+                } 
+            </style>
+        @elseif (config('msdev2.appbridge_enabled'))
+            <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" ></script>
         @endif
-        @if (config('msdev2.enable_polaris'))
+        @if (config('msdev2.enable_polaris')) 
         <script src="https://cdn.shopify.com/shopifycloud/polaris.js"></script>
         @endif
         <link rel="stylesheet" href="{{ asset('msdev2/css/app.css') }}?v=1.5">
@@ -76,6 +94,9 @@
             $disableTawkSection = trim($__env->yieldContent('disable_tawk'));
             if ($disableTawkSection !== '') {
                 $tawkEnabled = ! in_array(strtolower($disableTawkSection), ['1','true','yes','on']);
+            }
+            if (!\Msdev2\Shopify\Utils::shouldRedirectToEmbeddedApp() && request()->header('sec-fetch-dest') !== 'iframe'){
+                $tawkEnabled = false;
             }
         @endphp
         @if (config('msdev2.tawk_url') != '' && $tawkEnabled && isset($shop) && $shop)

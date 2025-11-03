@@ -1,6 +1,26 @@
 @extends('msdev2::layout.agent')
 @section('content')
+<div class="mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h3 class="mb-0">Welcome, {{ Auth::user()->name ?? 'Agent' }}</h3>
+        <div class="text-muted small">Manage stores, tickets and plans from here.</div>
+    </div>
+    <div>
+        <a href="{{ route('msdev2.agent.tickets') }}" class="btn btn-outline-secondary">View Tickets</a>
+    </div>
+</div>
+
 <div class="row">
+    <div class="col-12">
+        <div class="input-group mb-3">
+            <input id="agent-shop-search" type="text" class="form-control" placeholder="Search shop by name or domain..." autocomplete="off">
+            <button id="agent-shop-clear" class="btn btn-outline-secondary" type="button">Clear</button>
+        </div>
+        <div id="agent-shop-suggestions" class="list-group mt-1" style="position:relative; z-index:1000;"></div>
+        <div id="agent-shop-detail" class="card mt-3 d-none">
+            <div class="card-body" id="agent-shop-detail-body"></div>
+        </div>
+    </div>
     <div class="col-lg-6 col-xl-4 mb-4">
         <div class="card bg-primary text-white h-100">
             <div class="card-body">
@@ -56,4 +76,53 @@
     </div>
     @endforeach
 </div>
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const input = document.getElementById('agent-shop-search');
+    const suggestions = document.getElementById('agent-shop-suggestions');
+    const detailCard = document.getElementById('agent-shop-detail');
+    const detailBody = document.getElementById('agent-shop-detail-body');
+    const clearBtn = document.getElementById('agent-shop-clear');
+
+    let timeout = null;
+
+    input.addEventListener('input', function(e){
+        const q = e.target.value.trim();
+        clearTimeout(timeout);
+        if(q.length < 2){
+            suggestions.innerHTML = '';
+            return;
+        }
+        timeout = setTimeout(()=>{
+            fetch(`{{ url('/agent/shops/search') }}?q=${encodeURIComponent(q)}`)
+                .then(r=>r.json()).then(data=>{
+                    suggestions.innerHTML = '';
+                    if(Array.isArray(data) && data.length){
+                        data.forEach(item=>{
+                            const el = document.createElement('button');
+                            el.type = 'button';
+                            el.className = 'list-group-item list-group-item-action';
+                            el.textContent = item.shop + (item.domain ? (' ('+item.domain+')') : '');
+                            el.addEventListener('click', ()=>{
+                                // Redirect to full shop detail page
+                                window.location.href = `{{ url('/agent/shops') }}/${item.id}/view`;
+                            });
+                            suggestions.appendChild(el);
+                        });
+                    }
+                });
+        }, 250);
+    });
+
+    clearBtn.addEventListener('click', function(){
+        input.value = '';
+        suggestions.innerHTML = '';
+        detailCard.classList.add('d-none');
+        detailBody.innerHTML = '';
+    });
+});
+</script>
 @endsection

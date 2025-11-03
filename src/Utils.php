@@ -18,10 +18,11 @@ class Utils
     public static function setShopData($shop){
         self::$shop = $shop;
     }
-    public static function shouldRedirectToEmbeddedApp(Request $request): bool
+    public static function shouldRedirectToEmbeddedApp(): bool
     {
+        $request = request();
         $redirectToIframe = $request->get("redirect_to_iframe") || session('redirect_to_iframe') ?? null;
-        if($redirectToIframe && ($redirectToIframe==0 || $redirectToIframe==false)){
+        if($redirectToIframe && ($redirectToIframe==0 || $redirectToIframe==false) || auth()->check()){
             return false;
         }
         return Context::$IS_EMBEDDED_APP
@@ -46,7 +47,8 @@ class Utils
         if(isset($queryList["locale"])) $queryBuild["locale"] = $queryList['locale'];
         if(isset($queryList["session"])) $queryBuild["session"] = $queryList['session'];
         if(isset($queryList["timestamp"])) $queryBuild["timestamp"] = $queryList['timestamp'];
-        if(Context::$IS_EMBEDDED_APP){
+        if(isset($queryList["redirect_to_iframe"])) $queryBuild["redirect_to_iframe"] = $queryList['redirect_to_iframe'];
+        if(Context::$IS_EMBEDDED_APP && self::shouldRedirectToEmbeddedApp()){
             if(request()->header('sec-fetch-dest')!='iframe'){
                 return ShopifyUtils::getEmbeddedAppUrl($queryBuild['host']).$path;
             }
@@ -88,8 +90,8 @@ class Utils
         if(!$shopName && request()->header('shop')){
             $shopName = request()->header('shop');
         }
-        if(!$shopName && request()->session){
-            $session = Context::$SESSION_STORAGE->loadSession(request()->session);
+        if(!$shopName && session()){
+            $session = Context::$SESSION_STORAGE->loadSession(session()->getId());
             if($session){
                 $shopName = $session->getShop();
             }

@@ -6,9 +6,11 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use Msdev2\Shopify\Utils;
 use Shopify\Utils as ShopifyUtils;
 use Illuminate\Support\Facades\URL;
+use Msdev2\Shopify\Lib\DbSessionStorage;
 
 class VerifyShopify
 {
@@ -45,7 +47,6 @@ class VerifyShopify
                     return redirect(mRoute('/plan'));
                 }
             }
-
             // Handle embedded app redirection
             if (Utils::shouldRedirectToEmbeddedApp($request)) {
                 return Utils::redirectToEmbeddedApp($request);
@@ -53,7 +54,11 @@ class VerifyShopify
 
             return $next($request);
         }
-
+        // if not in iframe, then redirect to install page
+        // dd($request->header('sec-fetch-dest'));
+        if ($request->header('sec-fetch-dest') !== 'iframe') {
+            return redirect()->route('msdev2.install');
+        }
         abort(403, 'Shop does not exist in request');
     }
 
@@ -70,8 +75,8 @@ class VerifyShopify
         // Fetch granted scopes from Shopify
         $data = mRest()->get('/admin/oauth/access_scopes.json');
         $shopifyScopes = $data->getDecodedBody();
-
         if (!isset($shopifyScopes['access_scopes'])) {
+            dd($shopifyScopes, $scopes);
             return $scopes;
         }
 
@@ -86,6 +91,8 @@ class VerifyShopify
         if ($scopes) {
             $routeParams['scopes'] = $scopes;
         }
+        // $caller = debug_backtrace();
+        DbSessionStorage::clearCurrentSession($shopName);
         return response()->view('msdev2::iframe_redirect', [
             'url' => route('msdev2.shopify.install', $routeParams)
         ]);

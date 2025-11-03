@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 use Msdev2\Shopify\Models\Charge;
 use Msdev2\Shopify\Models\Shop;
 use Msdev2\Shopify\Models\Ticket;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class AgentController extends BaseController{
     public function login() {
@@ -80,5 +82,89 @@ class AgentController extends BaseController{
         $request->session()->regenerateToken();
         return redirect()->route('msdev2.agent.login')
             ->withSuccess('You have logged out successfully!');;
+    }
+
+    /**
+     * Search shops for autocomplete (q parameter)
+     */
+    public function shopSearch(Request $request)
+    {
+        $q = $request->query('q', '');
+        $items = [];
+        if (!empty($q)) {
+            $items = Shop::where('shop', 'like', "%{$q}%")
+                ->orWhere('domain', 'like', "%{$q}%")
+                ->select('id', 'shop', 'domain')
+                ->limit(10)
+                ->get();
+        }
+        return response()->json($items);
+    }
+
+    /**
+     * Return shop detail by id
+     */
+    public function shopDetail($id)
+    {
+        $shop = Shop::with('activeCharge')->find($id);
+        if (!$shop) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+        return response()->json($shop);
+    }
+
+    /**
+     * Show full shop detail page for agents.
+     */
+    public function shopView($id)
+    {
+        $shop = Shop::with(['charges' => function($q){ $q->orderBy('activated_on', 'desc'); }, 'metadata'])->find($id);
+        if (!$shop) {
+            // Return a 404 so callers and middleware get appropriate behavior
+            abort(404, 'Shop not found');
+        }
+
+        $charges = $shop->charges()->orderBy('activated_on','desc')->get();
+        $metadata = $shop->metadata()->get();
+        // Pass shop under a different name to avoid collision with global view composer 'shop'
+        return view('msdev2::agent.shop_detail', [
+            'shopDetail' => $shop,
+            'charges' => $charges,
+            'metadata' => $metadata,
+        ]);
+    }
+
+    /**
+     * Generate a one-time token and redirect to app root including token.
+     */
+    public function directLogin($id)
+    {
+        $shop = Shop::find($id);
+        if (!$shop) {
+            return redirect()->route('msdev2.agent.dashboard')->withErrors(['shop' => 'Shop not found']);
+        }
+        $token = Str::random(48);
+        // store token mapping to shop identifier for a short time (5 minutes)
+        Cache::put('agent_direct_'.$token, ['shop' => $shop->shop], 300);
+        // Allow embedded iframe redirect if an agent is currently logged in
+        $redirectIframe = auth()->check() ? 'false' : 'true';
+        $target = config('app.url') . '?shop=' . urlencode($shop->shop) . '&redirect_to_iframe=' . $redirectIframe . '&token=' . $token;
+        return redirect($target);
+    }
+    public function shopifyGraph(Request $request)
+    {
+        $shop = mShop();
+        $graph = mGraph($shop);
+        $query = $request->input('query', null);
+        $variables = $request->input('variables', []);
+        if (!$query) {
+            return mErrorResponse([], 'No query provided', 400);
+        }
+        try {
+            $response = $graph->query($query, $variables);
+            return $response->getDecodedBody();
+        } catch (\Exception $e) {
+            return mErrorResponse([], 'Error executing query: ' . $e->getMessage(), 500);
+        }
     }
 }

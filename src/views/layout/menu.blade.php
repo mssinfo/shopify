@@ -10,26 +10,26 @@
             </a>
         @endif
         @foreach (config('msdev2.menu.list') as $menu)
-                    @if (!isset($menu['position']) || $menu['position'] == "all" || $menu['position'] == "topbar")
-                        @php
-                            // normalize current request path and menu destination to compare without leading/trailing slashes
-                            $currentPath = trim(Request::path(), '/');
-                            $menuDestination = '';
-                            if (isset($menu['destination'])) {
-                                // destination may be a full url or a path like '/gallery'
-                                $menuDestination = trim(parse_url($menu['destination'], PHP_URL_PATH) ?: $menu['destination'], '/');
-                            }
-                            // If menu uses laravel route helper, convert it as well
-                            if (isset($menu['type']) && $menu['type'] !== 'vue') {
-                                $menuDestination = trim(parse_url(mRoute($menu['destination']), PHP_URL_PATH) ?: mRoute($menu['destination']), '/');
-                            }
-                            $isActive = ($currentPath === $menuDestination) || ($menuDestination !== '' && \Illuminate\Support\Str::startsWith($currentPath, $menuDestination . '/'));
-                        @endphp
-                        <a href="{!! isset($menu['type']) && $menu['type']=='vue' ? $menu['destination'] : mRoute($menu['destination']) !!}" class="{{ $isActive ? 'active' : '' }} {{ preg_replace('/[^a-z0-9]+/i', '-', strtolower($menu['label'])) }} menu {{  isset($menu['type']) && $menu['type']=='vue' ? 'vue_link' : ''}}">
-                    @if ($menu['icon'])
-                        {!! $menu['icon'] !!}
-                    @endif
-                    {{$menu['label']}}</a>
+            @if (!isset($menu['position']) || $menu['position'] == "all" || $menu['position'] == "topbar")
+                @php
+                    // normalize current request path and menu destination to compare without leading/trailing slashes
+                    $currentPath = trim(Request::path(), '/');
+                    $menuDestination = '';
+                    if (isset($menu['destination'])) {
+                        // destination may be a full url or a path like '/gallery'
+                        $menuDestination = trim(parse_url($menu['destination'], PHP_URL_PATH) ?: $menu['destination'], '/');
+                    }
+                    // If menu uses laravel route helper, convert it as well
+                    if (isset($menu['type']) && $menu['type'] !== 'vue') {
+                        $menuDestination = trim(parse_url(mRoute($menu['destination']), PHP_URL_PATH) ?: mRoute($menu['destination']), '/');
+                    }
+                    $isActive = ($currentPath === $menuDestination) || ($menuDestination !== '' && \Illuminate\Support\Str::startsWith($currentPath, $menuDestination . '/'));
+                @endphp
+                <a href="{!! isset($menu['type']) && $menu['type']=='vue' ? $menu['destination'] : mRoute($menu['destination']) !!}" class="{{ $isActive ? 'active' : '' }} {{ preg_replace('/[^a-z0-9]+/i', '-', strtolower($menu['label'])) }} menu {{  isset($menu['type']) && $menu['type']=='vue' ? 'vue_link' : ''}}">
+                @if ($menu['icon'])
+                    {!! $menu['icon'] !!}
+                @endif
+                {{$menu['label']}}</a>
             @endif
         @endforeach
         @if (config('msdev2.billing'))

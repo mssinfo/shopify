@@ -1,5 +1,5 @@
-const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
+const queryStrings = window.location.search;
+const urlParams = new URLSearchParams(queryStrings);
 window.$GLOBALS = {
     shopName: urlParams.get('shop'),
     host: urlParams.get('host'),

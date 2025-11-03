@@ -1,78 +1,145 @@
 <?php
+
 namespace Msdev2\Shopify;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
 use Msdev2\Shopify\Http\Middleware\Authenticate;
 use Msdev2\Shopify\Http\Middleware\EnsureShopifyInstalled;
-use Msdev2\Shopify\Http\Middleware\VerifyShopify;
 use Msdev2\Shopify\Http\Middleware\EnsureShopifySession;
+use Msdev2\Shopify\Http\Middleware\VerifyShopify;
 use Msdev2\Shopify\Lib\DbSessionStorage;
-use Shopify\ApiVersion;
-use Shopify\Auth\Session;
 use Shopify\Context;
-use Ramsey\Uuid\Uuid;
 
 class ShopifyServiceProvider extends ServiceProvider
 {
+    /**
+     * Register any application services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        // Merge config from the package
+        $this->mergeConfigFrom(__DIR__.'/config/msdev2.php', 'msdev2');
+
+        // Register package commands
+        $this->commands([
+            \Msdev2\Shopify\Console\Commands\SendCustomerEmails::class,
+            \Msdev2\Shopify\Console\Commands\CreateAgent::class,
+        ]);
+
+        // Bind the session storage as a singleton. This ensures the same instance is used throughout the app.
+        $this->app->singleton(DbSessionStorage::class, function ($app) {
+            return new DbSessionStorage();
+        });
+
+        // Load helper functions
+        require_once __DIR__.'/Lib/Functions.php';
+    }
+
+    /**
+     * Bootstrap any application services.
+     *
+     * @return void
+     */
     public function boot()
     {
+        // Force HTTPS scheme if configured and in a secure environment
+        if (config('msdev2.force_https', true) && $this->isSecureConnection()) {
+            URL::forceScheme('https');
+        }
+
+        // Register middleware aliases
+        $this->registerMiddleware();
+
+        // Load package resources
         $this->loadRoutesFrom(__DIR__.'/routes/web.php');
-        $this->loadViewsFrom(__DIR__.'/views/','msdev2');
+        $this->loadViewsFrom(__DIR__.'/views/', 'msdev2');
         $this->loadMigrationsFrom(__DIR__.'/database/migrations');
-        // $this->loadModelsFrom(__DIR__.'/Models');
-        $this->mergeConfigFrom(__DIR__.'/config/msdev2.php','msdev2');
-        $this->publishes([__DIR__.'/config/msdev2.php'=>config_path("msdev2.php")]);
+
+        // Define assets and config for publishing
+        $this->definePublishing();
+
+        // Initialize the Shopify API Context
+        $this->initializeShopifyContext();
+
+        // Share the shop data with all views, but only if it's been bound by middleware
+        view()->composer('*', function ($view) {
+            $view->with('shop', $this->app->bound('shopify.shop') ? $this->app['shopify.shop'] : null);
+        });
+    }
+
+    /**
+     * Check if the connection is secure.
+     *
+     * @return bool
+     */
+    private function isSecureConnection(): bool
+    {
+        return request()->secure()
+            || request()->header('X-Forwarded-Proto') === 'https'
+            || $this->app->environment('production');
+    }
+
+    /**
+     * Register the middleware aliases.
+     *
+     * @return void
+     */
+    private function registerMiddleware(): void
+    {
+        $router = $this->app['router'];
+        $router->aliasMiddleware('msdev2.shopify.verify', VerifyShopify::class);
+        $router->aliasMiddleware('msdev2.shopify.auth', EnsureShopifySession::class);
+        $router->aliasMiddleware('msdev2.shopify.installed', EnsureShopifyInstalled::class);
+        $router->aliasMiddleware('msdev2.agent.auth', Authenticate::class);
+        $router->aliasMiddleware('msdev2.validate.agent.token', \Msdev2\Shopify\Http\Middleware\ValidateAgentToken::class);
+        $router->aliasMiddleware('msdev2.load.shop', \Msdev2\Shopify\Http\Middleware\LoadShopFromRequest::class);
+        // Ensure our token validator runs early for web requests
+        if (method_exists($router, 'pushMiddlewareToGroup')) {
+            $router->pushMiddlewareToGroup('web', \Msdev2\Shopify\Http\Middleware\ValidateAgentToken::class);
+        }
+    }
+
+    /**
+     * Define the assets and configuration that can be published.
+     *
+     * @return void
+     */
+    private function definePublishing(): void
+    {
+        // Publish config file
+        $this->publishes([
+            __DIR__.'/config/msdev2.php' => config_path("msdev2.php")
+        ], 'config');
+
+        // Publish public assets
         $this->publishes([
             __DIR__.'/resources/assets/js' => public_path('msdev2'),
             __DIR__.'/resources/assets/css' => public_path('msdev2/css'),
-            __DIR__.'/resources/assets/images/' => public_path('msdev2').'/images',
-            __DIR__.'/resources/assets/fonts/' => public_path('msdev2').'/fonts'
+            __DIR__.'/resources/assets/images/' => public_path('msdev2/images'),
+            __DIR__.'/resources/assets/fonts/' => public_path('msdev2/fonts')
         ], 'public');
-        //    $this->loadTranslationsFrom(__DIR__.'/../lang', 'courier');
-        $this->app['router']->aliasMiddleware('msdev2.shopify.verify', VerifyShopify::class);
-        $this->app['router']->aliasMiddleware('msdev2.shopify.auth', EnsureShopifySession::class);
-        $this->app['router']->aliasMiddleware('msdev2.shopify.installed', EnsureShopifyInstalled::class);
-        $this->app['router']->aliasMiddleware('msdev2.agent.auth', Authenticate::class);
-        $host = config('app.url');
-        $customDomain = env('SHOP_CUSTOM_DOMAIN', null);
-        Context::initialize(
-            config('msdev2.shopify_api_key'),
-            config('msdev2.shopify_api_secret'),
-            config('msdev2.scopes'),
-            $host,
-            new DbSessionStorage(),
-            config('msdev2.api_version'),
-            config('msdev2.is_embedded_app'),
-            false,
-            null,
-            '',
-            null,
-            (array)$customDomain,
-        );
-
-        $shopName = Utils::getShopName();
-        $accessToken = Utils::getAccessToken();
-        $session = Utils::getSession($shopName);
-        $shop = Utils::getShop();
-        Utils::setShopData($shop);
-        view()->composer('*', function ($view) use ($shop) {
-            $view->with('shop', $shop);
-        });
-        if($shopName && $shopName!=null && $accessToken && $accessToken!=null && $session && $session!=null){
-            $sessionStore = new Session($session, $shopName, true, Uuid::uuid4()->toString());
-            $sessionStore->setScope(Context::$SCOPES->toString());
-            $sessionStore->setAccessToken($accessToken);
-            $sessionStore->setExpires(strtotime('+1 day'));
-            Context::$SESSION_STORAGE->storeSession($sessionStore);
-        }
     }
-    public function register()
+
+    /**
+     * Initialize the global Shopify context.
+     *
+     * @return void
+     */
+    private function initializeShopifyContext(): void
     {
-        $this->commands([
-            \Msdev2\Shopify\Console\Commands\SendCustomerEmails::class,
-        ]);
-        require_once __DIR__.'/Lib/Functions.php';
+        Context::initialize(
+            apiKey:           config('msdev2.shopify_api_key'),
+            apiSecretKey:     config('msdev2.shopify_api_secret'),
+            scopes:           config('msdev2.scopes'),
+            hostName:         config('app.url'),
+            sessionStorage:   $this->app->make(DbSessionStorage::class),
+            apiVersion:       config('msdev2.api_version'),
+            isEmbeddedApp:    config('msdev2.is_embedded_app', true),
+            isPrivateApp:     config('msdev2.is_private_app', false),
+            customShopDomains: (array) config('msdev2.shop_custom_domain', null)
+        );
     }
 }

@@ -5,8 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{ config('app.name') }} |  Agent </title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    @yield('styles')
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">  
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script> 
+@yield('styles')
+    <style>
+      /* Basic styles for Agent UI */
+    body.layout-agent {
+        background: #f8f9fa;
+    }
+
+    .navbar-brand.d-none {
+        display: inline-block !important;
+    }
+
+    #agent-shop-suggestions { max-height: 240px; overflow:auto; }
+    #agent-shop-detail pre { white-space: pre-wrap; word-break: break-word; }
+
+    /* small responsive tweaks */
+    @media (max-width: 576px) {
+        .card .text-lg { font-size: 1rem; }
+    }
+    </style>
 </head>
 <body class="d-flex flex-column h-100">
     @guest

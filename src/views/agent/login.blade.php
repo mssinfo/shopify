@@ -1,7 +1,7 @@
 @extends('msdev2::layout.agent')
 @section('content')
-<div class="text-center d-flex justify-content-center align-content-center vh-100 w-100">
-<main class="form-signin">
+<div class="d-flex align-items-center justify-content-center vh-90 w-100">
+  <main class="form-signin card shadow-lg p-4" style="width: 420px;">
     @if (session('success'))
         <div class="alert alert-success" role="alert">
             {{ session('success') }}
@@ -9,8 +9,13 @@
     @endif
     <form method="post" action="{{route('msdev2.agent.dologin')}}">
         @csrf
-      <img class="mb-4" src="{{ config("msdev2.menu.logo.value") }}" alt="" width="72" height="57">
-      <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
+      <div class="text-center mb-3">
+        <img class="mb-2" src="{{ config("msdev2.menu.logo.value") }}" alt="logo" width="88" height="70">
+        <h1 class="h4 mb-0 fw-bold text-primary">{{ config('app.name') }}</h1>
+        <div class="small text-muted">Agent Portal</div>
+      </div>
+
+      <h2 class="h5 mb-3 fw-normal text-center">Sign in to your agent account</h2>
 
       <div class="form-floating">
         <input type="email" name="email" class="form-control" id="floatingInput" placeholder="name@example.com">
@@ -30,59 +35,38 @@
                 <strong>{{ $errors->first('password') }}</strong>
             </span>
         @endif
-      <div class="checkbox mb-3">
-        <label>
-          <input type="checkbox" value="remember-me"> Remember me
-        </label>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="remember-me" id="rememberMe">
+          <label class="form-check-label small text-muted" for="rememberMe">Remember me</label>
+        </div>
+        <a href="#" class="small">Forgot?</a>
       </div>
       <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
     </form>
-  </main>
+    </main>
 </div>
 @endsection
 @section("styles")
     <style>
         body {
-  background-color: #f5f5f5;
+  background-color: #f5f5f5;margin:0; 
 }
 .bd-placeholder-img {
     font-size: 1.125rem;
     text-anchor: middle;
     -webkit-user-select: none;
     -moz-user-select: none;
-    user-select: none;
-}
-
-@media (min-width: 768px) {
-    .bd-placeholder-img-lg {
-        font-size: 3.5rem;
-    }
 }
 .form-signin {
-    width: 100%;
-    max-width: 330px;
-    padding: 15px;
-    margin: auto;
+  border-radius: 12px;
 }
+.form-signin h2 { color: #343a40; }
+.form-signin .form-control { height: calc(2.25rem + 10px); }
 
-.form-signin .checkbox {
-    font-weight: 400;
+/* small responsive tweaks */
+@media (max-width: 576px) {
+  .form-signin { width: 92% !important; }
 }
-
-.form-signin .form-floating:focus-within {
-    z-index: 2;
-}
-
-.form-signin input[type="email"] {
-  margin-bottom: -1px;
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
-}
-
-.form-signin input[type="password"] {
-  margin-bottom: 10px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-}
-    </style>
-@endsection
+  </style>
+ 
