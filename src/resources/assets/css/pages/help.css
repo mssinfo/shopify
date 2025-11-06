@@ -4,17 +4,7 @@
    ========================================================================== */
 
 /* Variables */
-:root{
-  --primary: #43467f;
-  --accent: #c4cdd5;
-  --muted: #6d7175;
-  --bg: #f6f7f8;
-  --card-bg: #fff;
-  --border: #e6e7e9;
-  --radius: 10px;
-  --gap: 1.25rem;
-  --maxwidth: 1100px;
-}
+
 
 /* Reset / base */
 *{box-sizing:border-box}
@@ -189,15 +179,6 @@ a:hover{text-decoration:underline}
 .hidden{ display:none !important; }
 
 #liveChat, #liveSupport{ display:inline-block; }
-
-/* --- Footer spacing (if present) --- */
-footer article.help{
-  max-width: var(--maxwidth);
-  margin: 2rem auto;
-  padding: 1rem;
-  color:var(--muted);
-  font-size:0.95rem;
-}
 
 /* --- Accessibility / focus styles --- */
 a:focus, button:focus { outline: 3px solid rgba(67,70,127,0.12); outline-offset: 2px; }
