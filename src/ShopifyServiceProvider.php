@@ -66,7 +66,7 @@ class ShopifyServiceProvider extends ServiceProvider
 
         // Share the shop data with all views, but only if it's been bound by middleware
         view()->composer('*', function ($view) {
-            $view->with('shop', $this->app->bound('shopify.shop') ? $this->app['shopify.shop'] : null);
+            $view->with('shop', mShop());
         });
     }
 

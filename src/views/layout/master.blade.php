@@ -44,6 +44,7 @@
            <link rel="stylesheet" href="{{ asset($cssPath) }}?v={{ filemtime($cssFile) }}">
         @endif
         @yield('styles')
+        
     </head>
     <body>
         <main role="main">
@@ -83,88 +84,107 @@
             </ui-nav-menu>
             @endif
         @endif
+        <script type="text/javascript">
         @php
-            // Allow pages to disable Tawk initialization either by:
-            // 1) Passing $disableTawk = true from controller, OR
-            // 2) Setting @section('disable_tawk', 'true') in the Blade view
+            // Determine whether to load Tawk
             $tawkEnabled = true;
+
             if (isset($disableTawk) && $disableTawk) {
                 $tawkEnabled = false;
             }
+
             $disableTawkSection = trim($__env->yieldContent('disable_tawk'));
             if ($disableTawkSection !== '') {
                 $tawkEnabled = ! in_array(strtolower($disableTawkSection), ['1','true','yes','on']);
             }
-            if (!\Msdev2\Shopify\Utils::shouldRedirectToEmbeddedApp() && request()->header('sec-fetch-dest') !== 'iframe'){
+
+            if (!\Msdev2\Shopify\Utils::shouldRedirectToEmbeddedApp() &&
+                request()->header('sec-fetch-dest') !== 'iframe') {
                 $tawkEnabled = false;
             }
         @endphp
-        @if (config('msdev2.tawk_url') != '' && $tawkEnabled && isset($shop) && $shop)
-        <!--Start of Tawk.to Script-->
-        <script type="text/javascript">
-            // Initialize Tawk API early and register onLoad so attributes are reliably saved and visible to agents
-            window.Tawk_API = window.Tawk_API || {};
-            window.Tawk_LoadStart = new Date();
-            // Persist visitor identity + custom attributes so agents can see/update (created if new, updated if exist)
-            const __tawkVisitorAttributes = {
-                app: "{{ config('app.name') }}",
-                shop: "{{$shop->detail['myshopify_domain']}}",
-                plan_name: "{{$shop->detail['plan_name']}}",
-                plan_display_name: "{{$shop->detail['plan_display_name']}}",
-                referrer: document.referrer,
-                name: "{{$shop->detail['name']}}",
-                email: "{{$shop->detail['email']}}",
-            };
-            // Prepare user details message
-            const userDetailsMessage = 
-                "🛍️ Shop: {{$shop->detail['myshopify_domain']}}\n" +
-                "👤 Owner: {{$shop->detail['shop_owner']}}\n" +
-                "📧 Email: {{$shop->detail['email']}}\n" +
-                "📱 Phone: {{$shop->detail['phone'] ?? 'N/A'}}\n" +
-                "🏷️ Plan: {{$shop->detail['plan_display_name']}} ({{$shop->detail['plan_name']}})\n" +
-                "🏪 Store Name: {{$shop->detail['name']}}\n" +
-                "📍 Referrer: " + (document.referrer || 'Direct');
 
-            function __tawkApplyVisitor() {
-                window.Tawk_API.setAttributes(__tawkVisitorAttributes, function(error){});
-                window.Tawk_API.addEvent('User Visited', {
-                    'details': userDetailsMessage
-                }, function(error){
-                    if (!error) {
-                        console.log('User details sent to agent:', userDetailsMessage);
-                    }
-                });
-                // Prefill chat form (UI) — does not persist by itself, but improves UX
-                window.Tawk_API.visitor = {
-                    name: "{{$shop->detail['shop_owner']}}",
-                    email: "{{$shop->detail['email']}}",
-                    phone: "{{$shop->detail['phone']}}",
-                };
-                window.Tawk_API.start();
+        @if (config('msdev2.tawk_url') && $tawkEnabled && isset($shop) && $shop)
+
+        window.Tawk_API = window.Tawk_API || {};
+        window.Tawk_LoadStart = new Date();
+
+        // ✅ visitor data that MUST be stored inside Tawk
+        const __tawkVisitorAttributes = {
+            name: "{{ $shop->detail['shop_owner'] }}",                // ✅ shows as visitor name (notification)
+            email: "{{ $shop->detail['email'] }}",
+            phone: "{{ $shop->detail['phone'] }}",
+
+            // custom fields
+            shop: "{{ $shop->detail['myshopify_domain'] }}",
+            // plan_name: "{{ $shop->detail['plan_name'] }}",
+            // plan_display_name: "{{ $shop->detail['plan_display_name'] }}",
+            app: "{{ config('app.name') }}",
+            referrer: document.title
+        };
+
+        // message for agents
+        const userDetailsMessage =
+            "🛍️ Shop: {{ $shop->detail['myshopify_domain'] }}\n" +
+            "👤 Owner: {{ $shop->detail['shop_owner'] }}\n" +
+            "📧 Email: {{ $shop->detail['email'] }}\n" +
+            "📱 Phone: {{ $shop->detail['phone'] ?? 'N/A' }}\n" +
+            "🏷️ Plan: {{ $shop->detail['plan_display_name'] }} ({{ $shop->detail['plan_name'] }})\n" +
+            "🏪 Store Name: {{ $shop->detail['name'] }}\n" +
+            "📍 Referrer: " + (document.referrer || 'Direct');
+
+        // ✅ Safe loader – retries until Tawk API becomes available
+        function __tawkApplyVisitor() {
+            if (!window.Tawk_API || !window.Tawk_API.setAttributes) {
+                console.warn("Tawk not ready yet… retrying");
+                return setTimeout(__tawkApplyVisitor, 500);
             }
-            // Send message to agent as soon as user visits
-            window.Tawk_API.onLoad = function() { 
-                // __tawkApplyVisitor();
-            };
-            
-            // Always set handler; Tawk will call it when chat starts
-            window.Tawk_API.onChatStarted = function(){ 
-                // __tawkApplyVisitor(); 
-            };
-            // Fallback: re-apply after a short delay in case onLoad fires before our handler
-            setTimeout(__tawkApplyVisitor, 1000);
 
-            (function(){
-                var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-                s1.async=true;
-                s1.src='{{ config("msdev2.tawk_url") }}';
-                s1.charset='UTF-8';
-                s1.setAttribute('crossorigin','*');
-                s0.parentNode.insertBefore(s1,s0);
-            })();
-        </script>
-        <!--End of Tawk.to Script-->
+            // ✅ This sets the REAL visitor identity (name, email, phone)
+            window.Tawk_API.setAttributes(__tawkVisitorAttributes, function(err){
+                if (err) console.error("Tawk setAttributes error:", err);
+            });
+
+            // ✅ Event for agents
+            window.Tawk_API.addEvent('User Visited', {
+                details: userDetailsMessage
+            }, function(err){
+                if (!err) {
+                    console.log("✅ User details sent to Tawk Agent");
+                }
+            });
+
+            // ✅ Start chat (optional)
+            try { window.Tawk_API.start(); } catch(e){}
+        }
+
+        // ✅ run once Tawk is loaded
+        window.Tawk_API.onLoad = function() {
+            console.log("✅ Tawk Loaded");
+            __tawkApplyVisitor();
+        };
+
+        // ✅ also apply when chat starts
+        window.Tawk_API.onChatStarted = function() {
+            console.log("✅ Chat Started");
+            __tawkApplyVisitor();
+        };
+
+        // ✅ final fallback
+        setTimeout(__tawkApplyVisitor, 3000);
+
+        // ✅ Tawk embed script
+        (function(){
+            var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+            s1.async=true;
+            s1.src='{{ config("msdev2.tawk_url") }}';
+            s1.charset='UTF-8';
+            s1.setAttribute('crossorigin','*');
+            s0.parentNode.insertBefore(s1,s0);
+        })();
         @endif
+        </script>
+
         @yield('scripts')
     </body>
 </html>
