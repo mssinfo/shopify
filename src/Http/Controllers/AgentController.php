@@ -112,7 +112,6 @@ class AgentController extends BaseController{
             $query->where(function($qb) use ($q){
                 $qb->where('shop', 'like', "%{$q}%")
                    ->orWhere('domain', 'like', "%{$q}%")
-                   ->orWhere('email', 'like', "%{$q}%")
                    ->orWhere('id', $q);
             });
         }
@@ -135,13 +134,18 @@ class AgentController extends BaseController{
         $rows = $query->orderBy('created_at','desc')->skip($offset)->take($limit)->get();
 
         $items = $rows->map(function($s){
+            $isUninstalled = ((int)($s->is_uninstalled ?? 0) === 1) || !empty($s->deleted_at);
             return [
                 'id' => $s->id,
                 'name' => $s->shop,
                 'shop' => $s->shop,
                 'domain' => $s->domain,
                 'installed_at' => $s->created_at,
-                'uninstalled' => !empty($s->deleted_at),
+                // unify uninstalled flag from is_uninstalled or soft-deletes
+                'uninstalled' => $isUninstalled,
+                'uninstalled_at' => $s->uninstalled_at ?? null,
+                'deleted_at' => $s->deleted_at ?? null,
+                'is_uninstalled' => (int)($s->is_uninstalled ?? 0),
                 'plan' => $s->activeCharge->name ?? null,
             ];
         });
@@ -172,13 +176,14 @@ class AgentController extends BaseController{
         $limit = (int) $request->query('limit', 6);
         $rows = Shop::with('activeCharge')->orderBy('created_at','desc')->take($limit)->get();
         $items = $rows->map(function($s){
+            $isUninstalled = ((int)($s->is_uninstalled ?? 0) === 1) || !empty($s->deleted_at);
             return [
                 'id' => $s->id,
                 'name' => $s->shop,
                 'shop' => $s->shop,
                 'domain' => $s->domain,
                 'installed_at' => $s->created_at,
-                'uninstalled' => !empty($s->deleted_at),
+                'uninstalled' => $isUninstalled,
                 'plan' => $s->activeCharge->name ?? null,
             ];
         });
@@ -201,8 +206,10 @@ class AgentController extends BaseController{
             $date = $start->copy()->addDays($i);
             $labels[] = $date->format('Y-m-d');
             $installs[] = Shop::whereDate('created_at', $date->toDateString())->count();
-            // Soft deleted shops count as uninstalls
-            $uninstalls[] = Shop::onlyTrashed()->whereDate('deleted_at', $date->toDateString())->count();
+                // count uninstalls from uninstalled_at or deleted_at
+                $fromUninstalledAt = Shop::whereDate('uninstalled_at', $date->toDateString())->count();
+                $fromDeletedAt = Shop::onlyTrashed()->whereDate('deleted_at', $date->toDateString())->count();
+                $uninstalls[] = $fromUninstalledAt + $fromDeletedAt;
         }
 
         return response()->json([ 'labels' => $labels, 'installs' => $installs, 'uninstalls' => $uninstalls ]);
@@ -226,9 +233,15 @@ class AgentController extends BaseController{
     public function latestUninstalls(Request $request)
     {
         $limit = (int) $request->query('limit', 10);
-        $rows = Shop::onlyTrashed()->with('activeCharge')->orderBy('deleted_at','desc')->take($limit)->get();
+        $rows = Shop::with('activeCharge')
+            ->where(function($q){ $q->where('is_uninstalled', 1)->orWhereNotNull('deleted_at'); })
+            ->orderBy('uninstalled_at','desc')
+            ->orderBy('deleted_at','desc')
+            ->take($limit)
+            ->get();
+
         return response()->json($rows->map(function($s){
-            return ['id'=>$s->id,'shop'=>$s->shop,'domain'=>$s->domain,'plan'=>$s->activeCharge->name ?? null,'deleted_at'=>$s->deleted_at];
+            return ['id'=>$s->id,'shop'=>$s->shop,'domain'=>$s->domain,'plan'=>$s->activeCharge->name ?? null,'deleted_at'=>$s->deleted_at,'uninstalled_at'=>$s->uninstalled_at,'is_uninstalled'=> (int)($s->is_uninstalled ?? 0)];
         }));
     }
 

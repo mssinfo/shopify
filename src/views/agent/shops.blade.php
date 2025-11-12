@@ -40,14 +40,15 @@
         <div class="table-responsive">
             <table class="table table-hover" id="shops-table">
                 <thead>
-                    <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th class="d-none d-md-table-cell">Domain</th>
-                            <th class="d-none d-lg-table-cell">Plan</th>
-                            <th>Status</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th class="d-none d-md-table-cell">Domain</th>
+                                <th class="d-none d-lg-table-cell">Plan</th>
+                                <th>Status</th>
+                                <th class="d-none d-lg-table-cell">Uninstalled At</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
                 </thead>
                 <tbody>
                     <tr><td colspan="6" class="text-muted">Use the search box above to find shops.</td></tr>
@@ -96,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function(){
     function renderTable(items){
         tableBody.innerHTML = '';
         if(!Array.isArray(items) || !items.length){
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-muted">No shops found</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-muted">No shops found</td></tr>';
             return;
         }
         items.forEach(it => {
@@ -105,8 +106,10 @@ document.addEventListener('DOMContentLoaded', function(){
             const domain = it.domain || '';
             const plan = (it.plan && it.plan.name) || it.plan || '—';
             const status = it.uninstalled ? '<span class="badge bg-danger">Uninstalled</span>' : '<span class="badge bg-success">Installed</span>';
+            const uninstalledAt = it.uninstalled_at || it.deleted_at || null;
+            const uninstalledDisplay = uninstalledAt ? new Date(uninstalledAt).toLocaleString() : '—';
             const actions = `<a class="btn btn-sm btn-outline-secondary" href="{{ url('/agent/shops') }}/${it.id}/view">View</a>`;
-            tr.innerHTML = `<td>${it.id}</td><td>${name}</td><td class="d-none d-md-table-cell">${domain}</td><td class="d-none d-lg-table-cell">${plan}</td><td>${status}</td><td class="text-end">${actions}</td>`;
+            tr.innerHTML = `<td>${it.id}</td><td>${name}</td><td class="d-none d-md-table-cell">${domain}</td><td class="d-none d-lg-table-cell">${plan}</td><td>${status}</td><td class="d-none d-lg-table-cell">${uninstalledDisplay}</td><td class="text-end">${actions}</td>`;
             tableBody.appendChild(tr);
         });
     }

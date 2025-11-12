@@ -212,6 +212,11 @@ document.addEventListener('DOMContentLoaded', function(){
         html += `<h5>${sd.shop} <small class="text-muted">ID ${sd.id}</small></h5>`;
         html += `<p class="mb-1"><strong>Domain:</strong> ${sd.domain || 'N/A'}</p>`;
         html += `<p class="mb-1"><strong>Active Plan:</strong> ${sd.activeCharge?.name || 'N/A'}</p>`;
+        // status + uninstalled date
+        const isUn = sd.uninstalled || sd.is_uninstalled || false;
+        const unAt = sd.uninstalled_at || sd.deleted_at || null;
+        if(isUn){ html += `<p class="mb-1"><strong>Status:</strong> <span class="badge bg-danger">Uninstalled</span> ${unAt?'<div class="small text-muted">On '+new Date(unAt).toLocaleString()+'</div>':''}</p>`; }
+        else { html += `<p class="mb-1"><strong>Status:</strong> <span class="badge bg-success">Active</span></p>`; }
         // access token clickable if url-like or show copy
         const token = sd.access_token || sd.token || null;
         if(token){
@@ -312,8 +317,11 @@ document.addEventListener('DOMContentLoaded', function(){
             const name = it.name || it.shop || '—';
             const domain = it.domain || '';
             const plan = (it.plan && it.plan.name) || it.plan || '—';
-            const status = it.uninstalled ? '<span class="badge bg-danger">Uninstalled</span>' : '<span class="badge bg-success">Active</span>';
-            tr.innerHTML = `<td><a href="{{ url('/agent/shops') }}/${it.id}/view">${name}</a></td><td class="d-none d-md-table-cell">${domain}</td><td class="d-none d-lg-table-cell">${plan}</td><td class="text-end">${status}</td>`;
+            const isUn = it.uninstalled || it.is_uninstalled || false;
+            const unAt = it.uninstalled_at || it.deleted_at || null;
+            const status = isUn ? '<span class="badge bg-danger">Uninstalled</span>' : '<span class="badge bg-success">Active</span>';
+            const detailDate = unAt ? '<div class="small text-muted">' + new Date(unAt).toLocaleString() + '</div>' : '';
+            tr.innerHTML = `<td><a href="{{ url('/agent/shops') }}/${it.id}/view">${name}</a></td><td class="d-none d-md-table-cell">${domain}</td><td class="d-none d-lg-table-cell">${plan}</td><td class="text-end">${status}${detailDate}</td>`;
             recentTableBody.appendChild(tr);
         });
     }
@@ -340,7 +348,9 @@ document.addEventListener('DOMContentLoaded', function(){
                 if(!items.length) el.innerHTML='<li class="list-group-item text-muted">No recent uninstalls</li>';
                 items.forEach(it=>{
                     const li = document.createElement('li'); li.className='list-group-item';
-                    li.innerHTML = `<div class="d-flex justify-content-between"><div><a href="{{ url('/agent/shops') }}/${it.id}/view">${it.shop}</a><div class="small text-muted">${it.domain || ''}</div></div><div class="small text-danger">${new Date(it.deleted_at).toLocaleString()}</div></div>`;
+                    const unAt = it.uninstalled_at || it.deleted_at || null;
+                    const when = unAt ? new Date(unAt).toLocaleString() : 'Unknown';
+                    li.innerHTML = `<div class="d-flex justify-content-between"><div><a href="{{ url('/agent/shops') }}/${it.id}/view">${it.shop}</a><div class="small text-muted">${it.domain || ''}</div></div><div class="small text-danger">${when}</div></div>`;
                     el.appendChild(li);
                 });
             }).catch(()=>{ document.getElementById('latest-uninstalls-list').innerHTML='<li class="list-group-item text-muted">Error loading</li>'; });

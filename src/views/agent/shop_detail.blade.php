@@ -42,6 +42,14 @@
                     <p><strong>Is Online:</strong> {{ $shopDetail->is_online ? 'Yes' : 'No' }}</p>
                     <p><strong>Installed On:</strong> {{ $shopDetail->created_at?->toDayDateTimeString() ?? 'N/A' }}</p>
                     <p><strong>Active Plan:</strong> {{ $shopDetail->activeCharge?->name ?? 'N/A' }}</p>
+                    @php
+                        $isUn = ((int)($shopDetail->is_uninstalled ?? 0) === 1) || !empty($shopDetail->deleted_at);
+                        $unAt = $shopDetail->uninstalled_at ?? $shopDetail->deleted_at ?? null;
+                    @endphp
+                    <p><strong>Status:</strong> @if($isUn)<span class="badge bg-danger">Uninstalled</span>@else<span class="badge bg-success">Installed</span>@endif</p>
+                    @if($unAt)
+                        <p><strong>Uninstalled On:</strong> {{ \Carbon\Carbon::parse($unAt)->toDayDateTimeString() }}</p>
+                    @endif
                 </div>
             </div>
 
@@ -96,10 +104,8 @@
                             <div class="list-group-item d-flex justify-content-between align-items-start">
                                 <div>
                                     <div class="fw-bold">{{ $m->key }}</div>
-                                    <div class="small text-muted"><pre style="margin:0">@php
-                                        $val = $m->value; try{ $decoded = json_decode($val, true); if(json_last_error()===JSON_ERROR_NONE) $val = json_encode($decoded, JSON_PRETTY_PRINT); }catch(
-                                        \Exception $e){}
-                                    @endphp{!! nl2br(e($val)) !!}</pre></div>
+                                    <div class="small text-muted">
+                                    {{ nl2br(($m->value)) }}</div>
                                 </div>
                                 <div class="text-end">
                                     <form method="post" action="{{ route('msdev2.agent.shops.metadata.update', ['id' => $shopDetail->id]) }}" class="d-inline">
