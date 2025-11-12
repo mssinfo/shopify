@@ -1,30 +1,60 @@
-@extends('msdev2::layout.master')
+@extends('msdev2::layout.agent')
 @section('content')
 <section class="content">
+    @if($errors->any())
+        <div class="alert alert-danger">{{ $errors->first() }}</div>
+    @endif
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
     <div class="top_content">
         <div class="top_content_left">
             <div>
                 <strong style="padding-top: 7px;display: inline-block;"> <span >Showing Log</span></strong>
             </div>
             <div class="log_filter" >
-                <input type="text" id="myInput" onkeyup="searchName()" placeholder="Search for names.." title="Type in a name">
+                <form method="get" class="d-flex" id="logFilterForm">
+                    <input type="text" name="q" id="myInput" value="{{ $data['query'] ?? '' }}" placeholder="Search in message, env or timestamp..." class="form-control form-control-sm me-2">
+                    <select name="level" class="form-control form-control-sm me-2">
+                        <option value="">All levels</option>
+                        @foreach ($data["label"] as $label)
+                            <option value="{{ $label }}" {{ (isset($data['level']) && $data['level']==$label) ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <button class="btn btn-sm btn-primary me-2" type="submit">Filter</button>
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ route('msdev2.agent.logs') }}">Reset</a>
+                </form>
             </div>
         </div>
 
         <div class="top_content_right">
             <p class="dt_box">Select Tag:
-                <select class="label_selector" onChange="filterTag()">
+                {{-- kept for compatibility; use the form controls on the left instead --}}
+                <select class="label_selector" onchange="document.getElementById('logFilterForm').level.value=this.value; document.getElementById('logFilterForm').submit();">
+                    <option value="">All</option>
                     @foreach ($data["label"] as $label)
-                        <option value="{{$label}}">{{ $label }}</option>
+                        <option value="{{$label}}" {{ (isset($data['level']) && $data['level']==$label) ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
             </p>
             <p class="dt_box">Select Date:
-                <select class="date_selector" onChange="init(selectedDate)">
+                <select class="date_selector" onchange="document.getElementById('logFilterForm').date.value=this.value; document.getElementById('logFilterForm').submit();" name="date">
                     @foreach ($data["available_log_dates"] as $availableDate)
-                        <option  value="{{ $availableDate }}">{{ $availableDate }}</option>
+                        <option  value="{{ $availableDate }}" {{ (isset($data['selected_date']) && $data['selected_date']==$availableDate) ? 'selected' : '' }}>{{ $availableDate }}</option>
                     @endforeach
                 </select>
+                <a class="btn btn-sm btn-outline-success ms-2" href="{{ route('msdev2.agent.logs.download', ['date' => $data['selected_date'] ?? $data['available_log_dates'][0] ?? '']) }}">Download</a>
+                <form method="post" action="{{ route('msdev2.agent.logs.clear') }}" class="d-inline ms-2">
+                    @csrf
+                    <input type="hidden" name="date" value="{{ $data['selected_date'] ?? $data['available_log_dates'][0] ?? '' }}">
+                    <button class="btn btn-sm btn-outline-warning" type="submit" onclick="return confirm('Clear contents of this log file? This cannot be undone.')">Clear</button>
+                </form>
+                <form method="post" action="{{ route('msdev2.agent.logs.delete') }}" class="d-inline ms-2">
+                    @csrf
+                    <input type="hidden" name="date" value="{{ $data['selected_date'] ?? $data['available_log_dates'][0] ?? '' }}">
+                    <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Delete this log file? This cannot be undone.')">Delete</button>
+                </form>
+                <input type="hidden" name="date" />
             </p>
         </div>
     </div>
@@ -40,14 +70,16 @@
                     <td>Message</td>
                 </tr>
                 </thead>
+                <tbody>
                 @foreach ($data["logs"] as $log)
-                <tr class="{{ $log["type"] }}">
+                <tr class="{{ strtolower($log["type"]) }}">
                     <td>{{ $log["timestamp"] }}</td>
                     <td>{{$log["env"]}}</td>
-                    <td><span class="badge {{ $log["type"] }}">{{ $log["type"] }}</span></td>
+                    <td><span class="badge {{ strtolower($log["type"]) }}">{{ $log["type"] }}</span></td>
                     <td class="no-wrap"><div class="show_more">{{ $log["message"] }}</div></td>
                 </tr>
                 @endforeach
+                </tbody>
             </table>
         </div>
     </div>
@@ -55,43 +87,32 @@
 @endsection
 @section('scripts')
 <script>
-const boxes = document.querySelectorAll('.show_more');
-boxes.forEach(box => {
-  box.addEventListener('click', function handleClick(event) {
-    // box.setAttribute('style', 'background-color: yellow;');
-    box.classList.toggle("no-max-height");
-  });
+document.addEventListener('DOMContentLoaded', function(){
+    // Expand/collapse long messages
+    const boxes = document.querySelectorAll('.show_more');
+    boxes.forEach(box => box.addEventListener('click', ()=> box.classList.toggle('no-max-height')));
+
+    // Client-side quick filter while typing (non-destructive)
+    const input = document.getElementById('myInput');
+    const table = document.getElementById('myTable');
+    if(input){
+        input.addEventListener('input', function(){
+            const filter = input.value.trim().toLowerCase();
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(r => {
+                const text = r.textContent.toLowerCase();
+                r.style.display = (filter === '' || text.indexOf(filter) !== -1) ? '' : 'none';
+            });
+        });
+    }
+
+    // If there is a selected level from server, reflect it
+    const level = '{{ $data['level'] ?? '' }}';
+    if(level){
+        const sel = document.querySelector('.label_selector');
+        if(sel) sel.value = level;
+    }
 });
-function searchName(){
-    let input, filter, table, tr, td, i, txtValue;
-    input = document.getElementById("myInput");
-    filter = input.value.toUpperCase();
-    table = document.getElementById("myTable");
-    tr = table.getElementsByTagName("tr");
-    for (i = 0; i < tr.length; i++) {
-        txtValue = tr[i].textContent || tr[i].innerText;
-        if (txtValue) {
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
-        }
-    }
-}
-function filterTag(){
-    let lable= document.querySelector('.label_selector').value
-    let filter = lable.toUpperCase();
-    let table = document.getElementById("myTable");
-    let tr = table.getElementsByTagName("tr");
-    for (i = 0; i < tr.length; i++) {
-        if (tr[i].querySelectorAll('.'+filter)) {
-            tr[i].style.display = "";
-        } else {
-            tr[i].style.display = "none";
-        }
-    }
-}
 </script>
 @endsection
 @section('styles')

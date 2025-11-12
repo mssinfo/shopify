@@ -90,15 +90,171 @@ class AgentController extends BaseController{
     public function shopSearch(Request $request)
     {
         $q = $request->query('q', '');
-        $items = [];
-        if (!empty($q)) {
-            $items = Shop::where('shop', 'like', "%{$q}%")
-                ->orWhere('domain', 'like', "%{$q}%")
-                ->select('id', 'shop', 'domain')
-                ->limit(10)
-                ->get();
+        $plan = $request->query('plan', null);
+        $status = $request->query('status', null); // installed | uninstalled
+        $limit = (int) $request->query('limit', 10);
+        $page = (int) $request->query('page', 1);
+
+        // If simple autocomplete (small limit and no page) return compact results
+        $isAutocomplete = $limit <= 10 && !$request->has('page');
+
+        // Build base query honoring status
+        if ($status === 'uninstalled') {
+            $query = Shop::onlyTrashed()->with('activeCharge');
+        } else {
+            $query = Shop::with('activeCharge');
+            if ($status === 'installed') {
+                $query->whereNull('deleted_at');
+            }
         }
+
+        if (!empty($q)) {
+            $query->where(function($qb) use ($q){
+                $qb->where('shop', 'like', "%{$q}%")
+                   ->orWhere('domain', 'like', "%{$q}%")
+                   ->orWhere('email', 'like', "%{$q}%")
+                   ->orWhere('id', $q);
+            });
+        }
+        if ($plan) {
+            // filter by active charge name
+            $query->whereHas('activeCharge', function($qb) use ($plan){
+                $qb->where('name', $plan);
+            });
+        }
+
+        if ($isAutocomplete) {
+            $items = $query->select('id', 'shop', 'domain')->limit($limit)->get();
+            return response()->json($items);
+        }
+
+        // Paginated / detailed listing for shops page
+        $total = $query->count();
+        $page = max(1, $page);
+        $offset = ($page - 1) * $limit;
+        $rows = $query->orderBy('created_at','desc')->skip($offset)->take($limit)->get();
+
+        $items = $rows->map(function($s){
+            return [
+                'id' => $s->id,
+                'name' => $s->shop,
+                'shop' => $s->shop,
+                'domain' => $s->domain,
+                'installed_at' => $s->created_at,
+                'uninstalled' => !empty($s->deleted_at),
+                'plan' => $s->activeCharge->name ?? null,
+            ];
+        });
+
+        return response()->json([
+            'items' => $items,
+            'total' => $total,
+            'per_page' => $limit,
+            'current_page' => $page,
+            'last_page' => $limit ? intval(ceil($total / $limit)) : 1,
+        ]);
+    }
+
+    /**
+     * Render shops list page for agents
+     */
+    public function shops(Request $request)
+    {
+        $plans = Charge::select('name')->distinct()->pluck('name')->filter()->values();
+        return view('msdev2::agent.shops', compact('plans'));
+    }
+
+    /**
+     * Return recent shops (used by dashboard)
+     */
+    public function shopsRecent(Request $request)
+    {
+        $limit = (int) $request->query('limit', 6);
+        $rows = Shop::with('activeCharge')->orderBy('created_at','desc')->take($limit)->get();
+        $items = $rows->map(function($s){
+            return [
+                'id' => $s->id,
+                'name' => $s->shop,
+                'shop' => $s->shop,
+                'domain' => $s->domain,
+                'installed_at' => $s->created_at,
+                'uninstalled' => !empty($s->deleted_at),
+                'plan' => $s->activeCharge->name ?? null,
+            ];
+        });
         return response()->json($items);
+    }
+
+    /**
+     * Return installs/uninstalls time series for the last N days
+     */
+    public function shopStats(Request $request)
+    {
+        $days = (int) $request->query('days', 30);
+        $days = max(3, min(365, $days));
+        $start = \Carbon\Carbon::now()->subDays($days-1)->startOfDay();
+
+        $labels = [];
+        $installs = [];
+        $uninstalls = [];
+        for ($i = 0; $i < $days; $i++) {
+            $date = $start->copy()->addDays($i);
+            $labels[] = $date->format('Y-m-d');
+            $installs[] = Shop::whereDate('created_at', $date->toDateString())->count();
+            // Soft deleted shops count as uninstalls
+            $uninstalls[] = Shop::onlyTrashed()->whereDate('deleted_at', $date->toDateString())->count();
+        }
+
+        return response()->json([ 'labels' => $labels, 'installs' => $installs, 'uninstalls' => $uninstalls ]);
+    }
+
+    /**
+     * Latest installs list
+     */
+    public function latestInstalls(Request $request)
+    {
+        $limit = (int) $request->query('limit', 10);
+        $rows = Shop::with('activeCharge')->orderBy('created_at','desc')->take($limit)->get();
+        return response()->json($rows->map(function($s){
+            return ['id'=>$s->id,'shop'=>$s->shop,'domain'=>$s->domain,'plan'=>$s->activeCharge->name ?? null,'installed_at'=>$s->created_at];
+        }));
+    }
+
+    /**
+     * Latest uninstalls list
+     */
+    public function latestUninstalls(Request $request)
+    {
+        $limit = (int) $request->query('limit', 10);
+        $rows = Shop::onlyTrashed()->with('activeCharge')->orderBy('deleted_at','desc')->take($limit)->get();
+        return response()->json($rows->map(function($s){
+            return ['id'=>$s->id,'shop'=>$s->shop,'domain'=>$s->domain,'plan'=>$s->activeCharge->name ?? null,'deleted_at'=>$s->deleted_at];
+        }));
+    }
+
+    /**
+     * Update metadata key/value for a shop
+     */
+    public function updateMetadata(Request $request, $id)
+    {
+        $shop = Shop::find($id);
+        if(!$shop) return response()->json(['error'=>'Shop not found'],404);
+        $key = $request->input('key');
+        $value = $request->input('value');
+        if(!$key) return response()->json(['error'=>'Key required'],400);
+        $shop->setMetaData($key, $value);
+        return response()->json(['ok'=>true,'key'=>$key,'value'=>$value]);
+    }
+
+    /**
+     * Delete metadata key for a shop
+     */
+    public function deleteMetadata(Request $request, $id, $key)
+    {
+        $shop = Shop::find($id);
+        if(!$shop) return response()->json(['error'=>'Shop not found'],404);
+        $shop->deleteMeta($key);
+        return response()->json(['ok'=>true,'deleted'=>$key]);
     }
 
     /**

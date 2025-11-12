@@ -12,12 +12,12 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="input-group mb-3">
+        <div class="input-group mb-3 agent-search-wrapper">
             <input id="agent-shop-search" type="text" class="form-control" placeholder="Search shop by name or domain..." autocomplete="off">
             <button id="agent-shop-clear" class="btn btn-outline-secondary" type="button">Clear</button>
+            <div id="agent-shop-suggestions" class="list-group mt-1" style="position:relative; z-index:1000;"></div>
         </div>
-        <div id="agent-shop-suggestions" class="list-group mt-1" style="position:relative; z-index:1000;"></div>
-        <div id="agent-shop-detail" class="card mt-3 d-none">
+        <div id="agent-shop-detail" class="card my-3 d-none">
             <div class="card-body" id="agent-shop-detail-body"></div>
         </div>
     </div>
@@ -75,10 +75,66 @@
         </div>
     </div>
     @endforeach
+    <!-- Full width chart -->
+    <div class="col-12 mt-3">
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <div class="text-muted small">Install / Uninstall (last 30 days)</div>
+                        <div class="fw-bold">Shop activity</div>
+                    </div>
+                    <div class="text-muted small">Auto-updating chart</div>
+                </div>
+                <div class="chart-fixed" style="height:360px;">
+                    <canvas id="shop-activity-chart" style="width:100%; height:100%;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Latest installs / uninstalls side-by-side -->
+    <div class="col-12">
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-muted">Latest</div>
+                            <div class="fw-bold">Installs</div>
+                        </div>
+                        <a href="{{ route('msdev2.agent.shops') }}" class="btn btn-sm btn-outline-primary">View all</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush" id="latest-installs-list">
+                            <li class="list-group-item text-muted">Loading installs...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-muted">Latest</div>
+                            <div class="fw-bold">Uninstalls</div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush" id="latest-uninstalls-list">
+                            <li class="list-group-item text-muted">Loading uninstalls...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
 @section('scripts')
+<!-- Chart.js for dashboard charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
     const input = document.getElementById('agent-shop-search');
@@ -86,9 +142,13 @@ document.addEventListener('DOMContentLoaded', function(){
     const detailCard = document.getElementById('agent-shop-detail');
     const detailBody = document.getElementById('agent-shop-detail-body');
     const clearBtn = document.getElementById('agent-shop-clear');
+    const recentTableBody = document.querySelector('#recent-shops-table tbody');
+    const chartCanvas = document.getElementById('shop-activity-chart');
 
     let timeout = null;
+    let activityChart = null;
 
+    // Suggestion search
     input.addEventListener('input', function(e){
         const q = e.target.value.trim();
         clearTimeout(timeout);
@@ -97,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function(){
             return;
         }
         timeout = setTimeout(()=>{
-            fetch(`{{ url('/agent/shops/search') }}?q=${encodeURIComponent(q)}`)
+            fetch(`{{ url('/agent/shops/search') }}?q=${encodeURIComponent(q)}&limit=8`)
                 .then(r=>r.json()).then(data=>{
                     suggestions.innerHTML = '';
                     if(Array.isArray(data) && data.length){
@@ -105,16 +165,36 @@ document.addEventListener('DOMContentLoaded', function(){
                             const el = document.createElement('button');
                             el.type = 'button';
                             el.className = 'list-group-item list-group-item-action';
-                            el.textContent = item.shop + (item.domain ? (' ('+item.domain+')') : '');
+                            el.innerHTML = `<div class="d-flex justify-content-between"><div>${(item.name||item.shop)}<div class="small text-muted">${item.domain || ''}</div></div><div class="small text-muted">ID ${item.id}</div></div>`;
                             el.addEventListener('click', ()=>{
-                                // Redirect to full shop detail page
-                                window.location.href = `{{ url('/agent/shops') }}/${item.id}/view`;
+                                // Fetch inline shop detail and show
+                                fetch(`{{ url('/agent/shops') }}/${item.id}`)
+                                    .then(r=>r.json()).then(sd=>{
+                                        suggestions.innerHTML = '';
+                                        input.value = '';
+                                        renderInlineDetail(sd);
+                                    }).catch(()=>{ window.location.href = `{{ url('/agent/shops') }}/${item.id}/view`; });
                             });
                             suggestions.appendChild(el);
                         });
                     }
-                });
+                }).catch(()=>{ suggestions.innerHTML = ''; });
         }, 250);
+    });
+
+    // hide suggestions on outside click
+    document.addEventListener('click', function(e){
+        if(!document.querySelector('.agent-search-wrapper')?.contains(e.target)){
+            suggestions.innerHTML = '';
+        }
+    });
+
+    // Enter key should go to shops listing with query
+    input.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){
+            const q = input.value.trim();
+            window.location.href = `{{ url('/agent/shops') }}?q=${encodeURIComponent(q)}`;
+        }
     });
 
     clearBtn.addEventListener('click', function(){
@@ -123,6 +203,153 @@ document.addEventListener('DOMContentLoaded', function(){
         detailCard.classList.add('d-none');
         detailBody.innerHTML = '';
     });
+
+    // Render inline shop detail in dashboard
+    function renderInlineDetail(sd){
+        if(!sd) return;
+        detailCard.classList.remove('d-none');
+        let html = '';
+        html += `<h5>${sd.shop} <small class="text-muted">ID ${sd.id}</small></h5>`;
+        html += `<p class="mb-1"><strong>Domain:</strong> ${sd.domain || 'N/A'}</p>`;
+        html += `<p class="mb-1"><strong>Active Plan:</strong> ${sd.activeCharge?.name || 'N/A'}</p>`;
+        // access token clickable if url-like or show copy
+        const token = sd.access_token || sd.token || null;
+        if(token){
+            const isUrl = /^https?:\/\//i.test(token);
+            if(isUrl){ html += `<p class="mb-1"><strong>Access Token:</strong> <a href="${token}" target="_blank">Open token URL</a></p>`; }
+            else { html += `<p class="mb-1"><strong>Access Token:</strong> <code id="inline-token">${token}</code> <button class="btn btn-sm btn-outline-secondary ms-2" id="copy-inline-token">Copy</button></p>`; }
+        }
+        html += `<div class="mt-3"><a class="btn btn-sm btn-primary me-2" href="{{ url('/agent/shops') }}/${sd.id}/view">View details</a><a class="btn btn-sm btn-outline-secondary" href="{{ url('/agent/shops') }}/${sd.id}/direct" target="_blank">Direct login</a></div>`;
+        // metadata simple list
+        if(sd.metadata && sd.metadata.length){
+            html += `<hr><h6>Metadata</h6><div class="small">`;
+            sd.metadata.forEach(m => {
+                let v = m.value;
+                try{ v = JSON.parse(m.value); v = JSON.stringify(v); }catch(e){}
+                html += `<div class="mb-1"><strong>${m.key}:</strong> <code style="white-space:pre-wrap">${v}</code></div>`;
+            });
+            html += `</div>`;
+        }
+
+        detailBody.innerHTML = html;
+        const copyBtn = document.getElementById('copy-inline-token');
+        if(copyBtn){ copyBtn.addEventListener('click', ()=>{ navigator.clipboard.writeText(document.getElementById('inline-token').textContent); copyBtn.innerText='Copied'; setTimeout(()=>copyBtn.innerText='Copy',1500); }); }
+    }
+
+    // Load activity chart data
+    function loadActivityChart(){
+        if(!chartCanvas) return;
+        fetch(`{{ url('/agent/shops/stats') }}`)
+            .then(r=>r.json())
+            .then(json=>{
+                // Expecting { labels: [...], installs: [...], uninstalls: [...] }
+                const labels = json.labels || (json.map? json.map(x=>x.label) : []);
+                const installs = json.installs || (json.map? json.map(x=>x.installs||0) : []);
+                const uninstalls = json.uninstalls || (json.map? json.map(x=>x.uninstalls||0) : []);
+
+                // fallbacks
+                if(!labels.length && Array.isArray(json) && json.length){
+                    // maybe array of {date, installs, uninstalls}
+                    json.forEach(row => {
+                        labels.push(row.date || row.label || '');
+                        installs.push(row.installs || 0);
+                        uninstalls.push(row.uninstalls || 0);
+                    });
+                }
+
+                const data = {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Installs', data: installs, borderColor: '#198754', backgroundColor: 'rgba(25,135,84,0.08)', tension: .2 },
+                        { label: 'Uninstalls', data: uninstalls, borderColor: '#dc3545', backgroundColor: 'rgba(220,53,69,0.06)', tension: .2 }
+                    ]
+                };
+
+                const cfg = {
+                    type: 'line', data: data, options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'top' } },
+                        scales: { x: { ticks: { maxRotation: 0 } }, y: { beginAtZero: true } }
+                    }
+                };
+
+                if(activityChart){ try{ activityChart.destroy(); }catch(e){} }
+                activityChart = new Chart(chartCanvas, cfg);
+            }).catch(err=>{
+                // If endpoint missing or error, show placeholder message inside canvas parent
+                const parent = chartCanvas.closest('.card-body');
+                if(parent){ parent.querySelector('canvas').style.display = 'none';
+                    let el = parent.querySelector('.text-muted.placeholder');
+                    if(!el){ el = document.createElement('div'); el.className = 'text-muted placeholder'; el.innerText = 'No activity data available.'; parent.appendChild(el); }
+                }
+            });
+    }
+
+    // Load recent shops
+    function loadRecentShops(){
+        // try /agent/shops/recent then fallback to search
+        fetch(`{{ url('/agent/shops/recent') }}`)
+            .then(r=>r.json())
+            .then(data=> renderRecent(data))
+            .catch(()=>{
+                fetch(`{{ url('/agent/shops/search') }}?limit=6`) 
+                  .then(r=>r.json()).then(data=> renderRecent(data))
+                  .catch(()=>{/* ignore */});
+            });
+    }
+
+    function renderRecent(items){
+        if(!recentTableBody) return;
+        recentTableBody.innerHTML = '';
+        if(!Array.isArray(items) || !items.length){
+            const tr = document.createElement('tr');
+            tr.innerHTML = '<td colspan="4" class="text-muted small">No recent shops</td>';
+            recentTableBody.appendChild(tr);
+            return;
+        }
+        items.slice(0,6).forEach(it=>{
+            const tr = document.createElement('tr');
+            const name = it.name || it.shop || '—';
+            const domain = it.domain || '';
+            const plan = (it.plan && it.plan.name) || it.plan || '—';
+            const status = it.uninstalled ? '<span class="badge bg-danger">Uninstalled</span>' : '<span class="badge bg-success">Active</span>';
+            tr.innerHTML = `<td><a href="{{ url('/agent/shops') }}/${it.id}/view">${name}</a></td><td class="d-none d-md-table-cell">${domain}</td><td class="d-none d-lg-table-cell">${plan}</td><td class="text-end">${status}</td>`;
+            recentTableBody.appendChild(tr);
+        });
+    }
+
+    // Initial loads
+    loadActivityChart();
+    loadRecentShops();
+    // load latest installs / uninstalls lists
+    function loadLatestLists(){
+        fetch(`{{ url('/agent/shops/latest/installs') }}`)
+            .then(r=>r.json()).then(items=>{
+                const el = document.getElementById('latest-installs-list'); el.innerHTML='';
+                if(!items.length) el.innerHTML='<li class="list-group-item text-muted">No recent installs</li>';
+                items.forEach(it=>{
+                    const li = document.createElement('li'); li.className='list-group-item';
+                    li.innerHTML = `<div class="d-flex justify-content-between"><div><a href="{{ url('/agent/shops') }}/${it.id}/view">${it.shop}</a><div class="small text-muted">${it.domain || ''}</div></div><div class="small text-muted">${new Date(it.installed_at).toLocaleString()}</div></div>`;
+                    el.appendChild(li);
+                });
+            }).catch(()=>{ document.getElementById('latest-installs-list').innerHTML='<li class="list-group-item text-muted">Error loading</li>'; });
+
+        fetch(`{{ url('/agent/shops/latest/uninstalls') }}`)
+            .then(r=>r.json()).then(items=>{
+                const el = document.getElementById('latest-uninstalls-list'); el.innerHTML='';
+                if(!items.length) el.innerHTML='<li class="list-group-item text-muted">No recent uninstalls</li>';
+                items.forEach(it=>{
+                    const li = document.createElement('li'); li.className='list-group-item';
+                    li.innerHTML = `<div class="d-flex justify-content-between"><div><a href="{{ url('/agent/shops') }}/${it.id}/view">${it.shop}</a><div class="small text-muted">${it.domain || ''}</div></div><div class="small text-danger">${new Date(it.deleted_at).toLocaleString()}</div></div>`;
+                    el.appendChild(li);
+                });
+            }).catch(()=>{ document.getElementById('latest-uninstalls-list').innerHTML='<li class="list-group-item text-muted">Error loading</li>'; });
+    }
+
+    loadLatestLists();
+
+    // refresh chart every 5 minutes in background
+    setInterval(loadActivityChart, 5 * 60 * 1000);
 });
 </script>
 @endsection

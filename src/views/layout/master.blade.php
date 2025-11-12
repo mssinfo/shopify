@@ -111,7 +111,7 @@
 
         // ✅ visitor data that MUST be stored inside Tawk
         const __tawkVisitorAttributes = {
-            name: "{{ $shop->detail['shop_owner'] }}",                // ✅ shows as visitor name (notification)
+            name: "{{ $shop->detail['name'] }} - {{ $shop->detail['shop_owner'] }}",                // ✅ shows as visitor name (notification)
             email: "{{ $shop->detail['email'] }}",
             phone: "{{ $shop->detail['phone'] }}",
 
@@ -126,6 +126,7 @@
         // message for agents
         const userDetailsMessage =
             "🛍️ Shop: {{ $shop->detail['myshopify_domain'] }}\n" +
+            "👤 Name: {{ $shop->detail['name'] }}\n" +
             "👤 Owner: {{ $shop->detail['shop_owner'] }}\n" +
             "📧 Email: {{ $shop->detail['email'] }}\n" +
             "📱 Phone: {{ $shop->detail['phone'] ?? 'N/A' }}\n" +

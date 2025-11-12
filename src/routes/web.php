@@ -28,12 +28,24 @@ Route::middleware(['web'])->group(function(){
     Route::get('agent/login',[AgentController::class,'login'])->name("msdev2.agent.login");
     Route::post('agent/login',[AgentController::class,'authenticate'])->name("msdev2.agent.dologin");
     Route::middleware(['msdev2.agent.auth'])->group(function(){
-        Route::get('/logs',[LogsController::class,'index'])->name("msdev2.shopify.logs.index");
         Route::prefix("agent")->group(function(){
+            Route::get('/logs',[LogsController::class,'index'])->name("msdev2.agent.logs");
+            Route::get('/logs/download',[LogsController::class,'download'])->name("msdev2.agent.logs.download");
+            Route::post('/logs/clear',[LogsController::class,'clear'])->name("msdev2.agent.logs.clear");
+            Route::post('/logs/delete',[LogsController::class,'delete'])->name("msdev2.agent.logs.delete");
             //  Homepage Route - Redirect based on user role is in controller.
             Route::get('/', [AgentController::class,'dashboard'])->name("msdev2.agent.dashboard");
+            Route::get('/shops', [AgentController::class,'shops'])->name("msdev2.agent.shops");
             // Agent shop lookup endpoints used by the dashboard autocomplete
             Route::get('/shops/search', [AgentController::class, 'shopSearch'])->name('msdev2.agent.shops.search');
+            Route::get('/shops/recent', [AgentController::class, 'shopsRecent'])->name('msdev2.agent.shops.recent');
+            Route::get('/shops/stats', [AgentController::class, 'shopStats'])->name('msdev2.agent.shops.stats');
+            Route::get('/shops/latest/installs', [AgentController::class, 'latestInstalls'])->name('msdev2.agent.shops.latest.installs');
+            Route::get('/shops/latest/uninstalls', [AgentController::class, 'latestUninstalls'])->name('msdev2.agent.shops.latest.uninstalls');
+            Route::post('/shops/{id}/metadata', [AgentController::class, 'updateMetadata'])->name('msdev2.agent.shops.metadata.update');
+            Route::delete('/shops/{id}/metadata/{key}', [AgentController::class, 'deleteMetadata'])->name('msdev2.agent.shops.metadata.delete');
+            Route::get('/shops/recent', [AgentController::class, 'shopsRecent'])->name('msdev2.agent.shops.recent');
+            Route::get('/shops/stats', [AgentController::class, 'shopStats'])->name('msdev2.agent.shops.stats');
             Route::get('/shops/{id}', [AgentController::class, 'shopDetail'])->name('msdev2.agent.shops.detail');
             // Full shop detail page for agent (UI)
             Route::get('/shops/{id}/view', [AgentController::class, 'shopView'])->name('msdev2.agent.shops.view');

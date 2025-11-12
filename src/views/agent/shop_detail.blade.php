@@ -75,17 +75,48 @@
 
     <div class="col-md-4">
         <div class="card mb-3">
-            <div class="card-header">Metadata</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>Metadata</div>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#addMetaForm">Add / Edit</button>
+            </div>
             <div class="card-body">
+                <div class="collapse mb-3" id="addMetaForm">
+                    <form method="post" action="{{ route('msdev2.agent.shops.metadata.update', ['id' => $shopDetail->id]) }}">
+                        @csrf
+                        <div class="row g-2">
+                            <div class="col-5"><input name="key" class="form-control form-control-sm" placeholder="Key"></div>
+                            <div class="col-5"><input name="value" class="form-control form-control-sm" placeholder="Value"></div>
+                            <div class="col-2"><button class="btn btn-sm btn-success" type="submit">Save</button></div>
+                        </div>
+                    </form>
+                </div>
                 @if($metadata->count())
-                    <table class="table table-sm">
-                        <thead><tr><th>Key</th><th>Value</th></tr></thead>
-                        <tbody>
-                            @foreach($metadata as $m)
-                                <tr><td>{{ $m->key }}</td><td><pre style="margin:0">{{ $m->value }}</pre></td></tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                    <div class="list-group list-group-flush">
+                        @foreach($metadata as $m)
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-bold">{{ $m->key }}</div>
+                                    <div class="small text-muted"><pre style="margin:0">@php
+                                        $val = $m->value; try{ $decoded = json_decode($val, true); if(json_last_error()===JSON_ERROR_NONE) $val = json_encode($decoded, JSON_PRETTY_PRINT); }catch(
+                                        \Exception $e){}
+                                    @endphp{!! nl2br(e($val)) !!}</pre></div>
+                                </div>
+                                <div class="text-end">
+                                    <form method="post" action="{{ route('msdev2.agent.shops.metadata.update', ['id' => $shopDetail->id]) }}" class="d-inline">
+                                        @csrf
+                                        <input type="hidden" name="key" value="{{ $m->key }}">
+                                        <input type="hidden" name="value" value="{{ $m->value }}">
+                                        <button class="btn btn-sm btn-outline-secondary" type="submit">Edit</button>
+                                    </form>
+                                    <form method="post" action="{{ route('msdev2.agent.shops.metadata.delete', ['id' => $shopDetail->id, 'key' => $m->key]) }}" class="d-inline" onsubmit="return confirm('Delete metadata {{ $m->key }}?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-sm btn-danger ms-1" type="submit">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 @else
                     <div class="text-muted">No metadata available.</div>
                 @endif
