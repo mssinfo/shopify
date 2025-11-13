@@ -76,7 +76,6 @@ class VerifyShopify
         $data = mRest()->get('/admin/oauth/access_scopes.json');
         $shopifyScopes = $data->getDecodedBody();
         if (!isset($shopifyScopes['access_scopes'])) {
-            dd($shopifyScopes, $scopes);
             return $scopes;
         }
 
