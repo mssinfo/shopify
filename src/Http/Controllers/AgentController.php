@@ -174,7 +174,11 @@ class AgentController extends BaseController{
     public function shopsRecent(Request $request)
     {
         $limit = (int) $request->query('limit', 6);
-        $rows = Shop::with('activeCharge')->orderBy('created_at','desc')->take($limit)->get();
+        $cacheKey = 'agent_shops_recent_' . $limit;
+        $rows = Cache::remember($cacheKey, 20, function() use ($limit) {
+            return Shop::with('activeCharge')->orderBy('created_at','desc')->take($limit)->get();
+        });
+
         $items = $rows->map(function($s){
             $isUninstalled = ((int)($s->is_uninstalled ?? 0) === 1) || !empty($s->deleted_at);
             return [
@@ -197,22 +201,25 @@ class AgentController extends BaseController{
     {
         $days = (int) $request->query('days', 30);
         $days = max(3, min(365, $days));
-        $start = \Carbon\Carbon::now()->subDays($days-1)->startOfDay();
-
-        $labels = [];
-        $installs = [];
-        $uninstalls = [];
-        for ($i = 0; $i < $days; $i++) {
-            $date = $start->copy()->addDays($i);
-            $labels[] = $date->format('Y-m-d');
-            $installs[] = Shop::whereDate('created_at', $date->toDateString())->count();
+        $cacheKey = 'agent_shop_stats_' . $days;
+        $result = Cache::remember($cacheKey, 60, function() use ($days) {
+            $start = \Carbon\Carbon::now()->subDays($days-1)->startOfDay();
+            $labels = [];
+            $installs = [];
+            $uninstalls = [];
+            for ($i = 0; $i < $days; $i++) {
+                $date = $start->copy()->addDays($i);
+                $labels[] = $date->format('Y-m-d');
+                $installs[] = Shop::whereDate('created_at', $date->toDateString())->count();
                 // count uninstalls from uninstalled_at or deleted_at
                 $fromUninstalledAt = Shop::whereDate('uninstalled_at', $date->toDateString())->count();
                 $fromDeletedAt = Shop::onlyTrashed()->whereDate('deleted_at', $date->toDateString())->count();
                 $uninstalls[] = $fromUninstalledAt + $fromDeletedAt;
-        }
+            }
+            return [ 'labels' => $labels, 'installs' => $installs, 'uninstalls' => $uninstalls ];
+        });
 
-        return response()->json([ 'labels' => $labels, 'installs' => $installs, 'uninstalls' => $uninstalls ]);
+        return response()->json($result);
     }
 
     /**
@@ -221,9 +228,18 @@ class AgentController extends BaseController{
     public function latestInstalls(Request $request)
     {
         $limit = (int) $request->query('limit', 10);
-        $rows = Shop::with('activeCharge')->orderBy('created_at','desc')->take($limit)->get();
+        $cacheKey = 'agent_latest_installs_' . $limit;
+        $rows = Cache::remember($cacheKey, 30, function() use ($limit) {
+            // only include shops that are not marked uninstalled and are not soft-deleted
+            return Shop::with('activeCharge')
+                ->where(function($q){ $q->whereNull('deleted_at')->where(function($qq){ $qq->whereNull('is_uninstalled')->orWhere('is_uninstalled', 0); }); })
+                ->orderBy('created_at','desc')
+                ->take($limit)
+                ->get();
+        });
+
         return response()->json($rows->map(function($s){
-            return ['id'=>$s->id,'shop'=>$s->shop,'domain'=>$s->domain,'plan'=>$s->activeCharge->name ?? null,'installed_at'=>$s->created_at];
+            return ['id'=>$s->id,'shop'=>$s->shop,'domain'=>$s->domain,'plan'=>$s->activeCharge->name ?? null,'installed_at'=>$s->created_at,'is_uninstalled'=> (int)($s->is_uninstalled ?? 0)];
         }));
     }
 
@@ -233,12 +249,15 @@ class AgentController extends BaseController{
     public function latestUninstalls(Request $request)
     {
         $limit = (int) $request->query('limit', 10);
-        $rows = Shop::with('activeCharge')
-            ->where(function($q){ $q->where('is_uninstalled', 1)->orWhereNotNull('deleted_at'); })
-            ->orderBy('uninstalled_at','desc')
-            ->orderBy('deleted_at','desc')
-            ->take($limit)
-            ->get();
+        $cacheKey = 'agent_latest_uninstalls_' . $limit;
+        $rows = Cache::remember($cacheKey, 30, function() use ($limit) {
+            return Shop::with('activeCharge')
+                ->where(function($q){ $q->where('is_uninstalled', 1)->orWhereNotNull('deleted_at'); })
+                ->orderBy('uninstalled_at','desc')
+                ->orderBy('deleted_at','desc')
+                ->take($limit)
+                ->get();
+        });
 
         return response()->json($rows->map(function($s){
             return ['id'=>$s->id,'shop'=>$s->shop,'domain'=>$s->domain,'plan'=>$s->activeCharge->name ?? null,'deleted_at'=>$s->deleted_at,'uninstalled_at'=>$s->uninstalled_at,'is_uninstalled'=> (int)($s->is_uninstalled ?? 0)];

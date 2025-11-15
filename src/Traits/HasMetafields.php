@@ -2,8 +2,6 @@
 
 namespace Msdev2\Shopify\Traits;
 
-use Illuminate\Support\Facades\Log;
-
 trait HasMetafields
 {
     public function setMetaField(array $metaField, bool $isPrivateMeta = true): void
@@ -64,7 +62,6 @@ trait HasMetafields
 
         $variables = ['metafields' => [$metaField]];
         $data = mGraph($shop)->query(["query" => $query, "variables" => $variables])->getDecodedBody();
-        Log::debug("setPrivateMetaField set response: ". json_encode($data), $variables);
     }
 
     private static function deletePrivateMetaField($shop, string $namespace, string $key): void
@@ -121,7 +118,6 @@ trait HasMetafields
 
         $variables = ['input' => [$metaField]];
         $data = mGraph($shop)->query($query, $variables)->getDecodedBody();
-        Log::debug("setPublicMetaField set response: ". json_encode($data), $variables);
     }
 
     private static function deletePublicMetaField($shop, string $namespace, string $key): void

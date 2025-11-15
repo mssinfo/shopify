@@ -25,7 +25,7 @@ return [
     "menu"=>[
         'logo'=>[
             'type'=>'url',//image,url,
-            'value'=>'https://cdn-icons-png.flaticon.com/512/7190/7190597.png'
+            'value'=>'https://styfly.in/server/img/styfly.png?v=1'
         ],
         'list'=>[
             [

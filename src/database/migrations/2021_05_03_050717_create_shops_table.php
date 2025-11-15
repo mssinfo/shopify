@@ -19,7 +19,7 @@ class CreateShopsTable extends Migration
             $table->string('shop')->nullable(false);
             $table->string('domain')->nullable();
             $table->boolean('is_online')->default(false);
-            $table->string('scope')->nullable(false);
+            $table->string('scope')->nullable();
             $table->string('access_token')->nullable(false);
             $table->dateTime('expires_at')->nullable();
             $table->bigInteger('user_id')->nullable();

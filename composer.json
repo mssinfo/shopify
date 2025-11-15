@@ -32,7 +32,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "laravel/framework": "^8.0 || ^9.0 || ^10.0",
+        "laravel/framework": "^8.0 || ^9.0 || ^10.0 || ^11.0 || ^12.0",
         "shopify/shopify-api": "^6.0"
     },
     "prefer-stable": true,

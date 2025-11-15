@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Msdev2\Shopify\Lib\AuthRedirection;
 use Msdev2\Shopify\Lib\DbSessionStorage;
 use Msdev2\Shopify\Models\Session as ModelsSession;
@@ -159,6 +160,24 @@ class ShopifyController extends BaseController
         $hookClass = ucwords(str_replace('/', ' ', $topic));
         $classWebhook = "\\App\\Webhook\\Handlers\\" . str_replace(' ', '', $hookClass);
         $shopName = $headers->get(HttpHeaders::X_SHOPIFY_DOMAIN);
+        // Deduplicate identical webhook payloads for the same shop/topic to avoid repeated DB work
+        $payload = $request->getContent() ?? '';
+        $payloadHash = sha1($payload);
+        $dedupeKey = 'webhook_dedupe:' . ($shopName ?: 'unknown') . ':' . ($topic ?: 'unknown') . ':' . $payloadHash;
+        if (Cache::has($dedupeKey)) {
+            // Already seen this exact payload recently — respond 200 to Shopify and skip processing
+            return mSuccessResponse('Duplicate webhook ignored');
+        }
+        // Mark this payload as seen briefly (60s)
+        Cache::put($dedupeKey, true, 60);
+
+        // Acquire a short lock per-shop to prevent concurrent processing storms
+        $lockKey = 'webhook_lock:' . ($shopName ?: 'global');
+        $lock = Cache::lock($lockKey, 10);
+        if (!$lock->get()) {
+            // Another process is handling webhooks for this shop — skip to avoid duplicate DB ops
+            return mSuccessResponse('Webhook processing deferred due to active lock');
+        }
         if ($hookClass == "AppUninstalled") {
             ModelsSession::where('shop', $shopName)->delete();
             $this->clearCache(true);
@@ -171,17 +190,25 @@ class ShopifyController extends BaseController
             $response = Registry::process($rawHeaders, $request->getContent());
             if ($response->isSuccess()) {
                 return mSuccessResponse("Responded to webhook!", [$response]);
-                // Respond with HTTP 200 OK
             } else {
                 mLog("Webhook handler failed with message: " . $response->getErrorMessage(), [], 'error');
                 return mErrorResponse("Webhook handler failed with message: " . $response->getErrorMessage());
             }
         } catch (\Exception $error) {
-            $cls = new $classWebhook();
-            mLog('excepion : ' . $error->getMessage(), [$error], 'error');
-            $cls->handle($topic, $shopName, $request->all());
-            // The webhook request was not a valid one, likely a code error or it wasn't fired by Shopify
-            return mErrorResponse('excepion : ' . $error->getMessage(), [$error]);
+            try {
+                $cls = new $classWebhook();
+                mLog('exception while processing webhook: ' . $error->getMessage(), [$error], 'error');
+                // attempt a safe fallback call to handler's handle method, if present
+                if (method_exists($cls, 'handle')) {
+                    $cls->handle($topic, $shopName, $request->all());
+                }
+            } catch (\Exception $inner) {
+                mLog('exception in webhook fallback handler: ' . $inner->getMessage(), [$inner], 'error');
+            }
+            return mErrorResponse('exception : ' . $error->getMessage(), [$error]);
+        } finally {
+            // release lock
+            try { $lock->release(); } catch (\Throwable $e) { /* ignore */ }
         }
     }
 

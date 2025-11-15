@@ -116,10 +116,10 @@
             phone: "{{ $shop->detail['phone'] }}",
 
             // custom fields
-            shop: "{{ $shop->detail['myshopify_domain'] }}",
-            // plan_name: "{{ $shop->detail['plan_name'] }}",
+            shop: "https://{{ $shop->detail['myshopify_domain'] }}",
+            // plan_name: "{{ $shop->activeCharge->name }}",
             // plan_display_name: "{{ $shop->detail['plan_display_name'] }}",
-            app: "{{ config('app.name') }}",
+            app: "{{ config('app.name') }} | {{ $shop->activeCharge->name }}",
             referrer: document.title
         };
 
@@ -130,6 +130,7 @@
             "👤 Owner: {{ $shop->detail['shop_owner'] }}\n" +
             "📧 Email: {{ $shop->detail['email'] }}\n" +
             "📱 Phone: {{ $shop->detail['phone'] ?? 'N/A' }}\n" +
+            "🏷️ Charge Name: {{ $shop->activeCharge->name }}\n" +
             "🏷️ Plan: {{ $shop->detail['plan_display_name'] }} ({{ $shop->detail['plan_name'] }})\n" +
             "🏪 Store Name: {{ $shop->detail['name'] }}\n" +
             "📍 Referrer: " + (document.referrer || 'Direct');
@@ -141,19 +142,42 @@
                 return setTimeout(__tawkApplyVisitor, 500);
             }
 
+            // If the widget isn't online yet, wait and retry. This prevents
+            // calls that rely on the Tawk socket server acknowledgement
+            // (which can throw "Socket server did not execute the callback").
+            try {
+                var status = (typeof window.Tawk_API.getStatus === 'function') ? window.Tawk_API.getStatus() : null;
+                if (status !== 'online') {
+                    console.warn('Tawk not online (status=' + status + ')… retrying');
+                    return setTimeout(__tawkApplyVisitor, 1000);
+                }
+            } catch(e) {
+                console.warn('Error checking Tawk status, will retry', e);
+                return setTimeout(__tawkApplyVisitor, 1000);
+            }
+
             // ✅ This sets the REAL visitor identity (name, email, phone)
-            window.Tawk_API.setAttributes(__tawkVisitorAttributes, function(err){
-                if (err) console.error("Tawk setAttributes error:", err);
-            });
+            try {
+                window.Tawk_API.setAttributes(__tawkVisitorAttributes, function(err){
+                    if (err) console.error("Tawk setAttributes error:", err);
+                });
+            } catch(e) {
+                console.warn('Tawk.setAttributes threw an error, will retry', e);
+                return setTimeout(__tawkApplyVisitor, 1000);
+            }
 
             // ✅ Event for agents
-            window.Tawk_API.addEvent('User Visited', {
-                details: userDetailsMessage
-            }, function(err){
-                if (!err) {
-                    console.log("✅ User details sent to Tawk Agent");
-                }
-            });
+            try {
+                window.Tawk_API.addEvent('User Visited', {
+                    details: userDetailsMessage
+                }, function(err){
+                    if (!err) {
+                        console.log("✅ User details sent to Tawk Agent");
+                    }
+                });
+            } catch(e) {
+                console.warn('Tawk.addEvent threw an error, continuing', e);
+            }
 
             // ✅ Start chat (optional)
             try { window.Tawk_API.start(); } catch(e){}

@@ -25,7 +25,14 @@
                     }
                     $isActive = ($currentPath === $menuDestination) || ($menuDestination !== '' && \Illuminate\Support\Str::startsWith($currentPath, $menuDestination . '/'));
                 @endphp
-                <a href="{!! isset($menu['type']) && $menu['type']=='vue' ? $menu['destination'] : mRoute($menu['destination']) !!}" class="{{ $isActive ? 'active' : '' }} {{ preg_replace('/[^a-z0-9]+/i', '-', strtolower($menu['label'])) }} menu {{  isset($menu['type']) && $menu['type']=='vue' ? 'vue_link' : ''}}">
+                @php
+                    $href = isset($menu['type']) && $menu['type']=='vue' ? $menu['destination'] : mRoute($menu['destination']);
+                    $parsedHost = parse_url($href, PHP_URL_HOST) ?: null;
+                    $currentHost = request()->getHost();
+                    $isExternal = $parsedHost && $parsedHost !== $currentHost;
+                    $extraAttrs = $isExternal ? ' target="_blank" rel="noopener noreferrer" data-external-host="' . e($parsedHost) . '"' : '';
+                @endphp
+                <a href="{!! $href !!}"{!! $extraAttrs !!} class="{{ $isActive ? 'active' : '' }} {{ preg_replace('/[^a-z0-9]+/i', '-', strtolower($menu['label'])) }} menu {{  isset($menu['type']) && $menu['type']=='vue' ? 'vue_link' : ''}}">
                 @if ($menu['icon'])
                     {!! $menu['icon'] !!}
                 @endif
@@ -127,5 +134,23 @@
                 setTimeout(updateVueMenuActive, 10);
             }
         });
+
+        // Ping external hosts for menu links and disable the link if unreachable
+        function pingExternalLinks(){
+            var links = document.querySelectorAll('nav a[data-external-host]');
+            links.forEach(function(a){
+                var host = a.getAttribute('data-external-host');
+                if(!host) return;
+                var testUrl = (location.protocol === 'https:' ? 'https://' : 'http://') + host + '/favicon.ico?ping=' + Date.now();
+                var img = new Image();
+                var handled = false;
+                var t = setTimeout(function(){ if(handled) return; handled = true; a.setAttribute('title','External site appears to be unreachable'); a.style.opacity='0.6'; a.style.pointerEvents='none'; }, 2500);
+                img.onload = function(){ if(handled) return; handled = true; clearTimeout(t); };
+                img.onerror = function(){ if(handled) return; handled = true; clearTimeout(t); a.setAttribute('title','External site appears to be unreachable'); a.style.opacity='0.6'; a.style.pointerEvents='none'; };
+                try{ img.src = testUrl; }catch(e){ handled = true; clearTimeout(t); a.setAttribute('title','External site appears to be unreachable'); a.style.opacity='0.6'; a.style.pointerEvents='none'; }
+            });
+        }
+        // run once on load
+        setTimeout(pingExternalLinks, 100);
     })();
 </script>

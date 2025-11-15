@@ -14,7 +14,6 @@ trait SendsShopifyEmails
     {
         $emailContent = self::generateEmailContent($type, $shop->detail["name"], $shop);
         try {
-            Log::info("send mail",["to",$shop->detail["email"], "type"=>$type]);
             Mail::to($shop->detail["email"])->send(new ShopifyEmail($type, $emailContent));
         } catch (Exception $e) {
             // Optionally check if it's a 450 error and retry later
