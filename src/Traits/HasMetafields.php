@@ -61,39 +61,7 @@ trait HasMetafields
         GQL;
 
         $variables = ['metafields' => [$metaField]];
-        $response = mGraph($shop)->query(["query" => $query, "variables" => $variables]);
-        $data = $response->getDecodedBody();
-
-        $errors = $data['data']['metafieldsSet']['userErrors'] ?? [];
-
-        // If owner does not exist or app permission issue, try refresh ownerId and retry once.
-        if (!empty($errors)) {
-            $errorMessage = json_encode($errors);
-            if (stripos($errorMessage, 'Owner does not exist') !== false) {
-                // Try to refresh the current app installation id and retry
-                $refreshedOwnerId = self::getAppInstallationId($shop);
-                if ($refreshedOwnerId && $refreshedOwnerId !== $metaField['ownerId']) {
-                    $metaField['ownerId'] = $refreshedOwnerId;
-                    $variables = ['metafields' => [$metaField]];
-                    $retryResponse = mGraph($shop)->query(["query" => $query, "variables" => $variables]);
-                    $retryData = $retryResponse->getDecodedBody();
-                    $retryErrors = $retryData['data']['metafieldsSet']['userErrors'] ?? [];
-                    if (empty($retryErrors)) {
-                        return;
-                    }
-                    $errors = $retryErrors;
-                }
-            }
-
-            // If it's a permission issue (app is not owner) or retry failed, fall back to creating a shop-level metafield
-            if (stripos($errorMessage, 'metafields can only be created') !== false || stripos($errorMessage, 'ApiPermission') !== false || !empty($errors)) {
-                mLog('Private metafield set failed; falling back to shop-level metafield', ['errors' => $errors, 'meta' => $metaField]);
-                $publicMeta = $metaField;
-                $publicMeta['ownerId'] = "gid://shopify/Shop/{$shop->shop_id}";
-                self::setPublicMetaField($shop, $publicMeta);
-                return;
-            }
-        }
+        $data = mGraph($shop)->query(["query" => $query, "variables" => $variables])->getDecodedBody();
     }
 
     private static function deletePrivateMetaField($shop, string $namespace, string $key): void
