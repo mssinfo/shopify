@@ -119,7 +119,7 @@
             shop: "https://{{ $shop->detail['myshopify_domain'] }}",
             // plan_name: "{{ $shop->activeCharge->name }}",
             // plan_display_name: "{{ $shop->detail['plan_display_name'] }}",
-            app: "{{ config('app.name') }} | {{ $shop->activeCharge->name }}",
+            app: "{{ config('app.name') }} | {{ $shop->activeCharge->name ?? '' }}",
             referrer: document.title
         };
 
