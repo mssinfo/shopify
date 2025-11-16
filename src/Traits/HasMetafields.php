@@ -61,7 +61,7 @@ trait HasMetafields
     {
         $ownerId = self::getAppInstallationId($shop);
         if (!$ownerId) {
-            Log::error('Failed to set private metafield: Could not retrieve App Installation ID.');
+            Log::error('Failed to set private metafield: Could not retrieve App Installation ID.', ['shop' => $shop->shop]);
             return;
         }
 
@@ -77,22 +77,41 @@ trait HasMetafields
         GQL;
 
         $variables = ['metafields' => [$metaField]];
-        
-        // CORRECTED: Pass query and variables in a single associative array
         $response = mGraph($shop)->query(['query' => $query, 'variables' => $variables])->getDecodedBody();
 
-        // Check for the specific "Owner does not exist" error to trigger a retry
         $userErrors = $response['data']['metafieldsSet']['userErrors'] ?? [];
         foreach ($userErrors as $error) {
             if (
-                !$isRetry && // Ensure we only retry once
+                !$isRetry &&
                 isset($error['message']) &&
                 (str_contains($error['message'], 'Owner does not exist') || str_contains($error['message'], 'ApiPermission metafields can only be created'))
             ) {
-                Log::info('OwnerId error detected. Refreshing AppInstallationId and retrying.', ['shop' => $shop->shop]);
-                self::refreshAppInstallationId($shop);
-                self::setPrivateMetaField($shop, $metaField, true); // Pass true to prevent infinite loops
-                return;
+                // --- ENHANCED LOGGING ---
+                Log::warning('OwnerId error detected. Refreshing AppInstallationId and retrying.', [
+                    'shop' => $shop->shop,
+                    'invalid_ownerId' => $ownerId
+                ]);
+                
+                $newOwnerId = self::refreshAppInstallationId($shop);
+
+                Log::info('AppInstallationId refresh attempt.', [
+                    'shop' => $shop->shop,
+                    'old_ownerId' => $ownerId,
+                    'new_ownerId' => $newOwnerId
+                ]);
+                
+                // If the new ID is the same as the old one, the root problem is the access token.
+                if ($newOwnerId === $ownerId) {
+                    Log::critical('AppInstallationId did not change after refresh. The Access Token is likely stale or invalid.', [
+                        'shop' => $shop->shop
+                    ]);
+                }
+                // --- END ENHANCED LOGGING ---
+
+                if ($newOwnerId) {
+                    self::setPrivateMetaField($shop, $metaField, true); // Retry the call
+                }
+                return; // Stop execution of the current failed attempt
             }
         }
 
@@ -114,10 +133,7 @@ trait HasMetafields
                 }
             }
         GQL;
-
         $variables = ['namespace' => $namespace, 'key' => $key];
-        
-        // CORRECTED: Pass query and variables in a single associative array
         mGraph($shop)->query(['query' => $query, 'variables' => $variables])->getDecodedBody();
     }
 
@@ -126,6 +142,8 @@ trait HasMetafields
      */
     private static function getAppInstallationId($shop): ?string
     {
+        // First, check for a runtime cache on the model if that's a pattern you use.
+        // Then, check the database meta.
         $cachedId = $shop->meta('_current_app_installation_id');
         if ($cachedId) {
             return $cachedId;
@@ -136,16 +154,20 @@ trait HasMetafields
         GQL;
 
         try {
-            // CORRECTED: Pass query in a single associative array
             $response = mGraph($shop)->query(['query' => $query])->getDecodedBody();
             $id = $response['data']['currentAppInstallation']['id'] ?? null;
 
             if ($id) {
                 $shop->meta('_current_app_installation_id', $id);
+            } else {
+                Log::warning('currentAppInstallation query returned null ID.', [
+                    'shop' => $shop->shop,
+                    'response' => $response
+                ]);
             }
             return $id;
         } catch (\Throwable $e) {
-            Log::error("Failed to fetch App Installation ID: " . $e->getMessage());
+            Log::error("Failed to fetch App Installation ID: " . $e->getMessage(), ['shop' => $shop->shop]);
             return null;
         }
     }
@@ -156,15 +178,14 @@ trait HasMetafields
     private static function refreshAppInstallationId($shop): ?string
     {
         $shop->meta()->where('key', '_current_app_installation_id')->delete();
-        Log::info('Cleared cached AppInstallationId.', ['shop' => $shop->shop]);
+        // Manually clear the runtime cache if your `meta()` method uses it
+        unset($shop->relations['meta']); 
+        
         return self::getAppInstallationId($shop);
     }
 
     // ---------------- PUBLIC META ----------------
-
-    /**
-     * Sets a public shop-level metafield.
-     */
+    // ... (public methods remain the same as the last version) ...
     private static function setPublicMetaField($shop, array $metaField): void
     {
         $query = <<<'GQL'
@@ -179,8 +200,6 @@ trait HasMetafields
         $metaField['ownerId'] = "gid://shopify/Shop/{$shop->shop_id}";
 
         $variables = ['metafields' => [$metaField]];
-        
-        // CORRECTED: Pass query and variables in a single associative array
         $response = mGraph($shop)->query(['query' => $query, 'variables' => $variables])->getDecodedBody();
 
         if (!empty($response['data']['metafieldsSet']['userErrors'])) {
@@ -188,9 +207,6 @@ trait HasMetafields
         }
     }
 
-    /**
-     * Deletes a public metafield.
-     */
     private static function deletePublicMetaField($shop, string $namespace, string $key): void
     {
         $query = <<<'GQL'
@@ -203,8 +219,6 @@ trait HasMetafields
         GQL;
 
         $variables = ['namespace' => $namespace, 'key' => $key];
-        
-        // CORRECTED: Pass query and variables in a single associative array
         mGraph($shop)->query(['query' => $query, 'variables' => $variables])->getDecodedBody();
     }
 }
