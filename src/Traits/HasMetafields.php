@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 trait HasMetafields
 {
     /**
-     * Set a public or private metafield.
+     * Sets a public or private metafield.
      */
     public function setMetaField(array $metaField, bool $isPrivateMeta = true): void
     {
@@ -33,7 +33,7 @@ trait HasMetafields
     }
 
     /**
-     * Delete a public or private metafield.
+     * Deletes a public or private metafield.
      */
     public function deleteMetaField(string $key, string $namespace = '', bool $isPrivateMeta = true): void
     {
@@ -55,7 +55,11 @@ trait HasMetafields
     // ---------------- PRIVATE META ----------------
 
     /**
-     * Sets a private metafield with a retry mechanism for ownerId errors.
+     * Sets a private metafield with a self-healing retry mechanism for stale AppInstallationID errors.
+     *
+     * @param mixed $shop The shop object.
+     * @param array $metaField The metafield data.
+     * @param bool $isRetry A flag to prevent infinite retry loops.
      */
     private static function setPrivateMetaField($shop, array $metaField, bool $isRetry = false): void
     {
@@ -80,61 +84,34 @@ trait HasMetafields
         $response = mGraph($shop)->query(['query' => $query, 'variables' => $variables])->getDecodedBody();
 
         $userErrors = $response['data']['metafieldsSet']['userErrors'] ?? [];
+        $hasOwnerError = false;
+
         foreach ($userErrors as $error) {
-            if (
-                !$isRetry &&
-                isset($error['message']) &&
-                (str_contains($error['message'], 'Owner does not exist') || str_contains($error['message'], 'ApiPermission metafields can only be created'))
-            ) {
-                // --- ENHANCED LOGGING ---
-                Log::warning('OwnerId error detected. Refreshing AppInstallationId and retrying.', [
-                    'shop' => $shop->shop,
-                    'invalid_ownerId' => $ownerId
-                ]);
-                
-                $newOwnerId = self::refreshAppInstallationId($shop);
-
-                Log::info('AppInstallationId refresh attempt.', [
-                    'shop' => $shop->shop,
-                    'old_ownerId' => $ownerId,
-                    'new_ownerId' => $newOwnerId
-                ]);
-                
-                // If the new ID is the same as the old one, the root problem is the access token.
-                if ($newOwnerId === $ownerId) {
-                    Log::critical('AppInstallationId did not change after refresh. The Access Token is likely stale or invalid.', [
-                        'shop' => $shop->shop
-                    ]);
-                }
-                // --- END ENHANCED LOGGING ---
-
-                if ($newOwnerId) {
-                    self::setPrivateMetaField($shop, $metaField, true); // Retry the call
-                }
-                return; // Stop execution of the current failed attempt
+            if (isset($error['message']) && (str_contains($error['message'], 'Owner does not exist') || str_contains($error['message'], 'ApiPermission metafields can only be created'))) {
+                $hasOwnerError = true;
+                break;
             }
+        }
+
+        // CORE LOGIC: If an owner error is found and we haven't retried yet,
+        // refresh the ID and try the entire function again.
+        if ($hasOwnerError && !$isRetry) {
+            Log::warning('Stale AppInstallationID detected. Refreshing and retrying.', [
+                'shop' => $shop->shop,
+                'stale_ownerId' => $ownerId
+            ]);
+
+            // This performs the "delete and save again" for the ID.
+            self::refreshAppInstallationId($shop);
+
+            // Retry the mutation. The 'true' flag prevents an infinite loop.
+            self::setPrivateMetaField($shop, $metaField, true);
+            return;
         }
 
         if (!empty($userErrors)) {
-             Log::error('GraphQL Error setting private metafield', ['errors' => $userErrors, 'shop' => $shop->shop]);
+            Log::error('GraphQL Error setting private metafield', ['errors' => $userErrors, 'shop' => $shop->shop]);
         }
-    }
-
-    /**
-     * Deletes a private metafield.
-     */
-    private static function deletePrivateMetaField($shop, string $namespace, string $key): void
-    {
-        $query = <<<'GQL'
-            mutation metafieldDelete($namespace: String!, $key: String!) {
-                metafieldDelete(namespace: $namespace, key: $key) {
-                    deletedId
-                    userErrors { field message }
-                }
-            }
-        GQL;
-        $variables = ['namespace' => $namespace, 'key' => $key];
-        mGraph($shop)->query(['query' => $query, 'variables' => $variables])->getDecodedBody();
     }
 
     /**
@@ -142,8 +119,6 @@ trait HasMetafields
      */
     private static function getAppInstallationId($shop): ?string
     {
-        // First, check for a runtime cache on the model if that's a pattern you use.
-        // Then, check the database meta.
         $cachedId = $shop->meta('_current_app_installation_id');
         if ($cachedId) {
             return $cachedId;
@@ -158,12 +133,8 @@ trait HasMetafields
             $id = $response['data']['currentAppInstallation']['id'] ?? null;
 
             if ($id) {
+                // Cache the new ID in the shop's metadata for future use
                 $shop->meta('_current_app_installation_id', $id);
-            } else {
-                Log::warning('currentAppInstallation query returned null ID.', [
-                    'shop' => $shop->shop,
-                    'response' => $response
-                ]);
             }
             return $id;
         } catch (\Throwable $e) {
@@ -173,19 +144,40 @@ trait HasMetafields
     }
 
     /**
-     * Forces a refresh of the App Installation ID.
+     * THIS IS THE "DELETE AND SAVE AGAIN" LOGIC FOR THE ID.
+     * It deletes the cached `_current_app_installation_id` and fetches a fresh one.
      */
-    private static function refreshAppInstallationId($shop): ?string
+    private static function refreshAppInstallationId($shop): void
     {
+        // "Delete metafield _current_app_installation_id"
         $shop->meta()->where('key', '_current_app_installation_id')->delete();
-        // Manually clear the runtime cache if your `meta()` method uses it
-        unset($shop->relations['meta']); 
-        
-        return self::getAppInstallationId($shop);
+
+        // If your model uses relationship caching, clear it to force a fresh DB query.
+        if (method_exists($shop, 'unsetRelation')) {
+            $shop->unsetRelation('meta');
+        }
+
+        Log::info('Cleared cached AppInstallationId.', ['shop' => $shop->shop]);
+
+        // "Save again": This fetches and caches the new ID.
+        self::getAppInstallationId($shop);
     }
 
-    // ---------------- PUBLIC META ----------------
-    // ... (public methods remain the same as the last version) ...
+    // All other methods remain for completeness
+    private static function deletePrivateMetaField($shop, string $namespace, string $key): void
+    {
+        $query = <<<'GQL'
+            mutation metafieldDelete($namespace: String!, $key: String!) {
+                metafieldDelete(namespace: $namespace, key: $key) {
+                    deletedId
+                    userErrors { field message }
+                }
+            }
+        GQL;
+        $variables = ['namespace' => $namespace, 'key' => $key];
+        mGraph($shop)->query(['query' => $query, 'variables' => $variables])->getDecodedBody();
+    }
+
     private static function setPublicMetaField($shop, array $metaField): void
     {
         $query = <<<'GQL'
@@ -196,15 +188,9 @@ trait HasMetafields
                 }
             }
         GQL;
-
         $metaField['ownerId'] = "gid://shopify/Shop/{$shop->shop_id}";
-
         $variables = ['metafields' => [$metaField]];
-        $response = mGraph($shop)->query(['query' => $query, 'variables' => $variables])->getDecodedBody();
-
-        if (!empty($response['data']['metafieldsSet']['userErrors'])) {
-            Log::error('GraphQL Error setting public metafield', ['errors' => $response['data']['metafieldsSet']['userErrors']]);
-        }
+        mGraph($shop)->query(['query' => $query, 'variables' => $variables])->getDecodedBody();
     }
 
     private static function deletePublicMetaField($shop, string $namespace, string $key): void
@@ -217,7 +203,6 @@ trait HasMetafields
                 }
             }
         GQL;
-
         $variables = ['namespace' => $namespace, 'key' => $key];
         mGraph($shop)->query(['query' => $query, 'variables' => $variables])->getDecodedBody();
     }
