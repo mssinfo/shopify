@@ -1,0 +1,134 @@
+/* ==========================================================================
+   APP COMMON LAYOUT + NAV MENU
+   ========================================================================== */
+:root {
+  --primary: #43467f;
+  --accent: #c4cdd5;
+  --primary-hover: #1e5199;
+  --muted: #6d7175;
+  --bg: #f6f7f8;
+  --card-bg: #fff;
+  --border: #e6e7e9;
+  --radius: 10px;
+  --gap: 1.25rem;
+  --maxwidth: 1100px;
+  --text: #111;
+  --text-light: #555;
+  --white: #fff;
+}
+
+/* --- BASE --- */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+  color: var(--text);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  justify-content: space-between;
+}
+
+footer {
+  background: #fff;
+  margin-top: 20px;
+}
+
+footer article {
+  display: block !important;
+}
+
+footer p {
+  color: var(--text-light);
+  font-size: 14px;
+  margin: 0;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+/* =======================
+   Navigation (Top Menu)
+   ======================= */
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: #fff;
+  padding: 0 1.5rem;
+  height: 56px;
+  border-bottom: 1px solid #e6e7e9;
+  gap: 1.5rem;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* Logo */
+nav .logo {
+  display: flex;
+  align-items: center;
+  margin-right: auto;
+  font-weight: 600;
+  color: #202223;
+}
+
+nav .logo img {
+  height: 24px;
+  margin-right: 0.5rem;
+}
+
+/* Menu links */
+nav a.menu {
+  color: #202223;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.25s ease;
+}
+
+nav a.menu:hover {
+  color: #2e68a2;
+  background: #f2f7fd;
+}
+
+nav a.menu.active {
+  color: #fff;
+  background: #2e68a2;
+  font-weight: 600;
+}
+
+/* Right-aligned item (Plan) */
+nav a.right {
+  margin-left: auto;
+  font-weight: 500;
+  color: #202223;
+}
+
+nav a.right:hover {
+  color: #2e68a2;
+}
+
+/* Responsive nav */
+@media (max-width: 768px) {
+  nav {
+    flex-wrap: wrap;
+    height: auto;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+  nav a.menu {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+}

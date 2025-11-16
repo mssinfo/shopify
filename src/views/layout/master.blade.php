@@ -210,6 +210,34 @@
         @endif
         </script>
 
+        @php
+            // determine git branch for display (fallback to env GIT_BRANCH)
+            $gitBranch = null;
+            try {
+                $gitHead = base_path('.git/HEAD');
+                if (file_exists($gitHead)) {
+                    $head = trim(@file_get_contents($gitHead));
+                    if (str_starts_with($head, 'ref: ')) {
+                        $gitBranch = basename($head);
+                    } else {
+                        $gitBranch = substr($head, 0, 7);
+                    }
+                }
+            } catch (\Throwable $e) {
+                $gitBranch = null;
+            }
+            if (!$gitBranch) {
+                $gitBranch = env('GIT_BRANCH') ?: null;
+            }
+        @endphp
+
+        <x-admin-area>
+            @if($gitBranch)
+                <div style="position:fixed;left:12px;bottom:12px;z-index:999999;padding:6px 10px;background:rgba(17,24,39,0.95);color:#aee6ff;border-radius:8px;font-size:12px;font-family:Menlo,monospace;box-shadow:0 6px 20px rgba(2,6,23,0.6);">
+                    git: {{ $gitBranch }}
+                </div>
+            @endif
+        </x-admin-area>
         @yield('scripts')
     </body>
 </html>

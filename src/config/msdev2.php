@@ -1,5 +1,6 @@
 <?php
 return [
+    'debug' => env('MSDEV2_DEBUG', false),
     'force_https' => env('MSDEV2_FORCE_HTTPS', true),
     "shopify_api_key"=>env('SHOPIFY_API_KEY', '63f2fa001dd7228268d7c5f920f9b28b'),
     "shopify_api_secret"=>env('SHOPIFY_API_SECRET', '47f72686a3950d8f9bf307f5eea1f071'),
@@ -21,7 +22,8 @@ return [
     'contact_email'=>env('SHOPIFY_CONTACT_EMAIL',''),
     'proxy_path' => env('SHOPIFY_PROXY_PATH', '/a/styfly'),
     'extension_id' => env('SHOPIFY_EXTENSION_ID', 'Laravel'),
-    'extension_name' => env('SHOPIFY_EXTENSION_APP_NAME', 'Laravel'),
+    'extension_name' => env('SHOPIFY_EXTENSION_NAME', 'Laravel'),
+    'extension_app_name' => env('SHOPIFY_EXTENSION_APP_NAME', 'Laravel'),
     "menu"=>[
         'logo'=>[
             'type'=>'url',//image,url,

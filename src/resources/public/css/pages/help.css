@@ -1,0 +1,203 @@
+/* ==========================================================================
+   Help Page (matches Blade markup)
+   File: public/msdev2/css/help.css
+   ========================================================================== */
+
+/* Variables */
+
+
+/* Reset / base */
+*{box-sizing:border-box}
+body{font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; color:#222; background:var(--bg); -webkit-font-smoothing:antialiased}
+
+/* anchor defaults */
+a{color:var(--primary); text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* --- Page container / alignment --- */
+.toc-block {
+  display:block;
+  max-width: var(--maxwidth);
+  margin: 1.5rem auto 3rem;
+  padding: 0 1rem;
+}
+
+/* Header hero */
+#home header {
+  background: linear-gradient(180deg, rgba(67,70,127,0.06), rgba(67,70,127,0.03));
+  padding: 2.25rem 1rem;
+  text-align: center;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 2rem;
+}
+
+#home header h1{
+  margin:0 0 0.25rem;
+  font-size: 2rem;
+  color: #111;
+  font-weight:700;
+}
+
+#home header h2{
+  margin:0;
+  font-size: 1rem;
+  color: rgba(17,17,17,0.55);
+  font-weight:400;
+}
+
+/* --- Sections / column system (flex fallback) --- */
+.column {
+  display:flex;
+  flex-wrap:wrap;
+  gap: var(--gap);
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+/* .columns modifiers: use .columns.four or .columns.twelve on elements */
+.columns.twelve {
+  flex: 1 1 100%;
+}
+
+.columns.four {
+  flex: 1 1 calc(33.333% - var(--gap));
+  min-width: 260px;
+}
+
+/* For small screens, make all full width */
+@media (max-width: 900px) {
+  .columns.four { flex: 1 1 100%; }
+}
+
+/* --- Card --- */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+  position: relative;
+}
+
+/* A thicker top accent (used previously) */
+#home article .card {
+  border-top: 0.6rem solid var(--accent);
+}
+
+/* Small headings inside cards */
+.card h2, .card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  color:#111;
+  font-weight:600;
+}
+
+/* Paragraphs */
+.card p {
+  margin: 0 0 0.8rem;
+  color:var(--muted);
+  font-size: 0.95rem;
+  line-height:1.5;
+}
+
+/* --- Alert/rate box (wide) --- */
+.alert {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-left: 4px solid rgba(67,70,127,0.08);
+  padding: 1rem;
+  border-radius: 8px;
+  width:100%;
+}
+
+/* dt/dd list in alert */
+.alert dl { margin:0; }
+.alert dt { font-weight:600; margin-bottom:0.35rem; }
+.alert dd { margin:0; color:var(--muted) }
+
+/* --- Buttons --- */
+.button {
+  display: inline-block;
+  padding: 0.5rem 0.9rem;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight:600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+}
+
+.button.secondary {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--border);
+  padding: 0.45rem 0.85rem;
+}
+
+.button.download {
+  background: #16a34a; /* green */
+}
+
+/* Disabled style (for twak button) */
+.button.disabled, .button[disabled], .button.disabled:hover {
+  pointer-events: none;
+  opacity: 0.6;
+  background: #9ea5ac;
+  color:#fff;
+}
+
+/* --- Icon / svg inside card (float right) --- */
+.card svg {
+  width: 48px;
+  height: 48px;
+  float: right;
+  margin-left: 1rem;
+  fill: #919eab;
+}
+
+/* Ensure floats clear on small screens */
+@media (max-width: 600px) {
+  .card svg { float:none; display:block; margin: 0 0 0.75rem; }
+}
+
+/* --- Support Cards Grid (for rows of 3/1) --- */
+.support-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+/* Smaller headings inside grid items */
+.card h5 { margin: 0 0 0.7rem; font-size:1rem; font-weight:700; color:#111; }
+
+/* --- Minor utilities --- */
+.margin-0{ margin:0 !important; }
+.hidden{ display:none !important; }
+
+#liveChat, #liveSupport{ display:inline-block; }
+
+/* --- Accessibility / focus styles --- */
+a:focus, button:focus { outline: 3px solid rgba(67,70,127,0.12); outline-offset: 2px; }
+
+/* --- Final responsive tweaks --- */
+@media (max-width: 480px) {
+  #home header { padding: 1.25rem 0.75rem; }
+  #home header h1 { font-size: 1.4rem; }
+  #home header h2 { font-size: 0.95rem; }
+  .card { padding: 1rem; }
+  .button { padding: 0.45rem 0.75rem; font-size:0.9rem; }
+}
+article {
+    display: flex;
+    gap: 17px;
+}
+.position-relative{ position: relative;}
+#ControlID-55{     
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}

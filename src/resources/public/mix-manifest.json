@@ -1,0 +1,16 @@
+{
+    "/js/app.js": "/js/app.js",
+    "/js/shopify.js": "/js/shopify.js",
+    "/css/app.css": "/css/app.css",
+    "/fonts/SFProDisplay-Bold.woff": "/fonts/SFProDisplay-Bold.woff",
+    "/fonts/SFProDisplay-Bold.woff2": "/fonts/SFProDisplay-Bold.woff2",
+    "/fonts/SFProDisplay-Medium.woff": "/fonts/SFProDisplay-Medium.woff",
+    "/fonts/SFProDisplay-Medium.woff2": "/fonts/SFProDisplay-Medium.woff2",
+    "/fonts/SFProDisplay-Regular.woff": "/fonts/SFProDisplay-Regular.woff",
+    "/fonts/SFProDisplay-Regular.woff2": "/fonts/SFProDisplay-Regular.woff2",
+    "/fonts/stylesheet.css": "/fonts/stylesheet.css",
+    "/images/close.png": "/images/close.png",
+    "/css/pages/help.css": "/css/pages/help.css",
+    "/css/pages/plan.css": "/css/pages/plan.css",
+    "/css/pages/ticket.css": "/css/pages/ticket.css"
+}

@@ -16,10 +16,18 @@ function mShop($shopName = null){
     return Utils::getShop($shopName);
 }
 function mRest($shop = null){
-    return Utils::rest($shop);
+    $client = Utils::rest($shop);
+    if (class_exists(\Msdev2\Shopify\Lib\LoggingHttpClientProxy::class)) {
+        return new \Msdev2\Shopify\Lib\LoggingHttpClientProxy($client, 'rest');
+    }
+    return $client;
 }
 function mGraph($shop = null){
-    return Utils::graph($shop);
+    $client = Utils::graph($shop);
+    if (class_exists(\Msdev2\Shopify\Lib\LoggingHttpClientProxy::class)) {
+        return new \Msdev2\Shopify\Lib\LoggingHttpClientProxy($client, 'graphql');
+    }
+    return $client;
 }
 function mUrltoLinkFromString($string){
     return Utils::makeUrltoLinkFromString($string);
