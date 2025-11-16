@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function(){
                             const el = document.createElement('button');
                             el.type = 'button';
                             el.className = 'list-group-item list-group-item-action';
-                            el.innerHTML = `<div class="d-flex justify-content-between"><div>${(item.name||item.shop)} <a href="${item.shop}" target="_blank">🔗</a> <div class="small text-muted">${item.domain || ''}</div></div><div class="small text-muted">ID ${item.id}</div></div>`;
+                            el.innerHTML = `<div class="d-flex justify-content-between"><div>${(item.name||item.shop)} <a href="https://${item.shop}" target="_blank">🔗</a> <div class="small text-muted">${item.domain || ''}</div></div><div class="small text-muted">ID ${item.id}</div></div>`;
                             el.addEventListener('click', ()=>{
                                 // Fetch inline shop detail and show
                                 fetch(`{{ url('/agent/shops') }}/${item.id}`)

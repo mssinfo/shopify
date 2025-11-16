@@ -6,7 +6,7 @@
             <h2 class="mb-0">Shop Detail</h2>
             <div class="text-danger">Shop not found.</div>
         @else
-            <h2 class="mb-0">Shop Detail: <a href="{{ $shopDetail->shop }}">{{ $shopDetail->shop }}</a></h2>
+            <h2 class="mb-0">Shop Detail: <a target="_blank" href="https://{{ $shopDetail->shop }}">🔗 {{ $shopDetail->shop }}</a></h2>
             <div class="text-muted">Domain: {{ $shopDetail->domain ?? 'N/A' }} &middot; ID: {{ $shopDetail->id }}</div>
         @endif
     </div>
