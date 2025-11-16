@@ -3,6 +3,8 @@
 namespace Msdev2\Shopify;
 
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Msdev2\Shopify\Http\Middleware\Authenticate;
 use Msdev2\Shopify\Http\Middleware\EnsureShopifyInstalled;
@@ -60,6 +62,32 @@ class ShopifyServiceProvider extends ServiceProvider
 
         // Define assets and config for publishing
         $this->definePublishing();
+
+        // Register anonymous Blade components from the package so <x-admin-area> works
+        try {
+            Blade::component('msdev2::components.admin-area', 'admin-area');
+        } catch (\Throwable $e) {
+            // ignore if Blade not available at this point
+        }
+
+        // Check whether package public assets have been published (used to decide route registration)
+        $published = file_exists(public_path('msdev2/js/shopify.js'));
+
+        // If public assets are not published, register a route to serve them from the package folder.
+        if (!$published) {
+            try {
+                Route::get('msdev2/{path}', function ($path) {
+                    $file = __DIR__ . '/resources/public/' . $path;
+                    if (!file_exists($file)) {
+                        abort(404);
+                    }
+                    $mime = mime_content_type($file) ?: 'application/octet-stream';
+                    return response()->file($file, ['Content-Type' => $mime]);
+                })->where('path', '.*')->name('msdev2.assets');
+            } catch (\Throwable $e) {
+                // ignore route registration errors
+            }
+        }
 
         // Initialize the Shopify API Context
         $this->initializeShopifyContext();

@@ -18,7 +18,7 @@
                     version: '{{ config("msdev2.api_version") }}'
                 };
             </script>   
-            <script src="{{ asset('msdev2/shopify.js') }}" ></script>
+            <script src="{{ asset('msdev2/js/shopify.js') }}" ></script>
             <style>
                 ui-nav-menu {
                     display: none;
@@ -71,7 +71,7 @@
             var apiKey = '{{ config("msdev2.shopify_api_key") }}';
         </script>
 
-        <script src="{{ asset('msdev2/app.js') }}"></script>
+        <script src="{{ asset('msdev2/js/app.js') }}"></script>
         @if (config('msdev2.appbridge_enabled'))
             @if (config('msdev2.menu.list'))
             <ui-nav-menu>
