@@ -7,8 +7,9 @@ class LogsController extends BaseController{
 
     private function getLogFileDates()
     {
+        $shop = func_get_args()[0] ?? mShopName();
         $dates = [];
-        $files = glob(storage_path('logs/'.mShopName().'/*.log'));
+        $files = glob(storage_path('logs/'.($shop ?: '').'/*.log'));
         $files = array_reverse($files);
         foreach ($files as $path) {
             $fileName = basename($path);
@@ -20,14 +21,16 @@ class LogsController extends BaseController{
 
     public function index(Request $request)
     {
-        $availableDates = $this->getLogFileDates();
+        // Allow selecting a shop via query param (falls back to current shop context)
+        $selectedShop = $request->query('shop', mShopName());
+        $availableDates = $this->getLogFileDates($selectedShop);
 
         // Accept query params for date, search query and level
         $selectedDate = $request->query('date', $availableDates[0] ?? null);
         $q = $request->query('q', null);
         $level = $request->query('level', null);
 
-        $logs = $this->getLogs($availableDates, $selectedDate);
+        $logs = $this->getLogs($availableDates, $selectedDate, $selectedShop);
 
         // If search or level provided, filter logs server-side for performance on large files
         if ($q) {
@@ -49,6 +52,8 @@ class LogsController extends BaseController{
             'label'=>['INFO', 'EMERGENCY', 'CRITICAL', 'ALERT', 'ERROR', 'WARNING', 'NOTICE', 'DEBUG'],
             'available_log_dates' => $availableDates,
             'selected_date' => $selectedDate,
+            'selected_shop' => $selectedShop,
+            'shops' => \Msdev2\Shopify\Models\Shop::select('id','shop')->orderBy('shop')->get()->map(function($s){ return ['id'=>$s->id,'shop'=>$s->shop]; }),
             'logs' => array_values($logs),
             'query' => $q,
             'level' => $level,
@@ -60,12 +65,13 @@ class LogsController extends BaseController{
      */
     public function download(Request $request)
     {
-        $availableDates = $this->getLogFileDates();
+        $selectedShop = $request->query('shop', mShopName());
+        $availableDates = $this->getLogFileDates($selectedShop);
         $date = $request->query('date', $availableDates[0] ?? null);
         if (!$date) {
             return redirect()->route('msdev2.agent.logs')->withErrors(['log' => 'No log file available']);
         }
-        $path = storage_path('logs/' . mShopName() . '/' . $date);
+        $path = storage_path('logs/' . ($selectedShop ?: '') . '/' . $date);
         if (!file_exists($path)) {
             return redirect()->route('msdev2.agent.logs')->withErrors(['log' => 'Log file not found']);
         }
@@ -77,18 +83,19 @@ class LogsController extends BaseController{
      */
     public function clear(Request $request)
     {
-        $availableDates = $this->getLogFileDates();
+        $selectedShop = $request->input('shop', mShopName());
+        $availableDates = $this->getLogFileDates($selectedShop);
         $date = $request->input('date', $availableDates[0] ?? null);
         if (!$date || !in_array($date, $availableDates)) {
             return redirect()->route('msdev2.agent.logs')->withErrors(['log' => 'Invalid log file selected']);
         }
-        $path = storage_path('logs/' . mShopName() . '/' . $date);
+        $path = storage_path('logs/' . ($selectedShop ?: '') . '/' . $date);
         if (!file_exists($path)) {
             return redirect()->route('msdev2.agent.logs')->withErrors(['log' => 'Log file not found']);
         }
         // Truncate file
         file_put_contents($path, '');
-        return redirect()->route('msdev2.agent.logs', ['date' => $date])->with('success', 'Log file cleared');
+        return redirect()->route('msdev2.agent.logs', ['date' => $date, 'shop' => $selectedShop])->with('success', 'Log file cleared');
     }
 
     /**
@@ -96,19 +103,20 @@ class LogsController extends BaseController{
      */
     public function delete(Request $request)
     {
-        $availableDates = $this->getLogFileDates();
+        $selectedShop = $request->input('shop', mShopName());
+        $availableDates = $this->getLogFileDates($selectedShop);
         $date = $request->input('date', $availableDates[0] ?? null);
         if (!$date || !in_array($date, $availableDates)) {
             return redirect()->route('msdev2.agent.logs')->withErrors(['log' => 'Invalid log file selected']);
         }
-        $path = storage_path('logs/' . mShopName() . '/' . $date);
+        $path = storage_path('logs/' . ($selectedShop ?: '') . '/' . $date);
         if (!file_exists($path)) {
             return redirect()->route('msdev2.agent.logs')->withErrors(['log' => 'Log file not found']);
         }
         unlink($path);
-        return redirect()->route('msdev2.agent.logs')->with('success', 'Log file deleted');
+        return redirect()->route('msdev2.agent.logs', ['shop' => $selectedShop])->with('success', 'Log file deleted');
     }
-    private function getLogs($availableDates, $configDate = null)
+    private function getLogs($availableDates, $configDate = null, $shop = null)
     {
         if (count($availableDates) == 0) {
             return [];
@@ -122,10 +130,15 @@ class LogsController extends BaseController{
         }
 
 
-        $pattern = "/^\[(?<date>.*)\]\s(?<env>\w+)\.(?<type>\w+):(?<message>.*)/m";
+        $pattern = "/^\[(?<date>[^\]]+)\]\s(?<env>[^.]+)\.(?<type>\w+):(?<message>.*)/m";
 
         $fileName =  $configDate;
-        $content = file_get_contents(storage_path('logs/' . mShopName() .'/'. $fileName));
+        $pathShop = $shop ?: mShopName();
+        $content = '';
+        $filePath = storage_path('logs/' . ($pathShop ?: '') .'/'. $fileName);
+        if (file_exists($filePath)) {
+            $content = file_get_contents($filePath);
+        }
         preg_match_all($pattern, $content, $matches, PREG_SET_ORDER, 0);
 
         $logs = [];

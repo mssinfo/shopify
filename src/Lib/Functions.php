@@ -17,17 +17,11 @@ function mShop($shopName = null){
 }
 function mRest($shop = null){
     $client = Utils::rest($shop);
-    if (class_exists(\Msdev2\Shopify\Lib\LoggingHttpClientProxy::class)) {
-        return new \Msdev2\Shopify\Lib\LoggingHttpClientProxy($client, 'rest');
-    }
-    return $client;
+    return new \Msdev2\Shopify\Lib\LoggingHttpClientProxy($client, 'rest');
 }
 function mGraph($shop = null){
     $client = Utils::graph($shop);
-    if (class_exists(\Msdev2\Shopify\Lib\LoggingHttpClientProxy::class)) {
-        return new \Msdev2\Shopify\Lib\LoggingHttpClientProxy($client, 'graphql');
-    }
-    return $client;
+    return new \Msdev2\Shopify\Lib\LoggingHttpClientProxy($client, 'graphql');
 }
 function mUrltoLinkFromString($string){
     return Utils::makeUrltoLinkFromString($string);

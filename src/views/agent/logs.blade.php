@@ -11,10 +11,19 @@
         <div class="top_content_left">
             <div>
                 <strong style="padding-top: 7px;display: inline-block;"> <span >Showing Log</span></strong>
+                @if(!empty($data['selected_shop']))
+                    <div style="display:inline-block;margin-left:10px;color:#555">for <strong>{{ $data['selected_shop'] }}</strong></div>
+                @endif
             </div>
             <div class="log_filter" >
                 <form method="get" class="d-flex" id="logFilterForm">
                     <input type="text" name="q" id="myInput" value="{{ $data['query'] ?? '' }}" placeholder="Search in message, env or timestamp..." class="form-control form-control-sm me-2">
+                        <select name="shop" class="form-control form-control-sm me-2">
+                            <option value="">Current shop</option>
+                            @foreach($data['shops'] as $s)
+                                <option value="{{ $s['shop'] }}" {{ (isset($data['selected_shop']) && $data['selected_shop']==$s['shop']) ? 'selected' : '' }}>{{ $s['shop'] }}</option>
+                            @endforeach
+                        </select>
                     <select name="level" class="form-control form-control-sm me-2">
                         <option value="">All levels</option>
                         @foreach ($data["label"] as $label)
@@ -43,15 +52,17 @@
                         <option  value="{{ $availableDate }}" {{ (isset($data['selected_date']) && $data['selected_date']==$availableDate) ? 'selected' : '' }}>{{ $availableDate }}</option>
                     @endforeach
                 </select>
-                <a class="btn btn-sm btn-outline-success ms-2" href="{{ route('msdev2.agent.logs.download', ['date' => $data['selected_date'] ?? $data['available_log_dates'][0] ?? '']) }}">Download</a>
+                <a class="btn btn-sm btn-outline-success ms-2" href="{{ route('msdev2.agent.logs.download', array_filter(['date' => $data['selected_date'] ?? $data['available_log_dates'][0] ?? '', 'shop' => $data['selected_shop'] ?? null])) }}">Download</a>
                 <form method="post" action="{{ route('msdev2.agent.logs.clear') }}" class="d-inline ms-2">
                     @csrf
                     <input type="hidden" name="date" value="{{ $data['selected_date'] ?? $data['available_log_dates'][0] ?? '' }}">
+                    <input type="hidden" name="shop" value="{{ $data['selected_shop'] ?? '' }}">
                     <button class="btn btn-sm btn-outline-warning" type="submit" onclick="return confirm('Clear contents of this log file? This cannot be undone.')">Clear</button>
                 </form>
                 <form method="post" action="{{ route('msdev2.agent.logs.delete') }}" class="d-inline ms-2">
                     @csrf
                     <input type="hidden" name="date" value="{{ $data['selected_date'] ?? $data['available_log_dates'][0] ?? '' }}">
+                    <input type="hidden" name="shop" value="{{ $data['selected_shop'] ?? '' }}">
                     <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Delete this log file? This cannot be undone.')">Delete</button>
                 </form>
                 <input type="hidden" name="date" />
