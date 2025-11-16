@@ -117,9 +117,9 @@
 
             // custom fields
             shop: "https://{{ $shop->detail['myshopify_domain'] }}",
-            // plan_name: "{{ $shop->activeCharge->name }}",
+            // plan_name: "{{ $shop->activeCharge->name ?? 'FREE' }}",
             // plan_display_name: "{{ $shop->detail['plan_display_name'] }}",
-            app: "{{ config('app.name') }} | {{ $shop->activeCharge->name ?? '' }}",
+            app: "{{ config('app.name') }} | {{ $shop->activeCharge->name ?? 'FREE' }}",
             referrer: document.title
         };
 
@@ -130,7 +130,7 @@
             "👤 Owner: {{ $shop->detail['shop_owner'] }}\n" +
             "📧 Email: {{ $shop->detail['email'] }}\n" +
             "📱 Phone: {{ $shop->detail['phone'] ?? 'N/A' }}\n" +
-            "🏷️ Charge Name: {{ $shop->activeCharge->name }}\n" +
+            "🏷️ Charge Name: {{ $shop->activeCharge->name ?? 'FREE' }}\n" +
             "🏷️ Plan: {{ $shop->detail['plan_display_name'] }} ({{ $shop->detail['plan_name'] }})\n" +
             "🏪 Store Name: {{ $shop->detail['name'] }}\n" +
             "📍 Referrer: " + (document.referrer || 'Direct');
