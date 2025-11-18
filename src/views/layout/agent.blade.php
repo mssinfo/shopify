@@ -5,32 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{ config('app.name') }} |  Agent </title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">  
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script> 
-
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous"> 
+<link rel="stylesheet" href="{{ asset('msdev2/css/agent.css') }}">
 @yield('styles')
-    <style>
-      /* Polished styles for Agent UI */
-      body.layout-agent, body { background: linear-gradient(180deg,#f3f6fb 0%, #ffffff 100%); }
-
-      .navbar-brand.d-none { display: inline-block !important; }
-
-      /* Cards */
-      .card.h-100 { border-radius: .8rem; box-shadow: 0 6px 18px rgba(17,24,39,0.06); }
-      .card .text-lg { font-size: 1.35rem; }
-
-  /* Suggestions & details */
-  #agent-shop-suggestions { max-height: 260px; overflow:auto; position: absolute; width:100%; top:100%; left:0; z-index:1200; }
-  .agent-search-wrapper{ position: relative; }
-      #agent-shop-detail pre { white-space: pre-wrap; word-break: break-word; }
-
-      /* Responsive tweaks */
-      @media (max-width: 576px) { .card .text-lg { font-size: 1rem; } }
-
-      /* Dashboard layout */
-      .dashboard-top { gap: 1rem; display: flex; flex-wrap: wrap; }
-      .metric-icon { opacity: .65; }
-    </style>
 </head>
 <body class="d-flex flex-column h-100">
     @guest
@@ -87,7 +64,22 @@
         <span class="text-muted">Place sticky footer content here.</span>
       </div>
     </footer>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script> 
+    <script>
+      window.AgentConfig = {
+        urls: {
+          shopsSearch: "{{ url('/agent/shops/search') }}",
+          shopsBase: "{{ url('/agent/shops') }}",
+          shopsStats: "{{ url('/agent/shops/stats') }}",
+          shopsRecent: "{{ url('/agent/shops/recent') }}",
+          shopsLatestInstalls: "{{ url('/agent/shops/latest/installs') }}",
+          shopsLatestUninstalls: "{{ url('/agent/shops/latest/uninstalls') }}",
+          ticketsRoute: "{{ route('msdev2.agent.tickets') }}",
+          shopsRoute: "{{ route('msdev2.agent.shops') }}"
+        }
+      };
+    </script>
+    <script src="{{ asset('msdev2/js/agent.js') }}"></script>
     @yield('scripts')
 </body>
 </html>

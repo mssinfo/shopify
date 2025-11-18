@@ -5,6 +5,10 @@ setup basic shopify app like install and all
 
 `php artisan vendor:publish --provider="Msdev2\Shopify\ShopifyServiceProvider"`
 
+only public file
+`php artisan vendor:publish --provider="Msdev2\Shopify\ShopifyServiceProvider" --tag="public" --force`
+
+
 - update menu items
 - update plan
 - update billing

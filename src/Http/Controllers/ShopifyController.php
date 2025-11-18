@@ -118,7 +118,11 @@ class ShopifyController extends BaseController
 
         // --- Start of REST implementation ---
         $response = ShopifyUtils::rest()->get('shop');
-        $shop->detail = $response->getDecodedBody()['shop'];
+        $data = $response->getDecodedBody();
+        if (!isset($data['shop'])) {
+            Log::error("Failed to fetch shop details during install", ['response' => $response->getBody(),'data' => $data]);
+            $shop->detail = $data['shop'];
+        }
         $shop->save();
 
         $classWebhook = "\\App\\Webhook\\Handlers\\AppInstalled";
@@ -189,10 +193,10 @@ class ShopifyController extends BaseController
         try {
             $response = Registry::process($rawHeaders, $request->getContent());
             if ($response->isSuccess()) {
-                return mSuccessResponse("Responded to webhook!", [$response]);
+                return mSuccessResponse([$response],"Responded to webhook!");
             } else {
                 mLog("Webhook handler failed with message: " . $response->getErrorMessage(), [], 'error');
-                return mErrorResponse("Webhook handler failed with message: " . $response->getErrorMessage());
+                return mErrorResponse([],"Webhook handler failed with message: " . $response->getErrorMessage());
             }
         } catch (\Exception $error) {
             try {

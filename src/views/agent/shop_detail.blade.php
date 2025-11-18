@@ -132,8 +132,15 @@
         <div class="card mb-3">
             <div class="card-header">Quick Info</div>
             <div class="card-body small">
-                <p><strong>Session ID:</strong> {{ $shopDetail->session_id ?? 'N/A' }}</p>
-                <p><strong>Access Token:</strong> {{ isset($shopDetail->access_token) ? 'Stored' : 'Not stored' }}</p>
+                    <p><strong>Session ID:</strong> {{ $shopDetail->session_id ?? 'N/A' }} @if(!empty($shopDetail->session_id)) <button class="btn btn-sm btn-outline-secondary ms-2 copy-field" data-value="{{ e($shopDetail->session_id) }}">Copy</button>@endif</p>
+                    <p><strong>Access Token:</strong>
+                        @if(isset($shopDetail->access_token) && $shopDetail->access_token)
+                            <span>Stored</span>
+                            <button class="btn btn-sm btn-outline-secondary ms-2 copy-field" data-value="{{ e($shopDetail->access_token) }}">Copy Token</button>
+                        @else
+                            <span>Not stored</span>
+                        @endif
+                    </p>
             </div>
         </div>
     </div>

@@ -30,7 +30,7 @@
         @if (config('msdev2.enable_polaris')) 
         <script src="https://cdn.shopify.com/shopifycloud/polaris.js"></script>
         @endif
-        <link rel="stylesheet" href="{{ asset('msdev2/css/app.css') }}?v=1.5">
+        <link rel="stylesheet" href="{{ asset('msdev2/css/app.css') }}">
         @php
         $cssFile = null;
         // Prefer a Blade section 'css' so child views can set it using @section('css','name')

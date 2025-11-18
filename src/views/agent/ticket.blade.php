@@ -22,7 +22,9 @@
                     <td>{{ $ticket->category }}</td>
                     <td>{{ $ticket->created_at }}</td>
                     <td>
-                        <a class="btn btn-info" href="{{route('msdev2.agent.ticket.resolve',['id'=>$ticket->id])}}">Resolved</a>
+                        <div class="d-flex gap-1 justify-content-end">
+                            <button class="btn btn-sm btn-outline-secondary toggle-ticket-details" data-ticket-id="{{ $ticket->id }}">Toggle</button>
+                            <a class="btn btn-info" href="{{route('msdev2.agent.ticket.resolve',['id'=>$ticket->id])}}">Resolved</a>
                         @if ($ticket->files != "")
                             <a href="{{asset("storage".$ticket->files)}}" download target="_blank"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
                                 <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
@@ -50,11 +52,4 @@
 <br>
 <br>
 <br>
-@endsection
-@section('styles')
-    <style>
-    svg.w-5.h-5 {
-        width: 26px;
-    }
-    </style>
 @endsection

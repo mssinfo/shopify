@@ -18,7 +18,7 @@ Route::get('auth/callback', [ShopifyController::class,'generateToken'])->name("m
 Route::post('plan/subscribe',[PlanController::class,'planSubscribe'])->name('msdev2.shopify.plan.subscribe');
 Route::get('plan/approve',[PlanController::class,'planAccept'])->name('msdev2.shopify.plan.approve');
 
-Route::middleware(['msdev2.shopify.verify','web','msdev2.load.shop'])->group(function(){
+Route::middleware(['msdev2.shopify.verify','msdev2.load.shop'])->group(function(){
     Route::get('plan',[PlanController::class,'plan'])->name("msdev2.shopify.plan.index");
     Route::get('help',[ShopifyController::class,'help'])->name("msdev2.shopify.help");
     Route::get('ticket',[TicketController::class,'index'])->name("msdev2.shopify.ticket");

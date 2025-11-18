@@ -7,6 +7,52 @@
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
+    @php
+        $logsArr = $data['logs'] ?? [];
+        $totalLogs = is_countable($logsArr) ? count($logsArr) : 0;
+        $errorsCount = 0; $warningsCount = 0; $infoCount = 0;
+        foreach($logsArr as $ll){
+            $t = strtolower($ll['type'] ?? ($ll->type ?? ''));
+            if(str_contains($t,'error') || str_contains($t,'exception')) $errorsCount++;
+            elseif(str_contains($t,'warn')) $warningsCount++;
+            else $infoCount++;
+        }
+    @endphp
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="small text-muted">Total Logs</div>
+                    <div class="fw-bold">{{ $totalLogs }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="small text-muted">Errors</div>
+                    <div class="fw-bold text-danger">{{ $errorsCount }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="small text-muted">Warnings</div>
+                    <div class="fw-bold text-warning">{{ $warningsCount }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="small text-muted">Info / Other</div>
+                    <div class="fw-bold">{{ $infoCount }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="top_content">
         <div class="top_content_left">
             <div>
@@ -15,23 +61,34 @@
                     <div style="display:inline-block;margin-left:10px;color:#555">for <strong>{{ $data['selected_shop'] }}</strong></div>
                 @endif
             </div>
-            <div class="log_filter" >
-                <form method="get" class="d-flex" id="logFilterForm">
-                    <input type="text" name="q" id="myInput" value="{{ $data['query'] ?? '' }}" placeholder="Search in message, env or timestamp..." class="form-control form-control-sm me-2">
-                        <select name="shop" class="form-control form-control-sm me-2">
-                            <option value="">Current shop</option>
+            <div class="log_filter w-100">
+                <form method="get" class="row g-2 align-items-center" id="logFilterForm">
+                    <div class="col-md-4">
+                        <input type="text" name="q" id="myInput" value="{{ $data['query'] ?? '' }}" placeholder="Search message, env or timestamp..." class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="shop" class="form-control form-control-sm">
+                            <option value="">All shops</option>
                             @foreach($data['shops'] as $s)
                                 <option value="{{ $s['shop'] }}" {{ (isset($data['selected_shop']) && $data['selected_shop']==$s['shop']) ? 'selected' : '' }}>{{ $s['shop'] }}</option>
                             @endforeach
                         </select>
-                    <select name="level" class="form-control form-control-sm me-2">
-                        <option value="">All levels</option>
-                        @foreach ($data["label"] as $label)
-                            <option value="{{ $label }}" {{ (isset($data['level']) && $data['level']==$label) ? 'selected' : '' }}>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    <button class="btn btn-sm btn-primary me-2" type="submit">Filter</button>
-                    <a class="btn btn-sm btn-outline-secondary" href="{{ route('msdev2.agent.logs') }}">Reset</a>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="level" class="form-control form-control-sm">
+                            <option value="">All levels</option>
+                            @foreach ($data["label"] as $label)
+                                <option value="{{ $label }}" {{ (isset($data['level']) && $data['level']==$label) ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" name="path" value="{{ request('path','') }}" placeholder="Filter by path" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-2 d-flex justify-content-end">
+                        <button class="btn btn-sm btn-primary me-2" type="submit">Filter</button>
+                        <a class="btn btn-sm btn-outline-secondary me-2" href="{{ route('msdev2.agent.logs') }}">Reset</a>
+                    </div>
                 </form>
             </div>
         </div>
@@ -52,7 +109,7 @@
                         <option  value="{{ $availableDate }}" {{ (isset($data['selected_date']) && $data['selected_date']==$availableDate) ? 'selected' : '' }}>{{ $availableDate }}</option>
                     @endforeach
                 </select>
-                <a class="btn btn-sm btn-outline-success ms-2" href="{{ route('msdev2.agent.logs.download', array_filter(['date' => $data['selected_date'] ?? $data['available_log_dates'][0] ?? '', 'shop' => $data['selected_shop'] ?? null])) }}">Download</a>
+                <a class="btn btn-sm btn-success ms-2" href="{{ route('msdev2.agent.logs.download', array_filter(['date' => $data['selected_date'] ?? $data['available_log_dates'][0] ?? '', 'shop' => $data['selected_shop'] ?? null])) }}">Export CSV</a>
                 <form method="post" action="{{ route('msdev2.agent.logs.clear') }}" class="d-inline ms-2">
                     @csrf
                     <input type="hidden" name="date" value="{{ $data['selected_date'] ?? $data['available_log_dates'][0] ?? '' }}">
@@ -65,294 +122,56 @@
                     <input type="hidden" name="shop" value="{{ $data['selected_shop'] ?? '' }}">
                     <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Delete this log file? This cannot be undone.')">Delete</button>
                 </form>
+                <form method="post" action="{{ route('msdev2.agent.logs.delete') }}" class="d-inline ms-2">
+                    @csrf
+                    <input type="hidden" name="all" value="1">
+                    <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Delete ALL logs? This cannot be undone.')">Delete All</button>
+                </form>
                 <input type="hidden" name="date" />
             </p>
         </div>
     </div>
 
     <div>
-        <div class="responsive_table">
-            <table id="myTable">
-                <thead>
-                <tr>
-                    <td width="140">Timestamp</td>
-                    <td width="120">Env</td>
-                    <td width="120">Type</td>
-                    <td>Message</td>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach ($data["logs"] as $log)
-                <tr class="{{ strtolower($log["type"]) }}">
-                    <td>{{ $log["timestamp"] }}</td>
-                    <td>{{$log["env"]}}</td>
-                    <td><span class="badge {{ strtolower($log["type"]) }}">{{ $log["type"] }}</span></td>
-                    <td class="no-wrap"><div class="show_more">{{ $log["message"] }}</div></td>
-                </tr>
-                @endforeach
-                </tbody>
-            </table>
+        <div class="log-list">
+            @foreach ($data["logs"] as $log)
+                @php
+                    $ts = $log["timestamp"] ?? null;
+                    try { $dt = \Carbon\Carbon::parse($ts); } catch (\Exception $e) { $dt = null; }
+                    $date = $dt ? $dt->format('Y-m-d') : ($ts ?: '');
+                    $time = $dt ? $dt->format('H:i:s') : '';
+                    $type = strtolower($log['type'] ?? 'info');
+                @endphp
+                <div class="log-item mb-2">
+                    <div class="log-left">
+                        <div class="ts-date">{{ $date }}</div>
+                        <div class="ts-time">{{ $time }}</div>
+                        <div class="text-muted small mt-2">{{ $log['env'] ?? '' }}</div>
+                    </div>
+                    <div class="log-main">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="log-message">
+                                {!! nl2br(e(
+                                    strlen($log['message'] ?? '') > 500 ? substr($log['message'],0,500).'...' : ($log['message'] ?? '')
+                                )) !!}
+                            </div>
+                            <div>
+                                <span class="badge {{ $type }}">{{ strtoupper($log['type'] ?? 'INFO') }}</span>
+                            </div>
+                        </div>
+                        @if(!empty($log['context']) || !empty($log['path']))
+                            <div class="log-meta">
+                                @if(!empty($log['path'])) <div>Path: {{ $log['path'] }}</div> @endif
+                                @if(!empty($log['context'])) <div>Context: <small class="text-muted">{{ is_string($log['context'])? $log['context'] : json_encode($log['context']) }}</small></div> @endif
+                            </div>
+                        @endif
+                    </div>
+                    <div class="log-copy">
+                        <button class="btn btn-outline-secondary copy-log" data-message="{{ e($log['message']) }}" title="Copy message">Copy</button>
+                    </div>
+                </div>
+            @endforeach
         </div>
     </div>
-</section>
-@endsection
-@section('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-    // Expand/collapse long messages
-    const boxes = document.querySelectorAll('.show_more');
-    boxes.forEach(box => box.addEventListener('click', ()=> box.classList.toggle('no-max-height')));
-
-    // Client-side quick filter while typing (non-destructive)
-    const input = document.getElementById('myInput');
-    const table = document.getElementById('myTable');
-    if(input){
-        input.addEventListener('input', function(){
-            const filter = input.value.trim().toLowerCase();
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(r => {
-                const text = r.textContent.toLowerCase();
-                r.style.display = (filter === '' || text.indexOf(filter) !== -1) ? '' : 'none';
-            });
-        });
-    }
-
-    // If there is a selected level from server, reflect it
-    const level = '{{ $data['level'] ?? '' }}';
-    if(level){
-        const sel = document.querySelector('.label_selector');
-        if(sel) sel.value = level;
-    }
-});
-</script>
-@endsection
-@section('styles')
-<style>
-    .show_more {
-        max-height: 32px;
-        overflow: hidden;
-        cursor: pointer;
-    }
-    .no-max-height{
-        max-height: initial;
-    }
-    body {
-        margin: 0;
-        padding: 0;
-        background: #f4f4f4;
-        font-family: sans-serif;
-    }
-    .no-wrap{
-        word-break: break-word;
-    }
-    p.dt_box {
-        display: inline-block;
-    }
-    .btn {
-        text-decoration: none;
-        background: antiquewhite;
-        padding: 5px 12px;
-        border-radius: 25px;
-    }
-
-    .content {
-        display: block;
-        margin-top: 65px;
-        padding: 15px;
-        background: #fff;
-        min-height: 100px;
-    }
-
-    .content .date_selector,.content .label_selector {
-        min-height: 26px;
-        min-width: 130px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
-
-    .top_content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .top_content .top_content_left {
-        display: flex;
-    }
-
-    .top_content .top_content_left .log_filter {
-        display: flex;
-        align-items: center;
-        margin-left: 15px;
-    }
-
-    .top_content .top_content_left .log_filter .log_type_item {
-        margin-right: 4px;
-        background: #eae9e9;
-        max-height: 20px;
-        font-size: 11px;
-        box-sizing: border-box;
-        padding: 4px 6px;
-        cursor: pointer;
-    }
-
-    .top_content .top_content_left .log_filter .log_type_item.active {
-        background: #2f2e2f;
-        color: white;
-    }
-
-    .top_content .top_content_left .log_filter .log_type_item.clear {
-        background: #607D8B;
-        color: white;
-    }
-
-    table {
-        border: 1px solid #ccc;
-        border-collapse: collapse;
-        margin: 0;
-        padding: 0;
-        width: 100%;
-    }
-
-    table tr {
-        border: 1px solid #e8e8e8;
-        padding: 5px;
-    }
-    table tr:hover {
-        background: #f4f4f4;
-    }
-    thead tr td {
-        background: #717171;
-        color: #fff;
-    }
-
-    table th,
-    table td {
-        padding: 5px;
-        font-size: 14px;
-        color: #666;
-    }
-
-    table th {
-        font-size: 14px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }
-
-    @media screen and (max-width: 700px) {
-        .top_content {
-            flex-direction: column;
-        }
-
-        .top_content .top_content_left {
-            flex-direction: column;
-        }
-
-        .top_content .log_filter {
-            flex-wrap: wrap;
-        }
-
-        .top_content .log_filter .log_type_item {
-            margin-bottom: 3px;
-        }
-    }
-
-    @media screen and (max-width: 600px) {
-
-        .content {
-            margin-top: 90px;
-        }
-
-        .btn {
-            font-size: 13px;
-        }
-
-        .dt_box,
-        .selected_date {
-            text-align: center;
-        }
-
-        .responsive_table {
-            max-width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            border: 0;
-        }
-
-        table thead {
-            display: none;
-        }
-
-        table tr {
-            border-bottom: 2px solid #ddd;
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        table td {
-            border-bottom: 1px dotted #ccc;
-            display: block;
-            font-size: 15px;
-        }
-
-        table td:last-child {
-            border-bottom: 0;
-        }
-
-        table td:before {
-            content: attr(data-label);
-            float: left;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-    }
-
-    .badge {
-        padding: 2px 8px;
-        -webkit-border-radius: 25px;
-        -moz-border-radius: 25px;
-        border-radius: 25px;
-        font-size: 11px;
-    }
-
-    .badge.info {
-        background: #6bb5b5;
-        color: #fff;
-    }
-
-    .badge.warning {
-        background: #f7be57;
-    }
-
-    .badge.critical {
-        background: #de4f4f;
-        color: #fff;
-    }
-
-    .badge.emergency {
-        background: #ff6060;
-        color: white;
-    }
-
-    .badge.notice {
-        background: bisque;
-    }
-
-    .badge.debug {
-        background: #8e8c8c;
-        color: white;
-    }
-
-    .badge.alert {
-        background: #4ba4ea;
-        color: white;
-    }
-
-    .badge.error {
-        background: #c36a6a;
-        color: white;
-    }
-</style>
+    </section>
 @endsection

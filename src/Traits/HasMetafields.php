@@ -150,7 +150,7 @@ trait HasMetafields
     private static function refreshAppInstallationId($shop): void
     {
         // "Delete metafield _current_app_installation_id"
-        $shop->meta()->where('key', '_current_app_installation_id')->delete();
+        $shop->deleteMeta('_current_app_installation_id');
 
         // If your model uses relationship caching, clear it to force a fresh DB query.
         if (method_exists($shop, 'unsetRelation')) {

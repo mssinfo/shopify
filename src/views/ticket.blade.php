@@ -8,6 +8,7 @@
 <section>
 <article>
     <form method="post" class="card columns " id="TicketForm">
+        @csrf
         <div class="row">
             <label for="email">Email*</label>
             <input type="email" name="email" id="email" value="{{$shop->detail['email']}}" />
@@ -68,6 +69,7 @@
             </select>
         </div>
         <div class="row" id="statusTicket"></div>
+        <input hidden type="hidden" name="shop" value="{{ $shop->shop }}" />
         <button type="submit" id="ticketSubmit">Submit</button>
         <button class="secondary" id="ticketReset" type="reset">Reset</button>
     </form>    
