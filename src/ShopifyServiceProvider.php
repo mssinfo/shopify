@@ -77,7 +77,7 @@ class ShopifyServiceProvider extends ServiceProvider
         if (!$published) {
             try {
                 Route::get('msdev2/{path}', function ($path) {
-                    $file = __DIR__ . '/resources/public/' . $path;
+                    $file = __DIR__ . '/../public/' . $path;
                     if (!file_exists($file)) {
                         abort(404);
                     }
@@ -144,7 +144,7 @@ class ShopifyServiceProvider extends ServiceProvider
 
         // Publish public assets
         $this->publishes([
-            __DIR__.'/resources/public' => public_path('msdev2'),
+            __DIR__.'/../public' => public_path('msdev2'),
         ], 'public');
     }
 

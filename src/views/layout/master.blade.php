@@ -111,69 +111,48 @@
 
         // ✅ visitor data that MUST be stored inside Tawk
         const __tawkVisitorAttributes = {
-            name: "{{ $shop->detail['name'] }} - {{ $shop->detail['shop_owner'] }}",                // ✅ shows as visitor name (notification)
-            email: "{{ $shop->detail['email'] }}",
-            phone: "{{ $shop->detail['phone'] }}",
+            name: "{{ $shop->activeCharge->name ?? 'FREE' }} | {{ $shop->detail['name'] ?? '' }} - {{ $shop->detail['shop_owner'] ?? '' }}",                // ✅ shows as visitor name (notification)
+            email: "{{ $shop->detail['email'] ?? '' }}",
 
             // custom fields
-            shop: "https://{{ $shop->detail['myshopify_domain'] }}",
+            shop: "https://{{ $shop->detail['myshopify_domain'] ?? '' }}",
             // plan_name: "{{ $shop->activeCharge->name ?? 'FREE' }}",
-            // plan_display_name: "{{ $shop->detail['plan_display_name'] }}",
-            app: "{{ config('app.name') }} | {{ $shop->activeCharge->name ?? 'FREE' }}",
-            referrer: document.title
+            // plan_display_name: "{{ $shop->detail['plan_display_name'] ?? '' }}",
+            app: "{{ config('app.name') }}",
+            referrer: "{{ $shop->detail['plan_display_name'] ?? '' }}",
         };
+        @if ($shop->detail['phone'] != "")
+            __tawkVisitorAttributes.phone = "{{ $shop->detail['phone'] ?? '' }}";
+        @endif
 
         // message for agents
         const userDetailsMessage =
-            "🛍️ Shop: {{ $shop->detail['myshopify_domain'] }}\n" +
-            "👤 Name: {{ $shop->detail['name'] }}\n" +
-            "👤 Owner: {{ $shop->detail['shop_owner'] }}\n" +
-            "📧 Email: {{ $shop->detail['email'] }}\n" +
+            "🛍️ Shop: {{ $shop->detail['myshopify_domain'] ?? '' }}\n" +
+            "👤 Name: {{ $shop->detail['name'] ?? '' }}\n" +
+            "👤 Owner: {{ $shop->detail['shop_owner'] ?? '' }}\n" +
+            "📧 Email: {{ $shop->detail['email'] ?? '' }}\n" +
             "📱 Phone: {{ $shop->detail['phone'] ?? 'N/A' }}\n" +
             "🏷️ Charge Name: {{ $shop->activeCharge->name ?? 'FREE' }}\n" +
-            "🏷️ Plan: {{ $shop->detail['plan_display_name'] }} ({{ $shop->detail['plan_name'] }})\n" +
-            "🏪 Store Name: {{ $shop->detail['name'] }}\n" +
-            "📍 Referrer: " + (document.referrer || 'Direct');
+            "🏷️ Plan: {{ $shop->detail['plan_display_name'] ?? '' }} ({{ $shop->detail['plan_name'] ?? '' }})\n" +
+            "🏪 Store Name: {{ $shop->detail['name'] ?? '' }}\n" +
+            "📍 Referrer: " + (document.title || 'Direct');
 
         // ✅ Safe loader – retries until Tawk API becomes available
         function __tawkApplyVisitor() {
             if (!window.Tawk_API || !window.Tawk_API.setAttributes) {
                 console.warn("Tawk not ready yet… retrying");
-                return setTimeout(__tawkApplyVisitor, 500);
+                return setTimeout(__tawkApplyVisitor, 3000);
             }
-
-            // If the widget isn't online yet, wait and retry. This prevents
-            // calls that rely on the Tawk socket server acknowledgement
-            // (which can throw "Socket server did not execute the callback").
-            try {
-                var status = (typeof window.Tawk_API.getStatus === 'function') ? window.Tawk_API.getStatus() : null;
-                if (status !== 'online') {
-                    console.warn('Tawk not online (status=' + status + ')… retrying');
-                    return setTimeout(__tawkApplyVisitor, 1000);
-                }
-            } catch(e) {
-                console.warn('Error checking Tawk status, will retry', e);
-                return setTimeout(__tawkApplyVisitor, 1000);
-            }
-
-            // ✅ This sets the REAL visitor identity (name, email, phone)
-            try {
-                window.Tawk_API.setAttributes(__tawkVisitorAttributes, function(err){
-                    if (err) console.error("Tawk setAttributes error:", err);
-                });
-            } catch(e) {
-                console.warn('Tawk.setAttributes threw an error, will retry', e);
-                return setTimeout(__tawkApplyVisitor, 1000);
-            }
+            window.Tawk_API.setAttributes(__tawkVisitorAttributes, function(err){
+                console.error("Tawk setAttributes error", err);
+            });
 
             // ✅ Event for agents
             try {
-                window.Tawk_API.addEvent('User Visited', {
+                window.Tawk_API.addEvent('ShopVisit', {
                     details: userDetailsMessage
                 }, function(err){
-                    if (!err) {
-                        console.log("✅ User details sent to Tawk Agent");
-                    }
+                    console.log("✅ User details sent to Tawk Agent",err);
                 });
             } catch(e) {
                 console.warn('Tawk.addEvent threw an error, continuing', e);
@@ -187,16 +166,8 @@
         window.Tawk_API.onLoad = function() {
             console.log("✅ Tawk Loaded");
             __tawkApplyVisitor();
+            
         };
-
-        // ✅ also apply when chat starts
-        window.Tawk_API.onChatStarted = function() {
-            console.log("✅ Chat Started");
-            __tawkApplyVisitor();
-        };
-
-        // ✅ final fallback
-        setTimeout(__tawkApplyVisitor, 3000);
 
         // ✅ Tawk embed script
         (function(){
