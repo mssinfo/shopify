@@ -1,6 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Msdev2\Shopify\Http\Controllers\Admin\AuthController;
+use Msdev2\Shopify\Http\Controllers\Admin\DashboardController;
+use Msdev2\Shopify\Http\Controllers\Admin\LogController;
+use Msdev2\Shopify\Http\Controllers\Admin\ShopController;
+use Msdev2\Shopify\Http\Controllers\Admin\TicketController as AdminTicketController;
 use Msdev2\Shopify\Http\Controllers\ShopifyController;
 use Msdev2\Shopify\Http\Controllers\PlanController;
 use Msdev2\Shopify\Http\Controllers\LogsController;
@@ -24,37 +29,38 @@ Route::middleware(['msdev2.shopify.verify','msdev2.load.shop'])->group(function(
     Route::get('ticket',[TicketController::class,'index'])->name("msdev2.shopify.ticket");
     Route::post('ticket',[TicketController::class,'store'])->name("msdev2.shopify.saveticket");
 });
-Route::middleware(['web'])->group(function(){
-    Route::get('agent/login',[AgentController::class,'login'])->name("msdev2.agent.login");
-    Route::post('agent/login',[AgentController::class,'authenticate'])->name("msdev2.agent.dologin");
-    Route::middleware(['msdev2.agent.auth'])->group(function(){
-        Route::prefix("agent")->group(function(){
-            Route::get('/logs',[LogsController::class,'index'])->name("msdev2.agent.logs");
-            Route::get('/logs/download',[LogsController::class,'download'])->name("msdev2.agent.logs.download");
-            Route::post('/logs/clear',[LogsController::class,'clear'])->name("msdev2.agent.logs.clear");
-            Route::post('/logs/delete',[LogsController::class,'delete'])->name("msdev2.agent.logs.delete");
-            //  Homepage Route - Redirect based on user role is in controller.
-            Route::get('/', [AgentController::class,'dashboard'])->name("msdev2.agent.dashboard");
-            Route::get('/shops', [AgentController::class,'shops'])->name("msdev2.agent.shops");
-            // Agent shop lookup endpoints used by the dashboard autocomplete
-            Route::get('/shops/search', [AgentController::class, 'shopSearch'])->name('msdev2.agent.shops.search');
-            Route::get('/shops/recent', [AgentController::class, 'shopsRecent'])->name('msdev2.agent.shops.recent');
-            Route::get('/shops/stats', [AgentController::class, 'shopStats'])->name('msdev2.agent.shops.stats');
-            Route::get('/shops/latest/installs', [AgentController::class, 'latestInstalls'])->name('msdev2.agent.shops.latest.installs');
-            Route::get('/shops/latest/uninstalls', [AgentController::class, 'latestUninstalls'])->name('msdev2.agent.shops.latest.uninstalls');
-            Route::post('/shops/{id}/metadata', [AgentController::class, 'updateMetadata'])->name('msdev2.agent.shops.metadata.update');
-            Route::delete('/shops/{id}/metadata/{key}', [AgentController::class, 'deleteMetadata'])->name('msdev2.agent.shops.metadata.delete');
-            Route::get('/shops/recent', [AgentController::class, 'shopsRecent'])->name('msdev2.agent.shops.recent');
-            Route::get('/shops/stats', [AgentController::class, 'shopStats'])->name('msdev2.agent.shops.stats');
-            Route::get('/shops/{id}', [AgentController::class, 'shopDetail'])->name('msdev2.agent.shops.detail');
-            // Full shop detail page for agent (UI)
-            Route::get('/shops/{id}/view', [AgentController::class, 'shopView'])->name('msdev2.agent.shops.view');
-            // Direct login: generate token and redirect to app root with token
-            Route::get('/shops/{id}/direct', [AgentController::class, 'directLogin'])->name('msdev2.agent.shops.direct');
-            Route::get('/tickets', [TicketController::class, 'tickets'])->name("msdev2.agent.tickets");
-            Route::get('/tickets/resolve/{id}', [TicketController::class, 'ticketsResolve'])->name("msdev2.agent.ticket.resolve");
-            Route::get('/logout', [AgentController::class,'logout'])->name("msdev2.agent.logout");
-            Route::post('/shopify-graph', [AgentController::class, 'shopifyGraph'])->name("msdev2.agent.shopify.graph"); // Add your auth middleware
-        });
+Route::group(['prefix' => 'admin', 'middleware' => ['web']], function () {
+    // Auth
+    Route::get('/', [AuthController::class, 'index'])->name('admin.index');
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('admin.login');
+    Route::post('/login', [AuthController::class, 'login'])->name('admin.login.submit');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
+
+    // Protected Routes
+    Route::group(['middleware' => 'msdev2.agent.auth'], function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+        Route::get('/api/shops/search', [ShopController::class, 'autocomplete'])->name('admin.api.shops.search');
+
+        // Direct Login Route
+        Route::get('/shops/{id}/login', [ShopController::class, 'login'])->name('admin.shops.login');
+        // Shops & Specific Shop Logs
+        Route::get('/shops', [ShopController::class, 'index'])->name('admin.shops');
+        // Shop Detail & Actions
+        Route::get('/shops/{id}', [ShopController::class, 'show'])->name('admin.shops.show');
+        Route::post('/shops/{id}/metadata', [ShopController::class, 'storeMetadata'])->name('admin.shops.metadata.store');
+        Route::delete('/shops/metadata/{id}', [ShopController::class, 'deleteMetadata'])->name('admin.shops.metadata.delete');
+        Route::get('/shops/{id}/logs/content', [ShopController::class, 'getLogContent'])->name('admin.shops.logs.content');
+        Route::get('/shops/{id}/logs/download', [ShopController::class, 'downloadLog'])->name('admin.shops.logs.download');
+        Route::delete('/shops/{id}/logs/delete', [ShopController::class, 'deleteLog'])->name('admin.shops.logs.delete');
+        // Tickets
+        Route::get('/tickets', [AdminTicketController::class, 'index'])->name('admin.tickets');
+        Route::get('/tickets/{id}', [AdminTicketController::class, 'show'])->name('admin.tickets.show');
+        Route::post('/tickets/{id}/reply', [AdminTicketController::class, 'reply'])->name('admin.tickets.reply');
+        Route::post('/tickets/{id}/status', [AdminTicketController::class, 'updateStatus'])->name('admin.tickets.status');
+
+        // System Logs
+        Route::get('/logs', [LogController::class, 'index'])->name('admin.logs');
+        Route::get('/log/download', [LogController::class, 'download'])->name('admin.logs.download');
+        Route::get('/log/delete', [LogController::class, 'delete'])->name('admin.logs.delete');
     });
 });

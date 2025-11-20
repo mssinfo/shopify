@@ -24,6 +24,7 @@ return [
     'extension_id' => env('SHOPIFY_EXTENSION_ID', 'Laravel'),
     'extension_name' => env('SHOPIFY_EXTENSION_NAME', 'Laravel'),
     'extension_app_name' => env('SHOPIFY_EXTENSION_APP_NAME', 'Laravel'),
+    'tables'=>env('SHOPIFY_DYNAMIC_CONFIG_TABLES',''),
     "menu"=>[
         'logo'=>[
             'type'=>'url',//image,url,

@@ -6,8 +6,11 @@ use Exception;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Shop extends Model
 {
@@ -129,5 +132,23 @@ class Shop extends Model
     public static function log($message, $ary = [], $logLevel = 'info', $channel = 'local')
     {
         mLog($message, $ary, $logLevel, $channel);
+    }
+    public function generateLoginUrl()
+    {
+        $token = Str::random(48);
+        
+        // Store token for 5 minutes
+        Cache::put('agent_direct_'.$token, ['shop' => $this->shop], 300);
+        
+        // Check if agent is logged in to decide on iframe redirect
+        $redirectIframe = Auth::check() ? 'false' : 'true';
+        
+        return config('app.url') . '?shop=' . urlencode($this->shop) . '&redirect_to_iframe=' . $redirectIframe . '&token=' . $token;
+    }
+    public function getTotalEarningsAttribute()
+    {
+        return $this->charges()
+            ->whereIn('status', ['active', 'one_time']) // Adjust based on your logic
+            ->sum('price');
     }
 }

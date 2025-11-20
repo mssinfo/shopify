@@ -4,9 +4,7 @@ mix.setPublicPath('public');
 
 mix.js('src/resources/assets/js/app.js', 'js')
     .js('src/resources/assets/js/shopify.js', 'js')
-    .js('src/resources/assets/js/agent.js', 'js')
     .sass('src/resources/assets/scss/app.scss', 'css')
-    .sass('src/resources/assets/scss/agent.scss', 'css')
     .options({ processCssUrls: false });
 
 mix.copyDirectory('src/resources/assets/fonts', 'public/fonts');
