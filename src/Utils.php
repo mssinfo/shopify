@@ -256,7 +256,6 @@ class Utils
 
             $json = json_decode($asset['value'], true);
             $query = 'main-';
-            // mLog(print_r($json, 1));
 
             if (array_key_exists('sections', (array)$json) && count($json['sections']) > 0) {
                 foreach ($json['sections'] as $key => $value) {
@@ -296,9 +295,7 @@ class Utils
 
                 $match = preg_match('/\{\%\s+schema\s+\%\}([\s\S]*?)\{\%\s+endschema\s+\%\}/m', $asset['value'], $matches);
 
-                // mLog(print_r($matches,1));
                 $schema = json_decode($matches[1], true);
-                // mLog(print_r($schema,1));
 
                 if ($schema && array_key_exists('blocks', $schema)) {
                     foreach ($schema['blocks'] as $block) {
@@ -306,7 +303,6 @@ class Utils
                             $acceptsAppBlock = true;
                         }
                     }
-                    //   $acceptsAppBlock = .some((b => b.type === '@app'));
                 }
                 $acceptsAppBlock ? array_push($sectionsWithAppBlock, $templateSection) : null ;
             }

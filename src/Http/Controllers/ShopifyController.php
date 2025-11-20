@@ -90,6 +90,9 @@ class ShopifyController extends BaseController
             try {
                 $webhooks = explode(",", config('msdev2.webhooks'));
                 foreach ($webhooks as $webhook) {
+                    if(config('msdev2.debug')){
+                        mLog("Registering webhook", ['shop' => $shopName, 'webhook' => $webhook]);
+                    }
                     Registry::register('/shopify/webhooks', $webhook, $shopName, $result->json("access_token"));
                 }
             } catch (\Throwable $th) {

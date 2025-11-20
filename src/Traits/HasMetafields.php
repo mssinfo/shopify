@@ -13,7 +13,7 @@ trait HasMetafields
     {
         $shop = (is_string($this->shop) ? mShop($this->shop) : $this->shop) ?? mShop();
         if (!$shop) {
-            Log::warning('setMetaField skipped: Shop context could not be determined.');
+            if(config('msdev2.debug')) Log::warning('setMetaField skipped: Shop context could not be determined.');
             return;
         }
 
@@ -39,7 +39,7 @@ trait HasMetafields
     {
         $shop = method_exists($this, 'shop') ? $this->shop : $this;
         if (!$shop) {
-            Log::warning('deleteMetaField skipped: Shop context could not be determined.');
+            if(config('msdev2.debug')) Log::warning('deleteMetaField skipped: Shop context could not be determined.');
             return;
         }
 
@@ -96,10 +96,12 @@ trait HasMetafields
         // CORE LOGIC: If an owner error is found and we haven't retried yet,
         // refresh the ID and try the entire function again.
         if ($hasOwnerError && !$isRetry) {
-            Log::warning('Stale AppInstallationID detected. Refreshing and retrying.', [
-                'shop' => $shop->shop,
-                'stale_ownerId' => $ownerId
-            ]);
+            if(config('msdev2.debug')) {
+                Log::warning('Stale AppInstallationID detected. Refreshing and retrying.', [
+                    'shop' => $shop->shop,
+                    'stale_ownerId' => $ownerId
+                ]);
+            }
 
             // This performs the "delete and save again" for the ID.
             self::refreshAppInstallationId($shop);
@@ -156,8 +158,7 @@ trait HasMetafields
         if (method_exists($shop, 'unsetRelation')) {
             $shop->unsetRelation('meta');
         }
-
-        Log::info('Cleared cached AppInstallationId.', ['shop' => $shop->shop]);
+        if(config('msdev2.debug')) Log::info('Cleared cached AppInstallationId.', ['shop' => $shop->shop]);
 
         // "Save again": This fetches and caches the new ID.
         self::getAppInstallationId($shop);

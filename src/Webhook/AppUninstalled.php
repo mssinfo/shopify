@@ -27,7 +27,7 @@ class AppUninstalled extends BaseMailHandler implements Handler
             }
         }
         // $data = mRest($shop)->delete('api_permissions/current')->getDecodedBody();
-        Log::alert("webhook response shop unsiatall",[$shop]);
+        if(config('msdev2.debug')) Log::alert("webhook response shop unsiatall",[$shop]);
         self::processEmail('uninstall', $shop);
     }
 }
