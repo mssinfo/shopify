@@ -1,8 +1,6 @@
 {
     "/js/app.js": "/js/app.js",
     "/js/shopify.js": "/js/shopify.js",
-    "/js/agent.js": "/js/agent.js",
-    "/css/agent.css": "/css/agent.css",
     "/css/app.css": "/css/app.css",
     "/fonts/SFProDisplay-Bold.woff": "/fonts/SFProDisplay-Bold.woff",
     "/fonts/SFProDisplay-Bold.woff2": "/fonts/SFProDisplay-Bold.woff2",

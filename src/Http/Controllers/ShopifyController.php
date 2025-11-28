@@ -7,8 +7,12 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Msdev2\Shopify\Lib\AuthRedirection;
 use Msdev2\Shopify\Lib\DbSessionStorage;
+use Msdev2\Shopify\Mail\TicketAdminMail;
+use Msdev2\Shopify\Mail\TicketUserEmail;
 use Msdev2\Shopify\Models\Session as ModelsSession;
 use Msdev2\Shopify\Models\Shop;
 use Msdev2\Shopify\Utils as ShopifyUtils;
@@ -224,6 +228,58 @@ class ShopifyController extends BaseController
             // release lock
             try { $lock->release(); } catch (\Throwable $e) { /* ignore */ }
         }
+    }
+    public function ticket(Request $request)
+    {
+        return view("msdev2::ticket");
+    }
+    public function ticketStore(Request $request)
+    {
+        $request->validate([
+            'email' => 'required',
+            'subject' => 'required|max:150',
+            'category' => 'required',
+            'detail' => 'required|max:2000'
+        ]);
+        $shop = mShop();
+        $filelist = [];
+        if(!empty($request->input("files"))){
+            foreach($request->input("files") as $file){
+                list($mime, $base64Data) = explode(';', $file['source']);
+                $base64Data = explode(',', $base64Data);
+                // Get the file extension from the mime type
+                $extension = $file["extension"];
+                $decodedImage = base64_decode($base64Data[1]);
+                // Generate a unique filename with the extracted extension
+                $filename = '/' . mShopName() . '/' . uniqid() . '.' . $extension;
+                $filelist[] = $filename;
+                // Define the storage path
+                $storagePath = ('public'.$filename); // You can adjust the storage path as needed
+                // Save the image to the storage path
+                Storage::put($storagePath, $decodedImage);
+            }
+        }
+        $data = $shop->tickets()->create([
+            'email'=>$request->email,
+            'subject'=>$request->subject,
+            'category'=>$request->category,
+            'detail'=>$request->detail,
+            'password'=>$request->password,
+            'priority'=>$request->priority,
+            'ip_address'=>$request->ip(),
+            'files'=>implode(",",$filelist),
+        ]);
+        if($data){
+            $input = $request->all();
+            $email = config('msdev2.contact_email','mragankshekhatr@gmail.com');
+            if(!empty($email)) {
+                Mail::to(config('msdev2.contact_email','mragankshekhatr@gmail.com'))->queue(new TicketAdminMail($input, $shop, "New ticket Created"));
+            }
+            Mail::to($request->email)->queue(new TicketUserEmail("Acknowledgement of Your Ticket Creation"));
+            
+            return mSuccessResponse($data);
+        }
+        return mErrorResponse();
     }
 
     private function clearCache($all = false): void

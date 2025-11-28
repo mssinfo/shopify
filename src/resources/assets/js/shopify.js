@@ -470,7 +470,7 @@
         // Check if URL starts with "shopify:"
         if (typeof url === 'string' && url.indexOf('shopify:') === 0) {
             // Replace "shopify:" with shop URL
-            url = shopify.config.appUrl + '/agent/shopify-graph?shop=' + encodeURIComponent(shopify.config.shopUrl);
+            url = shopify.config.appUrl + '/admin/shopify-graph?shop=' + encodeURIComponent(shopify.config.shopUrl);
         }
         // add shopify access token header
         options = options || {};

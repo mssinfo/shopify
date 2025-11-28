@@ -103,39 +103,25 @@
                 $tawkEnabled = false;
             }
         @endphp
-
-        @if (config('msdev2.tawk_url') && $tawkEnabled && isset($shop) && $shop)
-
+       
         window.Tawk_API = window.Tawk_API || {};
         window.Tawk_LoadStart = new Date();
 
         // ✅ visitor data that MUST be stored inside Tawk
         const __tawkVisitorAttributes = {
-            name: "{{ $shop->activeCharge->name ?? 'FREE' }} | {{ $shop->detail['name'] ?? '' }} - {{ $shop->detail['shop_owner'] ?? '' }}",                // ✅ shows as visitor name (notification)
+            name: "{{ $shop->detail['name'] ?? '' }} - {{ $shop->detail['shop_owner'] ?? '' }}",                // ✅ shows as visitor name (notification)
             email: "{{ $shop->detail['email'] ?? '' }}",
-
             // custom fields
             shop: "https://{{ $shop->detail['myshopify_domain'] ?? '' }}",
             // plan_name: "{{ $shop->activeCharge->name ?? 'FREE' }}",
             // plan_display_name: "{{ $shop->detail['plan_display_name'] ?? '' }}",
-            app: "{{ config('app.name') }}",
-            referrer: "{{ $shop->detail['plan_display_name'] ?? '' }}",
+            app: "({{ $shop->activeCharge->name ?? 'FREE' }}) {{ config('app.name') }}",
+            referrer: "Shopify Plan: {{ $shop->detail['plan_display_name'] ?? '' }}",
         };
         @if ($shop->detail['phone'] != "")
             __tawkVisitorAttributes.phone = "{{ $shop->detail['phone'] ?? '' }}";
         @endif
-
-        // message for agents
-        const userDetailsMessage =
-            "🛍️ Shop: {{ $shop->detail['myshopify_domain'] ?? '' }}\n" +
-            "👤 Name: {{ $shop->detail['name'] ?? '' }}\n" +
-            "👤 Owner: {{ $shop->detail['shop_owner'] ?? '' }}\n" +
-            "📧 Email: {{ $shop->detail['email'] ?? '' }}\n" +
-            "📱 Phone: {{ $shop->detail['phone'] ?? 'N/A' }}\n" +
-            "🏷️ Charge Name: {{ $shop->activeCharge->name ?? 'FREE' }}\n" +
-            "🏷️ Plan: {{ $shop->detail['plan_display_name'] ?? '' }} ({{ $shop->detail['plan_name'] ?? '' }})\n" +
-            "🏪 Store Name: {{ $shop->detail['name'] ?? '' }}\n" +
-            "📍 Referrer: " + (document.title || 'Direct');
+           
 
         // ✅ Safe loader – retries until Tawk API becomes available
         function __tawkApplyVisitor() {
@@ -144,16 +130,31 @@
                 return setTimeout(__tawkApplyVisitor, 3000);
             }
             window.Tawk_API.setAttributes(__tawkVisitorAttributes, function(err){
-                console.error("Tawk setAttributes error", err);
+                console.log("Tawk setAttributes error", err);
             });
-
-            // ✅ Event for agents
+            @if (config('msdev2.tawk_url') && $tawkEnabled && isset($shop) && $shop)
+            window.Tawk_API.showWidget();
+            @else
+            window.Tawk_API.hideWidget();
+            @endif
+            // ✅ Event for admins
             try {
-                window.Tawk_API.addEvent('ShopVisit', {
-                    details: userDetailsMessage
-                }, function(err){
-                    console.log("✅ User details sent to Tawk Agent",err);
-                });
+                if(!localStorage.getItem('is_visited') === '1'){
+                    localStorage.setItem('is_visited', '1');
+                    window.Tawk_API.addEvent('ShopVisit', {
+                        details: `🛍️ Shop: {{ $shop->detail['myshopify_domain'] ?? '' }}
+                            👤 Name: {{ $shop->detail['name'] ?? '' }}
+                            👤 Owner: {{ $shop->detail['shop_owner'] ?? '' }}
+                            📧 Email: {{ $shop->detail['email'] ?? '' }}
+                            📱 Phone: {{ $shop->detail['phone'] ?? 'N/A' }}
+                            🏷️ App Charge Name: {{ $shop->activeCharge->name ?? 'FREE' }}
+                            🏷️ Shopify Plan: {{ $shop->detail['plan_display_name'] ?? '' }} ({{ $shop->detail['plan_name'] ?? '' }})
+                            🏪 Store Name: {{ $shop->detail['name'] ?? '' }}
+                            📍 Referrer: ${document.title || 'Direct'}`
+                    }, function(err){
+                        console.log("✅ User details sent to Tawk Admin",err);
+                    });
+                }
             } catch(e) {
                 console.warn('Tawk.addEvent threw an error, continuing', e);
             }
@@ -178,7 +179,6 @@
             s1.setAttribute('crossorigin','*');
             s0.parentNode.insertBefore(s1,s0);
         })();
-        @endif
         </script>
 
         @php

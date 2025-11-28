@@ -6,14 +6,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
 
-class ValidateAgentToken
+class ValidateAdminToken
 {
     /**
      * Handle an incoming request.
      */
     public function handle(Request $request, Closure $next)
     {
-        // If the current user is an authenticated agent, allow the request
+        // If the current user is an authenticated admin, allow the request
         if (Auth::check()) {
             return $next($request);
         }
@@ -23,7 +23,7 @@ class ValidateAgentToken
 
         // Only validate when a token is present. If no token, do not interfere.
         if ($token) {
-            $key = 'agent_direct_' . $token;
+            $key = 'admin_direct_' . $token;
             // Use get() to avoid consuming the token on read. Consumption
             // should happen at the point the app establishes the intended session.
             $data = Cache::get($key);

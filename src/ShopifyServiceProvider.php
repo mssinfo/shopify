@@ -24,11 +24,12 @@ class ShopifyServiceProvider extends ServiceProvider
     {
         // Merge config from the package
         $this->mergeConfigFrom(__DIR__.'/config/msdev2.php', 'msdev2');
+        $this->mergeConfigFrom(__DIR__.'/config/marketingTemplates.php', 'marketingTemplates');
 
         // Register package commands
         $this->commands([
             \Msdev2\Shopify\Console\Commands\SendCustomerEmails::class,
-            \Msdev2\Shopify\Console\Commands\CreateAgent::class,
+            \Msdev2\Shopify\Console\Commands\CreateAdmin::class,
         ]);
 
         // Bind the session storage as a singleton. This ensures the same instance is used throughout the app.
@@ -121,12 +122,12 @@ class ShopifyServiceProvider extends ServiceProvider
         $router->aliasMiddleware('msdev2.shopify.verify', VerifyShopify::class);
         $router->aliasMiddleware('msdev2.shopify.auth', EnsureShopifySession::class);
         $router->aliasMiddleware('msdev2.shopify.installed', EnsureShopifyInstalled::class);
-        $router->aliasMiddleware('msdev2.agent.auth', Authenticate::class);
-        $router->aliasMiddleware('msdev2.validate.agent.token', \Msdev2\Shopify\Http\Middleware\ValidateAgentToken::class);
+        $router->aliasMiddleware('msdev2.admin.auth', Authenticate::class);
+        $router->aliasMiddleware('msdev2.validate.admin.token', \Msdev2\Shopify\Http\Middleware\ValidateAdminToken::class);
         $router->aliasMiddleware('msdev2.load.shop', \Msdev2\Shopify\Http\Middleware\LoadShopFromRequest::class);
         // Ensure our token validator runs early for web requests
         if (method_exists($router, 'pushMiddlewareToGroup')) {
-            $router->pushMiddlewareToGroup('web', \Msdev2\Shopify\Http\Middleware\ValidateAgentToken::class);
+            $router->pushMiddlewareToGroup('web', \Msdev2\Shopify\Http\Middleware\ValidateAdminToken::class);
         }
     }
 

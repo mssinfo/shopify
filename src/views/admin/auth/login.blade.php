@@ -12,8 +12,8 @@
 </head>
 <body>
     <div class="login-card">
-        <h4 class="mb-4 text-center"><i class="fas fa-shield-alt"></i> Agent Mode</h4>
-        <form method="POST" action="{{ route('admin.login.submit') }}">
+        <h4 class="mb-4 text-center"><i class="fas fa-shield-alt"></i> Admin Mode</h4>
+        <form method="POST" action="{{ route('msdev2.admin.login.submit') }}">
             @csrf
             <div class="mb-3">
                 <label>Email</label>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent Mode - Admin</title>
+    <title>Admin Mode</title>
     
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -71,8 +71,18 @@
          <a class="nav-link {{ request()->routeIs('admin.tickets*') ? 'active' : '' }}" href="{{ route('admin.tickets') }}">
             <i class="fas fa-ticket-alt me-2"></i> Tickets
         </a>
+        <a class="nav-link {{ request()->routeIs('admin.marketing*') ? 'active' : '' }}" href="{{ route('admin.marketing') }}">
+            <i class="fas fa-bullhorn me-2"></i> Marketing
+        </a>
+        <a class="nav-link {{ request()->routeIs('admin.env*') ? 'active' : '' }}" href="{{ route('admin.env') }}">
+            <i class="fas fa-cogs me-2"></i> Environment
+        </a>
         <a class="nav-link {{ request()->routeIs('admin.logs') ? 'active' : '' }}" href="{{ route('admin.logs') }}">
             <i class="fas fa-terminal me-2"></i> System Logs
+        </a>
+        <!-- #logout -->
+        <a class="nav-link" href="{{ route('msdev2.admin.logout') }}">
+            <i class="fas fa-sign-out-alt me-2"></i> Logout
         </a>
     </nav>
 </div>

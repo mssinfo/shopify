@@ -20,7 +20,7 @@ class CreateSessionsTable extends Migration
             $table->boolean('is_online')->nullable(false);
             $table->string('state')->nullable(false);
             $table->bigInteger('user_id')->nullable();
-            $table->string('user_agent')->nullable();
+            $table->string('user')->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->text('payload')->nullable();
             $table->string('user_first_name')->nullable();

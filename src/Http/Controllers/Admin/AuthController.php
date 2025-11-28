@@ -12,7 +12,7 @@ class AuthController extends BaseController
         if (Auth::check()) {
             return redirect()->route('admin.dashboard');
         }
-        return redirect()->route('admin.login');
+        return redirect()->route('msdev2.admin.login');
     }
     public function showLogin()
     {
@@ -39,8 +39,9 @@ class AuthController extends BaseController
 
     public function logout(Request $request)
     {
+        dd('');
         Auth::logout();
         $request->session()->invalidate();
-        return redirect()->route('admin.login');
+        return redirect()->route('msdev2.admin.login');
     }
 }

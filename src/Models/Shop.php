@@ -138,9 +138,9 @@ class Shop extends Model
         $token = Str::random(48);
         
         // Store token for 5 minutes
-        Cache::put('agent_direct_'.$token, ['shop' => $this->shop], 300);
+        Cache::put('admin_direct_'.$token, ['shop' => $this->shop], 300);
         
-        // Check if agent is logged in to decide on iframe redirect
+        // Check if admin is logged in to decide on iframe redirect
         $redirectIframe = Auth::check() ? 'false' : 'true';
         
         return config('app.url') . '?shop=' . urlencode($this->shop) . '&redirect_to_iframe=' . $redirectIframe . '&token=' . $token;

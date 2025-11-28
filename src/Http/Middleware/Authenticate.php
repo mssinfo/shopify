@@ -17,7 +17,7 @@ class Authenticate extends Middleware
     protected function redirectTo($request)
     {
         if (! $request->expectsJson()) {
-            return route('msdev2.agent.login');
+            return route('msdev2.admin.login');
         }
     }
 }

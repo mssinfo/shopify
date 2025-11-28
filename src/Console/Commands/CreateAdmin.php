@@ -5,21 +5,21 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 use Msdev2\Shopify\Models\User;
 
-class CreateAgent extends Command
+class CreateAdmin extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'msdev2:agent';
+    protected $signature = 'make:admin';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Create or update an agent user (interactive)';
+    protected $description = 'Create or update an admin user (interactive)';
 
     /**
      * Execute the console command.

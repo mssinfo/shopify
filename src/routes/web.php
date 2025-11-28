@@ -3,14 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use Msdev2\Shopify\Http\Controllers\Admin\AuthController;
 use Msdev2\Shopify\Http\Controllers\Admin\DashboardController;
+use Msdev2\Shopify\Http\Controllers\Admin\EnvController;
 use Msdev2\Shopify\Http\Controllers\Admin\LogController;
+use Msdev2\Shopify\Http\Controllers\Admin\MarketingController;
 use Msdev2\Shopify\Http\Controllers\Admin\ShopController;
 use Msdev2\Shopify\Http\Controllers\Admin\TicketController as AdminTicketController;
 use Msdev2\Shopify\Http\Controllers\ShopifyController;
 use Msdev2\Shopify\Http\Controllers\PlanController;
-use Msdev2\Shopify\Http\Controllers\LogsController;
-use Msdev2\Shopify\Http\Controllers\TicketController;
-use Msdev2\Shopify\Http\Controllers\AgentController;
 
 Route::fallback([ShopifyController::class , 'fallback'])->middleware('msdev2.shopify.installed');
 Route::get("install",function(){
@@ -26,18 +25,18 @@ Route::get('plan/approve',[PlanController::class,'planAccept'])->name('msdev2.sh
 Route::middleware(['msdev2.shopify.verify','msdev2.load.shop'])->group(function(){
     Route::get('plan',[PlanController::class,'plan'])->name("msdev2.shopify.plan.index");
     Route::get('help',[ShopifyController::class,'help'])->name("msdev2.shopify.help");
-    Route::get('ticket',[TicketController::class,'index'])->name("msdev2.shopify.ticket");
-    Route::post('ticket',[TicketController::class,'store'])->name("msdev2.shopify.saveticket");
+    Route::get('ticket',[ShopifyController::class,'ticket'])->name("msdev2.shopify.ticket");
+    Route::post('ticket',[ShopifyController::class,'ticketStore'])->name("msdev2.shopify.saveticket");
 });
 Route::group(['prefix' => 'admin', 'middleware' => ['web']], function () {
     // Auth
-    Route::get('/', [AuthController::class, 'index'])->name('admin.index');
-    Route::get('/login', [AuthController::class, 'showLogin'])->name('admin.login');
-    Route::post('/login', [AuthController::class, 'login'])->name('admin.login.submit');
-    Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
+    Route::get('/', [AuthController::class, 'index'])->name('msdev2.admin.index');
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('msdev2.admin.login');
+    Route::post('/login', [AuthController::class, 'login'])->name('msdev2.admin.login.submit');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('msdev2.admin.logout');
 
     // Protected Routes
-    Route::group(['middleware' => 'msdev2.agent.auth'], function () {
+    Route::group(['middleware' => 'msdev2.admin.auth'], function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/api/shops/search', [ShopController::class, 'autocomplete'])->name('admin.api.shops.search');
 
@@ -62,5 +61,14 @@ Route::group(['prefix' => 'admin', 'middleware' => ['web']], function () {
         Route::get('/logs', [LogController::class, 'index'])->name('admin.logs');
         Route::get('/log/download', [LogController::class, 'download'])->name('admin.logs.download');
         Route::get('/log/delete', [LogController::class, 'delete'])->name('admin.logs.delete');
+
+         // 1. ENV Editor
+        Route::get('/system/env', [EnvController::class, 'index'])->name('admin.env');
+        Route::post('/system/env', [EnvController::class, 'update'])->name('admin.env.update');
+
+        // 2. Bulk Marketing
+        Route::get('/marketing/email', [MarketingController::class, 'index'])->name('admin.marketing');
+        Route::post('/marketing/email', [MarketingController::class, 'send'])->name('admin.marketing.send');
+        Route::post('/marketing/preview', [MarketingController::class, 'preview'])->name('admin.marketing.preview');
     });
 });

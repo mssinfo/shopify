@@ -99,6 +99,9 @@ class LoggingHttpClientProxy
 
     protected function logEntry($method, $args, $responseSummary = null, $error = null, $duration = null)
     {
+        if(config('msdev2.debug') !== true) {
+            return;
+        }
         $msg = strtoupper($this->type) . " CALL: {$method} ";
         try {
             $msg .= json_encode($this->shortArgs($args));
@@ -109,17 +112,9 @@ class LoggingHttpClientProxy
         if ($responseSummary) $context['response'] = is_string($responseSummary) ? $responseSummary : $responseSummary;
         if ($error) {
             $context['error'] = $error->getMessage();
-            if (function_exists('mLog')) {
-                mLog($msg, $context, 'error');
-            } else {
-                Log::error($msg, $context);
-            }
+            Log::error($msg, $context);
             return;
         }
-        if (function_exists('mLog')) {
-            mLog($msg, $context, 'info');
-        } else {
-            Log::info($msg, $context);
-        }
+        Log::info($msg, $context);
     }
 }

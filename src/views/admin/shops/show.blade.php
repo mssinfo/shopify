@@ -97,7 +97,7 @@
 
                     <div class="mt-3 text-end">
                         <a href="{{ route('admin.shops.login', $shopInfo->id) }}" target="_blank" class="btn btn-primary w-100 mb-2">
-                            <i class="fas fa-key me-2"></i> Auto Login
+                            <i class="fas fa-key me-2"></i> Direct Login
                         </a>
                     </div>
                 </div>

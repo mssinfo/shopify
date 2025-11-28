@@ -1,103 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
-    <title>Email</title>
-</head>
-<body>
-    <!--wrapper grey-->
-    <table align="center" bgcolor="#EAECED" border="0" cellpadding="0" cellspacing="0"  width="600">
-        <tbody>
-            <!--spacing-->
-            <tr>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-            </tr>
-            <!--First  table section with logo-->
-            <tr>
-                <td align="center" valign="top">
-                    <table width="600">
-                        <tbody>
-                            <tr>
-                                <td align="center" valign="top">
-                                    <table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0"
-                                        style="overflow:hidden!important; border-radius:3px" width="600">
-                                        <tbody>
-                                            <tr style="background: #333333; line-height: 3.5">
-                                                <td align="Left" valign="top" style="width: 55px; padding:1px 5px 5px 32px;">
-                                                    <p style="font-family:Arial;font-style:normal;font-weight:bold;font-size:14px;text-align:left;color:#ffffff; padding:1px 32px 5px 4px;">
-                                                        <span> {{ $heading }} </span>
-                                                    </p>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <!--Separate table for header and content-->
-                    <table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="600">
-                        <tbody>
-                            <tr>
-                                <td align="center">
-                                    <table width="600"
-                                        <tbody>
-                                            <tr>
-                                                <td align="left" style="font-family:Arial;font-style:normal;font-weight:normal;line-height:22px;font-size:14px;color:#333333;">
-                                                   Hi Admin<br>
-                                                   New Ticket has been create in {{ $shop->domain }}
-                                                   <table>
-                                                        <tr> <td>Email</td><td>{{$data["email"]}}</td></tr>
-                                                        @if ($data["subject"]) 
-                                                            <tr> <td>Subject</td><td>{{$data["subject"]}}</td> </tr>
-                                                        @endif
-                                                        @if ($data["category"]) 
-                                                            <tr> <td>Category</td><td>{{$data["category"]}}</td> </tr>
-    
-                                                        @endif                                                        
-                                                        @if ($data["detail"]) 
-                                                            <tr> <td>Detail</td><td>{{$data["detail"]}}</td> </tr>
-                                                        @endif
-                                                        @if ($data["password"]) 
-                                                            <tr> <td>Password</td><td>{{$data["password"]}}</td> </tr>
-                                                        @endif
-                                                        @if ($data["priority"]) 
-                                                            <tr> <td>Priority</td><td>{{$data["priority"]}}</td> </tr>
-                                                        @endif
-                                                        <tr> <td>IP</td><td>{{request()->ip()}}</td> </tr>
-                                                   </table>
-                                                </td>
-                                            </tr>
-                                            <!--spacing-->
-                                            <tr>
-                                                <td>&nbsp;</td>
-                                            </tr>
-                                            <tr>
-                                                <td>&nbsp;</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </td> <!--first table section td ending-->
-                <!--outer spacing-->
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-            </tr>
-        </tbody>
-    </table> <!-- - main tabel grey bg-->
-</body>
-</html>
+@extends('msdev2::layout.emails')
+
+@section('content')
+<h2 style="font-family: arial, helvetica, sans-serif; font-size: 22px; color: #333333; margin-bottom: 20px;">
+    New Support Ticket Created
+</h2>
+
+<p style="font-family: arial, helvetica, sans-serif; font-size: 16px; color: #555555; line-height: 1.6;">
+    A new ticket has been submitted by <strong>{{ $ticket->shop->shop ?? 'Unknown Shop' }}</strong>.
+</p>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0" style="border: 1px solid #eeeeee; margin: 20px 0;">
+    <tr style="background-color: #f9f9f9;">
+        <td style="font-weight: bold; width: 30%;">Subject:</td>
+        <td>{{ $ticket->subject }}</td>
+    </tr>
+    <tr>
+        <td style="font-weight: bold;">Email:</td>
+        <td>{{ $ticket->email }}</td>
+    </tr>
+    <tr style="background-color: #f9f9f9;">
+        <td style="font-weight: bold;">Priority:</td>
+        <td>
+            @if($ticket->priority == 3) <span style="color: red;">High</span>
+            @elseif($ticket->priority == 2) <span style="color: orange;">Medium</span>
+            @else <span style="color: green;">Low</span> @endif
+        </td>
+    </tr>
+    <tr>
+        <td style="font-weight: bold;">Message:</td>
+        <td>{{ Str::limit($ticket->detail, 200) }}</td>
+    </tr>
+</table>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ route('admin.tickets.show', $ticket->id) }}" class="btn-primary" style="color: #ffffff;">
+        Reply in Admin Panel
+    </a>
+</div>
+@endsection
