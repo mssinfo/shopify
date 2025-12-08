@@ -6,29 +6,25 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Msdev2\Shopify\Lib\BaseMailHandler;
+use Shopify\Webhooks\Handler;
 
-
-class AppInstalled extends BaseMailHandler//implements ShouldQueue
+class AppInstalled  extends BaseMailHandler implements Handler
 {
-    use Dispatchable, InteractsWithQueue, SerializesModels;//, Queueable;
-    protected $shop;
-    public function __construct($shop) {
-        $this->shop = $shop;
-    }
-    public function handle(): void
+    use Dispatchable, InteractsWithQueue, SerializesModels;
+    public function handle(string $topic, string $shopName, array $requestBody): void
     {
-        
-        $data = $this->shop->option;
-        if(!$data){
-            $this->shop->option()->create([
-                "whatsapp_number"=>$this->shop->detail['phone'] ?? '',
-                "welcome_text"=>"Greetings and Salutations: Welcome to the group! We’re delighted to have you as part of our WhatsApp community",
-                "icon_color"=>"#075E54",
-                "background_color"=>"#FFFFFF",
-                "position"=>"bottom-right"
-            ]);
+        // $data = $shop->option;
+        // if(!$data){
+        //     $shop->option()->create([
+        //         "whatsapp_number"=>$shop->detail['phone'] ?? '',
+        //         "welcome_text"=>"Greetings and Salutations: Welcome to the group! We’re delighted to have you as part of our WhatsApp community",
+        //         "icon_color"=>"#075E54",
+        //         "background_color"=>"#FFFFFF",
+        //         "position"=>"bottom-right"
+        //     ]);
            
-        }
-        // self::processEmail('install', $this->shop);
+        // }
+        $shop = mShop($shopName);
+        self::processEmail('install', $shop);
     }
 }

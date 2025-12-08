@@ -35,10 +35,9 @@
                 <!-- Actions -->
                 <div class="btn-group btn-group-sm ms-2">
                     <a href="{{ route('admin.logs.download') }}" class="btn btn-outline-secondary"><i class="fas fa-download"></i></a>
-                    <form action="{{ route('admin.logs.delete') }}" method="POST" onsubmit="return confirm('Clear all logs?')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger"><i class="fas fa-trash"></i></button>
-                    </form>
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteLogsModal">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             </form>
         </div>
@@ -80,6 +79,28 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Logs Confirmation Modal -->
+<div class="modal fade" id="deleteLogsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-trash me-2"></i> Clear All Logs</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Are you sure you want to clear all system logs?</strong></p>
+                <p class="text-muted small mb-0">This action will permanently delete all log entries. This cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="window.location.href='{{ route('admin.logs.delete') }}'">
+                    <i class="fas fa-trash me-2"></i> Delete All Logs
+                </button>
             </div>
         </div>
     </div>

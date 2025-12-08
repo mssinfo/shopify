@@ -12,12 +12,31 @@
     </div>
 
     <div class="card border-0 shadow-sm">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-            <span><i class="fas fa-terminal me-2"></i> .env Editor</span>
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-terminal me-2"></i> 
+                <span class="me-3">Editor: <strong>{{ $currentFile }}</strong></span>
+            </div>
+            
+            @if(!empty($modules))
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    Switch File
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{{ route('admin.env') }}">Root .env</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    @foreach($modules as $mod)
+                        <li><a class="dropdown-item" href="{{ route('admin.env', ['module' => $mod]) }}">Module: {{ $mod }}</a></li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
         </div>
         <div class="card-body p-0">
             <form action="{{ route('admin.env.update') }}" method="POST">
                 @csrf
+                <input type="hidden" name="env_path" value="{{ $envPath }}">
                 <textarea name="env_content" class="form-control font-monospace border-0 p-3" rows="25" style="background: #1e1e1e; color: #00ff9d; resize: vertical;">{{ $content }}</textarea>
                 
                 <div class="p-3 bg-light border-top text-end">

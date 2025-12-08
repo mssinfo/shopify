@@ -20,19 +20,23 @@ class VerifyShopify
         Cache::forget('shop');
         Cache::forget('shopName');
         $shopName = mShopName();
-        if (strpos($request->getRequestUri(),config("msdev2.proxy_path")) !== false && !isset($request->shop)) {
+        if (strpos($request->getRequestUri(),"a/".config("msdev2.proxy_path")) !== false && !isset($request->shop)) {
             $shopName = $_SERVER['HTTP_HOST'] != str_replace(["https://"],"",config("app.url")) ? $_SERVER['HTTP_HOST'] : null;
         }
         // Allow auth-related requests or if shop exists
         if ($this->isAllowedRequest($request) || $shopName) {
             $shop = mShop($shopName);
             if (!$shop || $shop->is_uninstalled) {
+                \Log::info("$shopName already uninstalled or does not exist", ['shop' => ($shop ?? null)]);
                 return $this->redirectToInstall($shopName);
             }
 
             // Check for missing Shopify scopes
             $missingScopes = $this->compareShopifyScopes();
             if (!empty($missingScopes)) {
+                // Normalize scopes for logging as well
+                $requiredScopes = array_values(array_unique(array_filter(array_map('trim', explode(',', config('msdev2.scopes'))))));
+                \Log::info("{$shop->shop} missing scopes: ", ['missing_scopes' => $missingScopes, 'shop' => $shop->shop, 'required_scopes' => $requiredScopes]);
                 return $this->redirectToInstall($shopName, implode(', ', $missingScopes));
             }
 
@@ -56,7 +60,7 @@ class VerifyShopify
         }
         // if not in iframe, then redirect to install page
         // dd($request->header('sec-fetch-dest'));
-        if ($request->header('sec-fetch-dest') !== 'iframe') {
+        if ($request->header('sec-fetch-dest') !== 'iframe' || !Utils::shouldRedirectToEmbeddedApp()) {
             return redirect()->route('msdev2.install');
         }
         abort(403, 'Shop does not exist in request');
@@ -64,24 +68,41 @@ class VerifyShopify
 
     private function isAllowedRequest(Request $request): bool
     {
-        return Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing']);
+        return Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing', '/payu/success', '/payu/failed']);
     }
 
     private function compareShopifyScopes(): array
     {
-        $scopes = explode(',', config('msdev2.scopes'));
+        // Normalize configured scopes: split, trim whitespace, remove empty values and duplicates
+        $scopes = array_map('trim', explode(',', config('msdev2.scopes')));
+        $scopes = array_filter($scopes); // remove any empty strings
         $scopes = array_unique($scopes);
 
-        // Fetch granted scopes from Shopify
-        $data = mRest()->get('/admin/oauth/access_scopes.json');
-        $shopifyScopes = $data->getDecodedBody();
-        if (!isset($shopifyScopes['access_scopes'])) {
-            return $scopes;
+        // Cache granted scopes per-shop to avoid calling Shopify on every request.
+        $shopName = mShopName() ?: 'global';
+        $cacheKey = 'shopify.access_scopes:' . $shopName;
+
+        $grantedScopes = Cache::get($cacheKey);
+        if ($grantedScopes === null) {
+            // Fetch granted scopes from Shopify
+            $data = mRest()->get('/admin/oauth/access_scopes.json');
+            $shopifyScopes = $data->getDecodedBody();
+            if (!isset($shopifyScopes['access_scopes'])) {
+                // If we couldn't fetch scopes, treat as all missing (forces re-auth)
+                return $scopes;
+            }
+
+            $grantedScopes = Arr::pluck($shopifyScopes['access_scopes'], 'handle');
+            // Cache for 24 hours (86400 seconds)
+            try {
+                Cache::put($cacheKey, $grantedScopes, 86400);
+            } catch (\Throwable $e) {
+                // If cache fails for any reason, continue without breaking flow
+                Log::warning('Failed to cache shopify access scopes: ' . $e->getMessage(), ['shop' => $shopName]);
+            }
         }
 
-        $grantedScopes = Arr::pluck($shopifyScopes['access_scopes'], 'handle');
-
-        return array_diff($scopes, $grantedScopes);
+        return array_diff($scopes, $grantedScopes ?? []);
     }
 
     private function redirectToInstall(string $shopName, $scopes = null)
@@ -90,7 +111,6 @@ class VerifyShopify
         if ($scopes) {
             $routeParams['scopes'] = $scopes;
         }
-        // $caller = debug_backtrace();
         DbSessionStorage::clearCurrentSession($shopName);
         return response()->view('msdev2::iframe_redirect', [
             'url' => route('msdev2.shopify.install', $routeParams)

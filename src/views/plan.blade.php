@@ -7,7 +7,33 @@
     display: none;
 }
 </style>
+<!-- removed page-specific plan CSS; styles are kept in usage component and usage page -->
 <div class="plan_page">
+    @php
+        $shopInstance = function_exists('mShop') ? mShop() : (isset($shop) ? $shop : null);
+        $creditLimit = 0;
+        $creditStats = null;
+        if ($shopInstance) {
+            $creditLimit = data_get($shopInstance->plan(), 'feature.credit', 0);
+            if ($creditLimit > 0) {
+                $creditStats = \Msdev2\Shopify\Services\CreditService::stats($shopInstance);
+            }
+        }
+    @endphp
+
+    @if (!empty($creditStats))
+    @include('msdev2::components.usage-bar', ['stats' => $creditStats])
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px; max-width:1100px; margin-left:auto; margin-right:auto;">
+        <div style="background:#fff;border:1px solid #e6e6e6;padding:12px;border-radius:8px;display:flex;align-items:center;gap:12px;">
+            <div style="font-size:13px;color:#666">Credits Score</div>
+            <div style="font-size:20px;font-weight:700;color:#1b6fff">{{ $creditStats['total_remaining'] ?? 0 }}</div>
+            <div style="font-size:12px;color:#888;margin-left:8px">Remaining</div>
+        </div>
+        <div>
+            <a href="{!! mRoute('msdev2.shopify.usage') !!}" style="background:#10a37f;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none;font-weight:600">View Usage</a>
+        </div>
+    </div>
+    @endif
     @if (config('msdev2.plan_offer.enable'))
     <div class="email-banner">
         <div class="banner_title">

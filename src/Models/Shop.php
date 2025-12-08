@@ -151,4 +151,65 @@ class Shop extends Model
             ->whereIn('status', ['active', 'one_time']) // Adjust based on your logic
             ->sum('price');
     }
+    public function lastCharge(): HasOne {
+        return $this->hasOne(Charge::class)->orderBy('created_at', 'desc');
+    }
+    public function usages()
+    {
+        return $this->hasMany(Usage::class);
+    }
+    /**
+     * Total plan credits (from Shopify plan cappedAmount)
+     */
+    public function planCredits()
+    {
+        return $this->plan()["feature"]['cappedAmount'] ?? 0;
+    }
+
+    public function addFreeCredits($qty)
+    {
+        $this->credits()->increment('free_credits', $qty);
+
+        $this->usages()->create([
+            'type' => 'free_credit',
+            'quantity' => $qty,
+            'cost' => 0,
+            'meta' => ['source' => 'system'],
+        ]);
+    }
+
+    public function addPurchasedCredits($qty, $cost = 0, $meta = [])
+    {
+        $this->credits()->increment('purchased_credits', $qty);
+
+        $this->usages()->create([
+            'type' => 'credit_purchase',
+            'quantity' => $qty,
+            'cost' => $cost,
+            'meta' => $meta,
+        ]);
+    }
+
+    public function useCredits($qty, $meta = [])
+    {
+        $this->credits()->increment('used_credits', $qty);
+
+        $this->usages()->create([
+            'type' => 'credit_used',
+            'quantity' => -$qty,
+            'reference_id'=>'',
+            'cost' => 0,
+            'meta' => $meta,
+        ]);
+    }
+
+    public function totalCredits()
+    {
+        return $this->credits->free_credits + $this->credits->purchased_credits;
+    }
+
+    public function remainingCredits()
+    {
+        return $this->totalCredits() - $this->credits->used_credits;
+    }
 }

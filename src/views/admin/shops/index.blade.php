@@ -4,7 +4,7 @@
 <div class="container-fluid px-0">
     
     <!-- HEADER & FILTERS -->
-    <div class="card shadow-sm border-0 mb-4">
+    <div class="card mb-4">
         <div class="card-header bg-white py-3">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="mb-0 fw-bold">All Shops <span class="badge bg-light text-secondary rounded-pill border ms-2">{{ $shops->total() }}</span></h5>

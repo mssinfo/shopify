@@ -39,7 +39,6 @@ class AuthController extends BaseController
 
     public function logout(Request $request)
     {
-        dd('');
         Auth::logout();
         $request->session()->invalidate();
         return redirect()->route('msdev2.admin.login');

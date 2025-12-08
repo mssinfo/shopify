@@ -6,9 +6,13 @@ use Illuminate\Support\Facades\Log;
 use Msdev2\Shopify\Lib\BaseMailHandler;
 use Msdev2\Shopify\Utils;
 use Shopify\Webhooks\Handler;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 
 class AppUninstalled extends BaseMailHandler implements Handler
 {
+     use Dispatchable, InteractsWithQueue, SerializesModels;
     public function handle(string $topic, string $shopName, array $requestBody): void
     {
         $shop = mShop($shopName);

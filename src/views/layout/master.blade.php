@@ -98,8 +98,10 @@
                 $tawkEnabled = ! in_array(strtolower($disableTawkSection), ['1','true','yes','on']);
             }
 
-            if (!\Msdev2\Shopify\Utils::shouldRedirectToEmbeddedApp() &&
-                request()->header('sec-fetch-dest') !== 'iframe') {
+            // Disable Tawk when the app is embedded inside Shopify iframe
+            // or when embedded-app redirect is explicitly enabled.
+            if (\Msdev2\Shopify\Utils::shouldRedirectToEmbeddedApp() ||
+                request()->header('sec-fetch-dest') === 'iframe') {
                 $tawkEnabled = false;
             }
         @endphp
@@ -134,8 +136,6 @@
             });
             @if (config('msdev2.tawk_url') && $tawkEnabled && isset($shop) && $shop)
             window.Tawk_API.showWidget();
-            @else
-            window.Tawk_API.hideWidget();
             @endif
             // ✅ Event for admins
             try {

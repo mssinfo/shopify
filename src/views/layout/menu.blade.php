@@ -68,7 +68,7 @@
 
         function updateVueMenuActive(){
             // Select all navigational anchors inside nav (includes menu items and the Plan 'right' link)
-            var links = document.querySelectorAll('nav a');
+            var links = document.querySelectorAll('nav a.vue_link');
             var current = normalizePath(window.location.pathname || '/');
             links.forEach(function(a){
                 // skip logo link or placeholders

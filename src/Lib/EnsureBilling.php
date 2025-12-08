@@ -124,28 +124,50 @@ class EnsureBilling
 
     private static function requestRecurringPayment(Shop $shop, array $config, string $returnUrl): array
     {
+        $lineItems = [
+            [
+                "plan" => [
+                    "appRecurringPricingDetails" => [
+                        "interval" => $config["interval"],
+                        "price" => [
+                            "amount"       => (float)$config["amount"],
+                            "currencyCode" => $config["currencyCode"],
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        if (isset($config['cappedAmount']) && !empty($config['cappedAmount']) && $config['cappedAmount'] > 0) {
+            $lineItems[] = [
+                "plan" => [
+                    "appUsagePricingDetails" => [
+                        "terms" => $config['usageTerms'] ?? "Usage-based billing",
+                        "cappedAmount" => [
+                            "amount" => (float)$config['cappedAmount'],
+                            "currencyCode" => $config["currencyCode"],
+                        ]
+                    ]
+                ]
+            ];
+        }
 
         return self::queryOrException(
             $shop,
             [
                 "query" => self::RECURRING_PURCHASE_MUTATION,
                 "variables" => [
-                    "name" => $config["chargeName"],
-                    "lineItems" => [
-                        "plan" => [
-                            "appRecurringPricingDetails" => [
-                                "interval" => $config["interval"],
-                                "price" => ["amount" => $config["amount"], "currencyCode" => $config["currencyCode"]],
-                            ],
-                        ],
-                    ],
+                    "name"      => $config["chargeName"],
+                    "lineItems" => $lineItems,
                     "returnUrl" => $returnUrl,
-                    "test" => $shop->isTestStore(),
+                    "test"      => $shop->isTestStore(),
                     "trialDays" => self::$trialDays
                 ],
             ]
         );
     }
+
+
 
     private static function requestOneTimePayment(Shop $shop, array $config, string $returnUrl): array
     {

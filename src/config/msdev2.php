@@ -20,11 +20,16 @@ return [
     "shopify_app_url"=>env('SHOPIFY_APP_URL',''),
     'contact_url'=>env('SHOPIFY_CONTACT_URL',''),
     'contact_email'=>env('SHOPIFY_CONTACT_EMAIL',''),
-    'proxy_path' => env('SHOPIFY_PROXY_PATH', '/a/styfly'),
+    'proxy_path' => env('SHOPIFY_PROXY_PATH', 'styfly'), // alwasy a/ as predix ex: a/styfly
     'extension_id' => env('SHOPIFY_EXTENSION_ID', 'Laravel'),
     'extension_name' => env('SHOPIFY_EXTENSION_NAME', 'Laravel'),
     'extension_app_name' => env('SHOPIFY_EXTENSION_APP_NAME', 'Laravel'),
     'tables'=>env('SHOPIFY_DYNAMIC_CONFIG_TABLES',''),
+    'payu'=>[
+        'key'=>env('PAYU_KEY','AOO79J'),
+        'salt'=>env('PAYU_SALT','VA75tnAxK6eEvKOVTBjZOcsqCtGmV0BE'),
+        'url'=>env('PAYU_URL','https://test.payu.in/_payment'),
+    ],
     "menu"=>[
         'logo'=>[
             'type'=>'url',//image,url,
@@ -68,7 +73,7 @@ return [
             'interval'=>'EVERY_30_DAYS',//EVERY_30_DAYS|ANNUAL|ONE_TIME
             'amount'=>0,
             'currencyCode'=>'USD',
-            'credit'=>100,
+            'cappedAmount' => 1000, // maximum charge limit use 0 if not required credit
             'trialDays'=>0,
             'properties'=>[ // for plan desigining
                 [
@@ -102,7 +107,9 @@ return [
                 ]
             ],
             'feature'=>[ // for develoepr
-                'plan'=>'all'
+                'plan'=>'all',
+                'credit'=>100,
+                'perUnitPrice'=>0.02,
             ]
         ],
         [
@@ -110,8 +117,8 @@ return [
             'interval'=>'EVERY_30_DAYS',//EVERY_30_DAYS|ANNUAL|ONE_TIME
             'amount'=>1.5,
             'currencyCode'=>'USD',
-            'credit'=>1000,
             'trialDays'=>7,
+            'cappedAmount' => 1000, // maximum charge limit use 0 if not required credit
             'properties'=>[
                 [
                     'name'=>'Rain on page',
@@ -144,7 +151,9 @@ return [
                 ]
             ],
             'feature'=>[ // for develoepr
-                'plan'=>'all'
+                'plan'=>'all',
+                'perUnitPrice'=>0.02,
+                'credit'=>1000,
             ]
         ]
     ]

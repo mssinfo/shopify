@@ -38,6 +38,79 @@ class MarketingController extends BaseController
 
         return response()->json(['html' => $html]);
     }
+    public function export(Request $request)
+    {
+        $request->validate([
+            'target' => 'required', // all, plan, specific
+        ]);
+
+        $query = Shop::query();
+
+        // 1. Filtering Logic (Same as send)
+        if ($request->target === 'all_active') {
+            $query->where('is_uninstalled', 0);
+        } 
+        elseif ($request->target === 'uninstalled') {
+            $query->where('is_uninstalled', 1);
+        }
+        elseif ($request->target === 'plan') {
+            $planName = $request->plan_name;
+            if ($planName === 'freemium') {
+                $query->where('is_uninstalled', 0)->doesntHave('activeCharge');
+            } else {
+                $query->whereHas('charges', function($q) use ($planName) {
+                    $q->where('status', 'active')->where('name', $planName);
+                });
+            }
+        }
+        elseif ($request->target === 'specific') {
+            $targets = array_map('trim', explode(',', $request->specific_shops));
+            $query->whereIn('shop', $targets)->orWhereIn('domain', $targets);
+        }
+
+        $shops = $query->get();
+
+        if ($shops->isEmpty()) {
+            return back()->with('error', 'No shops found matching your criteria.');
+        }
+
+        // Generate CSV
+        $fileName = 'email_export_' . date('Y-m-d_H-i-s') . '.csv';
+        $headers = array(
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        );
+
+        $callback = function() use($shops) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, array('Shop Domain', 'Shop Name', 'Owner Name', 'Email', 'Customer Email', 'Plan', 'Status'));
+
+            foreach ($shops as $shop) {
+                $detail = !empty($shop->detail) ? (is_string($shop->detail) ? json_decode($shop->detail, true) : $shop->detail) : [];
+                $email = $detail['email'] ?? '';
+                $customerEmail = $detail['customer_email'] ?? '';
+                $plan = $shop->activeCharge ? $shop->activeCharge->name : 'Freemium';
+                $status = $shop->is_uninstalled ? 'Uninstalled' : 'Active';
+
+                fputcsv($file, array(
+                    $shop->shop,
+                    $detail['name'] ?? '',
+                    $detail['shop_owner'] ?? '',
+                    $email,
+                    $customerEmail,
+                    $plan,
+                    $status
+                ));
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function send(Request $request)
     {
         $request->validate([

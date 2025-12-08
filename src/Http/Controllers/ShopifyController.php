@@ -48,6 +48,7 @@ class ShopifyController extends BaseController
 
     public function install(Request $request)
     {
+        if(config('msdev2.debug')) \Log::info("Install called", ['request' => $request->all()]);
         return AuthRedirection::redirect($request);
     }
 
@@ -84,6 +85,7 @@ class ShopifyController extends BaseController
         // Generate access token URL
         $url = "https://" . $shopName . "/admin/oauth/access_token";
         $result = Http::withOptions(['verify' => false])->post($url, $query);
+        if(config('msdev2.debug')) \Log::info("Access token response", ['response' => $result->json()]);
         $shop = Shop::updateOrCreate(
             ['shop' => $shopName],
             ['scope' => $result->json("scope"), 'is_uninstalled' => 0, 'access_token' => $result->json("access_token")]
@@ -134,11 +136,26 @@ class ShopifyController extends BaseController
         $shop->save();
         $classWebhook = "\\App\\Webhook\\Handlers\\AppInstalled";
         if (class_exists($classWebhook)) {
-            $classWebhook::dispatch($shop);
+            // Call handler directly to avoid container resolving primitive method params when queued
+            try {
+                $handler = new $classWebhook();
+                if (method_exists($handler, 'handle')) {
+                    $handler->handle('app/installed', $shop->shop ?? $shop, $request->all());
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Failed to run AppInstalled handler: ' . $e->getMessage());
+            }
         }else{
             $classWebhook = "\\Msdev2\\Shopify\\Webhook\\AppInstalled";
             if (class_exists($classWebhook)) {
-                $classWebhook::dispatch($shop);
+                try {
+                    $handler = new $classWebhook();
+                    if (method_exists($handler, 'handle')) {
+                        $handler->handle('app/installed', $shop->shop ?? $shop, $request->all());
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to run AppInstalled framework handler: ' . $e->getMessage());
+                }
             }
         }
         if (config('msdev2.billing') && !$shop->activeCharge) {
@@ -175,6 +192,7 @@ class ShopifyController extends BaseController
         $topic = $headers->get(HttpHeaders::X_SHOPIFY_TOPIC);
         $hookClass = ucwords(str_replace('/', ' ', $topic));
         $classWebhookFramework = "\\Msdev2\\Shopify\\Webhook\\" . str_replace(' ', '', $hookClass);
+        $classWebhookModules = "\\Modules\\" . explode('.',request()->getHost())[0] . "\\Http\\Webhook\\" . str_replace(' ', '', $hookClass);
         $classWebhook = "\\App\\Webhook\\Handlers\\" . str_replace(' ', '', $hookClass);
         $shopName = $headers->get(HttpHeaders::X_SHOPIFY_DOMAIN);
         // Deduplicate identical webhook payloads for the same shop/topic to avoid repeated DB work
@@ -199,10 +217,16 @@ class ShopifyController extends BaseController
             ModelsSession::where('shop', $shopName)->delete();
             $this->clearCache(true);
         }
-        if (!class_exists($classWebhook) || !class_exists($classWebhookFramework)) {
-            return mSuccessResponse("class hot found for hook");
-        }
-        $finalClassWebhook = class_exists($classWebhook) ? $classWebhook : $classWebhookFramework;
+        if (!class_exists($classWebhook) && !class_exists($classWebhookFramework) && !class_exists($classWebhookModules)) {
+            if(config('msdev2.debug')){
+                Log::error("request webhook class not found for topic ".$topic, ['shop' => $shopName, 'webhook' => [$classWebhook,$classWebhookFramework,$classWebhookModules]]);
+            }
+            return mSuccessResponse("class not found for hook");
+        }// first modules then app then framework
+        $finalClassWebhook = class_exists($classWebhookModules) ? $classWebhookModules : (class_exists($classWebhook) ? $classWebhook : $classWebhookFramework);
+        // if(config('msdev2.debug')){
+        //     mLog("request webhook for topic ".$topic, ['shop' => $shopName, 'webhook' => $finalClassWebhook]);
+        // }
         Registry::addHandler(strtoupper(str_replace(' ', '_', $hookClass)), new $finalClassWebhook());
         try {
             $response = Registry::process($rawHeaders, $request->getContent());

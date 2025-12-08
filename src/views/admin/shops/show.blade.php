@@ -216,10 +216,9 @@
                                         <a href="{{ route('admin.shops.logs.download', ['id' => $shopInfo->id, 'file' => $selectedLogFile]) }}" class="btn btn-outline-secondary" title="Download">
                                             <i class="fas fa-download"></i>
                                         </a>
-                                        <form action="{{ route('admin.shops.logs.delete', ['id' => $shopInfo->id, 'file' => $selectedLogFile]) }}" method="POST" onsubmit="return confirm('Delete log?')" class="d-inline">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
-                                        </form>
+                                        <button type="button" class="btn btn-outline-danger" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteShopLogModal">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     @endif
                                 </div>
                             </div>
@@ -330,10 +329,22 @@
                                     <div class="tab-pane fade {{ $loop->first?'show active':'' }}" id="t-{{ $tbl }}">
                                         <div class="table-responsive border rounded" style="max-height:500px">
                                             <table class="table table-sm table-striped mb-0" style="font-size:0.75rem">
-                                                <thead class="table-dark sticky-top"><tr>@foreach((array)$rows[0] as $k=>$v) <th>{{$k}}</th> @endforeach</tr></thead>
+                                                <thead class="table-dark sticky-top">
+                                                    <tr>
+                                                        @foreach((array)$rows[0] as $k=>$v) 
+                                                            <th style="white-space: nowrap;">{{$k}}</th> 
+                                                        @endforeach
+                                                    </tr>
+                                                </thead>
                                                 <tbody>
                                                     @foreach($rows as $row)
-                                                    <tr>@foreach((array)$row as $v) <td class="text-truncate" style="max-width:150px">{{ is_scalar($v)?Str::limit($v,50):json_encode($v) }}</td> @endforeach</tr>
+                                                    <tr>
+                                                        @foreach((array)$row as $v) 
+                                                            <td class="text-truncate" style="max-width:200px" title="{{ is_scalar($v) ? $v : json_encode($v) }}">
+                                                                {{ is_scalar($v) ? Str::limit($v, 50) : json_encode($v) }}
+                                                            </td> 
+                                                        @endforeach
+                                                    </tr>
                                                     @endforeach
                                                 </tbody>
                                             </table>
@@ -368,6 +379,34 @@
         </form>
     </div>
 </div>
+
+<!-- MODAL: Delete Shop Log Confirmation -->
+@if($selectedLogFile)
+<div class="modal fade" id="deleteShopLogModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-trash me-2"></i> Delete Log File</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Are you sure you want to delete this log file?</strong></p>
+                <p class="mb-2">File: <code>{{ $selectedLogFile }}</code></p>
+                <p class="text-muted small mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ route('admin.shops.logs.delete', ['id' => $shopInfo->id, 'file' => $selectedLogFile]) }}" method="POST" class="d-inline">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i> Delete Log
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 
 @push('scripts')
 <script>

@@ -6,6 +6,7 @@ use Msdev2\Shopify\Models\Charge;
 use Msdev2\Shopify\Models\Ticket;
 use Illuminate\Support\Facades\DB;
 use Msdev2\Shopify\Http\Controllers\BaseController;
+use Illuminate\Http\Request;
 
 class DashboardController extends BaseController
 {
@@ -13,7 +14,12 @@ class DashboardController extends BaseController
     {
         // --- 1. KPI STATISTICS ---
         
-        $totalMrr = Charge::where('status', 'active')->sum('price');
+        $totalMrr = Charge::where('status', 'active')
+            ->where(function($query) {
+                $query->whereNull('trial_ends_on')
+                      ->orWhere('trial_ends_on', '<=', now());
+            })
+            ->sum('price');
         $activeShopsCount = Shop::where('is_uninstalled', 0)->count();
         
         // Calculate Conversion (Paying / Active)
@@ -54,17 +60,18 @@ class DashboardController extends BaseController
                 ->get();
         }
 
-        // C. Get "Free / Trial" shops (No Active Charge)
-        $groupedShops['Free / Trial / No Plan'] = Shop::where('is_uninstalled', 0)
-            ->doesntHave('activeCharge') // Assuming relation defined in model
+        // --- NEW: RECENT INSTALLS (Recent 10) ---
+        $recentShops = Shop::where('is_uninstalled', 0)
             ->orderBy('created_at', 'desc')
             ->limit(10)
+            ->with('activeCharge')
             ->get();
 
         // --- 4. UNINSTALLED SHOPS (Recent 10) ---
         $uninstalledShops = Shop::where('is_uninstalled', 1)
             ->orderBy('updated_at', 'desc')
             ->limit(10)
+            ->with('lastCharge')
             ->get();
 
         // --- 5. OPEN TICKETS (Recent 10) ---
@@ -83,8 +90,25 @@ class DashboardController extends BaseController
             'planSummary',
             'freeShopsCount',
             'groupedShops',
+            'recentShops',
             'uninstalledShops',
             'recentOpenTickets'
         ));
+    }
+    public function shopifyGraph(Request $request)
+    {
+        $shop = mShop();
+        $graph = mGraph($shop);
+        $query = $request->input('query', null);
+        $variables = $request->input('variables', []);
+        if (!$query) {
+            return mErrorResponse([], 'No query provided', 400);
+        }
+        try {
+            $response = $graph->query($query, $variables);
+            return $response->getDecodedBody();
+        } catch (\Exception $e) {
+            return mErrorResponse([], 'Error executing query: ' . $e->getMessage(), 500);
+        }
     }
 }

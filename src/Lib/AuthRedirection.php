@@ -13,6 +13,7 @@ class AuthRedirection
     public static function redirect(Request $request, bool $isOnline = false): ?RedirectResponse
     {
         if(!$request->query("shop")){
+            \Log::info("AuthRedirection redirect called without shop parameter", ['request' => $request->all()]);
             return null;
         }
         Artisan::call('cache:forget shop');
@@ -31,6 +32,7 @@ class AuthRedirection
             }
             $redirectUrl = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scopes . "&redirect_uri=" . urlencode($redirect_uri);
         }
+        if(config('msdev2.debug')) \Log::info("AuthRedirection redirecting to", ['url' => $redirectUrl]);
         return redirect($redirectUrl);
     }
 

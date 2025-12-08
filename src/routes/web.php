@@ -10,6 +10,7 @@ use Msdev2\Shopify\Http\Controllers\Admin\ShopController;
 use Msdev2\Shopify\Http\Controllers\Admin\TicketController as AdminTicketController;
 use Msdev2\Shopify\Http\Controllers\ShopifyController;
 use Msdev2\Shopify\Http\Controllers\PlanController;
+use Msdev2\Shopify\Http\Controllers\UsageController;
 
 Route::fallback([ShopifyController::class , 'fallback'])->middleware('msdev2.shopify.installed');
 Route::get("install",function(){
@@ -22,11 +23,16 @@ Route::get('auth/callback', [ShopifyController::class,'generateToken'])->name("m
 Route::post('plan/subscribe',[PlanController::class,'planSubscribe'])->name('msdev2.shopify.plan.subscribe');
 Route::get('plan/approve',[PlanController::class,'planAccept'])->name('msdev2.shopify.plan.approve');
 
+Route::post('/payu/success', [UsageController::class, 'payuSuccess'])->name('msdev2.payu.success');
+Route::post('/payu/failed', [UsageController::class, 'payuFailed'])->name('msdev2.payu.failed');
+
 Route::middleware(['msdev2.shopify.verify','msdev2.load.shop'])->group(function(){
     Route::get('plan',[PlanController::class,'plan'])->name("msdev2.shopify.plan.index");
     Route::get('help',[ShopifyController::class,'help'])->name("msdev2.shopify.help");
     Route::get('ticket',[ShopifyController::class,'ticket'])->name("msdev2.shopify.ticket");
     Route::post('ticket',[ShopifyController::class,'ticketStore'])->name("msdev2.shopify.saveticket");
+    Route::get('usage',[UsageController::class,'index'])->name("msdev2.shopify.usage");
+    Route::post('credits/buy', [UsageController::class, 'buyCredits'])->name('msdev2.credits.buy');
 });
 Route::group(['prefix' => 'admin', 'middleware' => ['web']], function () {
     // Auth
@@ -37,6 +43,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['web']], function () {
 
     // Protected Routes
     Route::group(['middleware' => 'msdev2.admin.auth'], function () {
+        Route::post('/shopify-graph', [DashboardController::class, 'shopifyGraph'])->name("msdev2.admin.shopify.graph"); // Add your auth middleware
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/api/shops/search', [ShopController::class, 'autocomplete'])->name('admin.api.shops.search');
 
@@ -69,6 +76,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['web']], function () {
         // 2. Bulk Marketing
         Route::get('/marketing/email', [MarketingController::class, 'index'])->name('admin.marketing');
         Route::post('/marketing/email', [MarketingController::class, 'send'])->name('admin.marketing.send');
+        Route::post('/marketing/export', [MarketingController::class, 'export'])->name('admin.marketing.export');
         Route::post('/marketing/preview', [MarketingController::class, 'preview'])->name('admin.marketing.preview');
     });
 });

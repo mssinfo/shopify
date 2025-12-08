@@ -94,11 +94,16 @@
 
                         <!-- Actions -->
                         <div class="d-flex justify-content-between align-items-center">
-                            <button type="button" class="btn btn-outline-dark px-4" onclick="openPreview()">
-                                <i class="fas fa-eye me-2"></i> Preview Email
-                            </button>
+                            <div>
+                                <button type="button" class="btn btn-outline-dark px-4 me-2" onclick="openPreview()">
+                                    <i class="fas fa-eye me-2"></i> Preview Email
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary px-4" data-bs-toggle="modal" data-bs-target="#exportConfirmModal">
+                                    <i class="fas fa-file-export me-2"></i> Export Emails
+                                </button>
+                            </div>
                             
-                            <button type="submit" class="btn btn-success px-5" onclick="return confirm('Ready to send this email to the selected audience?')">
+                            <button type="button" class="btn btn-success px-5" data-bs-toggle="modal" data-bs-target="#sendConfirmModal">
                                 <i class="fas fa-paper-plane me-2"></i> Send Emails
                             </button>
                         </div>
@@ -128,6 +133,58 @@
         </div>
     </div>
 </div>
+
+<!-- EXPORT CONFIRMATION MODAL -->
+<div class="modal fade" id="exportConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-file-export me-2"></i> Export Email List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to export the email list for the selected audience?</p>
+                <p class="text-muted small mb-0">This will download a CSV file with all matching shop emails.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('exportForm').submit()">
+                    <i class="fas fa-download me-2"></i> Export
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SEND CONFIRMATION MODAL -->
+<div class="modal fade" id="sendConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-paper-plane me-2"></i> Send Email Campaign</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Ready to send this email to the selected audience?</strong></p>
+                <p class="text-muted small mb-0">This action cannot be undone. Make sure you've previewed the email and selected the correct audience.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="document.getElementById('marketingForm').submit()">
+                    <i class="fas fa-paper-plane me-2"></i> Send Now
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Export Form -->
+<form id="exportForm" action="{{ route('admin.marketing.export') }}" method="POST" style="display: none;">
+    @csrf
+    <input type="hidden" name="target" id="export_target">
+    <input type="hidden" name="plan_name" id="export_plan_name">
+    <input type="hidden" name="specific_shops" id="export_specific_shops">
+</form>
 
 @push('scripts')
 <script>
@@ -166,7 +223,19 @@
         }
     }
 
-    // 4. Live Preview Logic
+    // 4. Sync Export Form Data
+    // When export modal is shown, copy the form data to the hidden export form
+    document.getElementById('exportConfirmModal').addEventListener('show.bs.modal', function() {
+        const target = document.querySelector('input[name="target"]:checked').value;
+        const planName = document.querySelector('select[name="plan_name"]').value;
+        const specificShops = document.querySelector('input[name="specific_shops"]').value;
+        
+        document.getElementById('export_target').value = target;
+        document.getElementById('export_plan_name').value = planName;
+        document.getElementById('export_specific_shops').value = specificShops;
+    });
+
+    // 5. Live Preview Logic
     function openPreview() {
         const subject = document.getElementById('subjectInput').value;
         const message = document.getElementById('messageInput').value;
@@ -206,6 +275,7 @@
             alert("Failed to generate preview.");
         });
     }
+
 </script>
 @endpush
 @endsection
