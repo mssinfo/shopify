@@ -83,7 +83,7 @@ class UsageBillingService
 
             // Shopify returned userErrors (billing failed)
             if (!empty($body['data']['appUsageRecordCreate']['userErrors'])) {
-                \Log::warning("Shopify Usage Billing Failed", $body);
+                 if(config('msdev2.debug')) \Log::warning("Shopify Usage Billing Failed", $body);
                 return [
                     'success' => false,
                     'fallback_payu' => true,   // Tell UI to open PayU
@@ -178,7 +178,7 @@ class UsageBillingService
         $lineItemIds = data_get($body, "data.currentAppInstallation.activeSubscriptions.0.lineItems");
 
         if (!$lineItemIds) {
-            \Log::error("FAILED TO FETCH lineItemId", $body);
+            if(config('msdev2.debug')) \Log::error("FAILED TO FETCH lineItemId", $body);
             return null;
             // throw new \Exception("Cannot fetch subscriptionLineItemId from Shopify.");
         }
@@ -189,9 +189,6 @@ class UsageBillingService
                 $shop->meta('_subscription_line_item_id', $lineItemId['id']);
             }
         }
-        // Save to meta
-        // $lineItemIds = explode("?", $lineItemId);
-        // $shop->meta('_subscription_line_item_id', $lineItemIds[0]."?v=1&index=1");
         return $ItemId;
     }
 

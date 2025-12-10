@@ -69,7 +69,7 @@ class UsageController extends BaseController
                     'approve_url' => $pp['approve_url'],
                 ];
             }
-            \Log::warning('PayPal fallback error while creating order', ['shop' => $shop->shop, 'error' => $pp['error'] ?? null]);
+             if(config('msdev2.debug')) \Log::warning('PayPal fallback error while creating order', ['shop' => $shop->shop, 'error' => $pp['error'] ?? null]);
         }
 
         // FALLBACK — PayU
@@ -202,7 +202,7 @@ class UsageController extends BaseController
             if (\Illuminate\Support\Facades\URL::hasValidSignature($altFake)) {
                 $shopHandle = $altFake->query('shop');
             } else {
-                \Log::warning('Invalid signed query for stripeCreateIntentPublic', ['app_full' => $full, 'alt_full' => $altFull]);
+                 if(config('msdev2.debug')) \Log::warning('Invalid signed query for stripeCreateIntentPublic', ['app_full' => $full, 'alt_full' => $altFull]);
                 return ['success' => false, 'error' => 'invalid_signature', 'debug' => ['app_full' => $full, 'alt_full' => $altFull]];
             }
         }
@@ -221,7 +221,7 @@ class UsageController extends BaseController
             return ['success' => true, 'client_secret' => $res['client_secret']];
         }
 
-        \Log::warning('Stripe create intent public failed', ['shop' => $shop->id, 'response' => $res]);
+         if(config('msdev2.debug')) \Log::warning('Stripe create intent public failed', ['shop' => $shop->id, 'response' => $res]);
         return ['success' => false, 'error' => $res['error'] ?? 'failed', 'debug' => $res];
     }
 
@@ -241,7 +241,7 @@ class UsageController extends BaseController
         }
 
         // Log full response for debugging (avoid leaking secrets in logs)
-        \Log::warning('Stripe create intent failed', ['shop' => $shop->id, 'response' => $res]);
+         if(config('msdev2.debug')) \Log::warning('Stripe create intent failed', ['shop' => $shop->id, 'response' => $res]);
 
         // Derive a user-friendly error message
         $errMsg = null;

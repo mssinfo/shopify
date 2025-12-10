@@ -258,9 +258,7 @@ class ShopifyController extends BaseController
             $this->clearCache(true);
         }
         if (!class_exists($classWebhook) && !class_exists($classWebhookFramework) && !class_exists($classWebhookModules)) {
-            if(config('msdev2.debug')){
-                Log::error("request webhook class not found for topic ".$topic, ['shop' => $shopName, 'webhook' => [$classWebhook,$classWebhookFramework,$classWebhookModules]]);
-            }
+            if(config('msdev2.debug')) Log::error("request webhook class not found for topic ".$topic, ['shop' => $shopName, 'webhook' => [$classWebhook,$classWebhookFramework,$classWebhookModules]]);
             return mSuccessResponse("class not found for hook");
         }// first modules then app then framework
         $finalClassWebhook = class_exists($classWebhookModules) ? $classWebhookModules : (class_exists($classWebhook) ? $classWebhook : $classWebhookFramework);
