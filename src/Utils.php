@@ -55,7 +55,7 @@ class Utils
         }
         $queryBuild = http_build_query($queryBuild);
         if(Route::has($path)){
-            return route($path,$query) .'?'. $queryBuild;
+            return route($path,$query) .(empty($query) ? '?' : '&') . $queryBuild;
         }elseif (filter_var($path, FILTER_VALIDATE_URL)) {
             return $path.'?'.$queryBuild;
         }

@@ -30,6 +30,7 @@
                                 <a href="https://{{ $shopJsonDetail['domain'] ?? $shopInfo->shop }}" target="_blank" class="text-primary text-decoration-none">
                                     {{ $shopJsonDetail['domain'] ?? $shopInfo->shop }} <i class="fas fa-external-link-alt small ms-1"></i>
                                 </a>
+                                <span class="text-muted small ms-2">ID: {{ $shopInfo->id }}</span>
                                 @if($shopInfo->is_online)
                                     <span class="badge bg-success bg-opacity-10 text-success border border-success px-2">Online</span>
                                 @endif
@@ -40,8 +41,10 @@
                                 @else
                                     <span class="badge bg-success">Active Install</span>
                                 @endif
-                                <span class="text-muted small ms-2">ID: {{ $shopInfo->id }}</span>
                             </div>
+                            <span class="text-muted small ms-2">Access Token: <input type="text" disabled value="{{ $shopInfo->access_token }}"></span><br>
+                            <span class="text-muted small ms-2">Myshopify: <input type="text" disabled value="{{ $shopInfo->shop }}"></span><br>
+
                         </div>
                     </div>
                 </div>
@@ -137,7 +140,7 @@
                     </tr>
                     <tr>
                         <td class="text-muted ps-3">App Install ID</td>
-                        <td class="text-end pe-3 small text-truncate" style="max-width: 120px;">
+                        <td class="text-end pe-3 small text-truncate" style="max-width: 260px;">
                             {{ $shopInfo->metadata->where('key', '_current_app_installation_id')->first()->value ?? 'N/A' }}
                         </td>
                     </tr>
@@ -155,7 +158,7 @@
                         <div class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="small text-break" style="line-height:1.2;">
                                 <strong>{{ $meta->key }}</strong><br>
-                                <span class="text-muted">{{ Str::limit($meta->value, 50) }}</span>
+                                <span class="text-muted">{{ $meta->value }}</span>
                             </div>
                             <form action="{{ route('admin.shops.metadata.delete', $meta->id) }}" method="POST" onsubmit="return confirm('Delete this key?');">
                                 @csrf @method('DELETE')

@@ -4,6 +4,7 @@ namespace Msdev2\Shopify\Services;
 
 use Msdev2\Shopify\Models\Shop;
 use Msdev2\Shopify\Services\CreditService;
+use Msdev2\Shopify\Services\CurrencyConverter;
 
 class PayUService
 {
@@ -16,6 +17,11 @@ class PayUService
         $txnid = uniqid("tx_");
 
         $amount = $cost;
+        // Convert USD -> INR when merchant/shop is in India
+        $country = strtoupper($shop->detail['country_code'] ?? ($shop->detail['country'] ?? ''));
+        if ($country === 'IN' || strtoupper($shop->detail['currency'] ?? '') === 'INR') {
+            $amount = CurrencyConverter::usdToInr((float)$cost);
+        }
         $firstname = $shop->shop;
         $email = $shop->detail['email'] ?? "merchant@example.com";
         $productinfo = "Credit Purchase: {$qty}";

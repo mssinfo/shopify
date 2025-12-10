@@ -4,6 +4,7 @@ namespace Msdev2\Shopify\Services;
 
 use Msdev2\Shopify\Models\Shop;
 use Msdev2\Shopify\Models\Usage;
+use Msdev2\Shopify\Services\CurrencyConverter;
 
 class CreditService
 {
@@ -91,10 +92,31 @@ class CreditService
      */
     public static function addPurchased(Shop $shop, int $qty, float $cost, array $meta = [])
     {
+        // Determine if the payment was made in INR (shop configured currency or country)
+        $shopCurrency = strtoupper($shop->detail['currency'] ?? '');
+        $country = strtoupper($shop->detail['country_code'] ?? ($shop->detail['country'] ?? ''));
+
+        $storeCost = $cost;
+
+        if ($shopCurrency === 'INR' || $country === 'IN') {
+            // Incoming $cost is likely in INR — convert back to USD for storage
+            try {
+                $usd = CurrencyConverter::inrToUsd((float)$cost);
+                $storeCost = $usd;
+                $meta['paid_currency'] = 'INR';
+                $meta['paid_amount'] = $cost;
+                $meta['paid_amount_usd'] = $usd;
+            } catch (\Throwable $e) {
+                // If conversion fails, still store INR amount but mark currency
+                $meta['paid_currency'] = 'INR';
+                $meta['paid_amount'] = $cost;
+            }
+        }
+
         $shop->usages()->create([
             'type' => 'credit_purchase',
             'quantity' => $qty,
-            'cost' => $cost,
+            'cost' => $storeCost,
             'reference_id' => $meta['reference_id'] ?? $meta['txnid'] ?? null,
             'meta' => $meta,
         ]);

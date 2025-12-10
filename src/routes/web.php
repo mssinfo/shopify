@@ -26,14 +26,29 @@ Route::get('plan/approve',[PlanController::class,'planAccept'])->name('msdev2.sh
 Route::post('/payu/success', [UsageController::class, 'payuSuccess'])->name('msdev2.payu.success');
 Route::post('/payu/failed', [UsageController::class, 'payuFailed'])->name('msdev2.payu.failed');
 
+// Stripe redirects (used for Checkout session success/cancel)
+Route::get('/stripe/success', [UsageController::class, 'stripeSuccess'])->name('msdev2.stripe.success');
+Route::get('/stripe/cancel', [UsageController::class, 'stripeCancel'])->name('msdev2.stripe.cancel');
+// PayPal redirects
+Route::get('/paypal/success', [UsageController::class, 'paypalSuccess'])->name('msdev2.paypal.success');
+Route::get('/paypal/cancel', [UsageController::class, 'paypalCancel'])->name('msdev2.paypal.cancel');
+
 Route::middleware(['msdev2.shopify.verify','msdev2.load.shop'])->group(function(){
     Route::get('plan',[PlanController::class,'plan'])->name("msdev2.shopify.plan.index");
     Route::get('help',[ShopifyController::class,'help'])->name("msdev2.shopify.help");
     Route::get('ticket',[ShopifyController::class,'ticket'])->name("msdev2.shopify.ticket");
     Route::post('ticket',[ShopifyController::class,'ticketStore'])->name("msdev2.shopify.saveticket");
     Route::get('usage',[UsageController::class,'index'])->name("msdev2.shopify.usage");
+    // Stripe popup/create intent endpoints (require shop/session)
+    Route::get('/stripe/popup', [UsageController::class, 'stripePopup'])->name('msdev2.stripe.popup');
+    Route::post('/stripe/create_intent', [UsageController::class, 'stripeCreateIntent'])->name('msdev2.stripe.create_intent');
     Route::post('credits/buy', [UsageController::class, 'buyCredits'])->name('msdev2.credits.buy');
+    Route::post('credits/stripe_confirm', [UsageController::class, 'stripeConfirm'])->name('msdev2.credits.stripe_confirm');
 });
+
+// Public signed popup (used when session/cookies are not reliably available)
+Route::get('/stripe/popup_public', [UsageController::class, 'stripePopupPublic'])->name('msdev2.stripe.popup_public');
+Route::post('/stripe/create_intent_public', [UsageController::class, 'stripeCreateIntentPublic'])->name('msdev2.stripe.create_intent_public')->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
 Route::group(['prefix' => 'admin', 'middleware' => ['web']], function () {
     // Auth
     Route::get('/', [AuthController::class, 'index'])->name('msdev2.admin.index');

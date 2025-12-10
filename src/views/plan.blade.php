@@ -21,19 +21,7 @@
         }
     @endphp
 
-    @if (!empty($creditStats))
-    @include('msdev2::components.usage-bar', ['stats' => $creditStats])
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px; max-width:1100px; margin-left:auto; margin-right:auto;">
-        <div style="background:#fff;border:1px solid #e6e6e6;padding:12px;border-radius:8px;display:flex;align-items:center;gap:12px;">
-            <div style="font-size:13px;color:#666">Credits Score</div>
-            <div style="font-size:20px;font-weight:700;color:#1b6fff">{{ $creditStats['total_remaining'] ?? 0 }}</div>
-            <div style="font-size:12px;color:#888;margin-left:8px">Remaining</div>
-        </div>
-        <div>
-            <a href="{!! mRoute('msdev2.shopify.usage') !!}" style="background:#10a37f;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none;font-weight:600">View Usage</a>
-        </div>
-    </div>
-    @endif
+    
     @if (config('msdev2.plan_offer.enable'))
     <div class="email-banner">
         <div class="banner_title">
@@ -52,6 +40,19 @@
     @endif
     <div class="planContentMain">
         <div class="planContentWrap">
+            @if (!empty($creditStats)) 
+            @include('msdev2::components.usage-bar', ['stats' => $creditStats])
+            <div class="usage-summary-section">
+                <div class="usage-summary-card">
+                    <div class="usage-summary-label">Credits Score</div>
+                    <div class="usage-summary-value">{{ $creditStats['total_remaining'] ?? 0 }}</div>
+                    <div class="usage-summary-sublabel">Remaining</div>
+                </div>
+                <div class="usage-summary-actions">
+                    <a href="{!! mRoute('msdev2.shopify.usage') !!}" class="usage-view-btn">View Usage</a>
+                </div>
+            </div>
+            @endif
             <div class="selectPlans">
                 <div class="selectPlanBox">
                     <div class="planBoxItemLeft">
@@ -110,7 +111,16 @@
                         @foreach ($properties as $name=>$property)
                             <li><div class="rsListTitle"><span class="rsListTitleItem">{{$name}}
                                 @if (isset($property["help_text"]) && $property["help_text"] !="")
-                                &nbsp; <span class="tip" data-hover="{{$property["help_text"]}}" style="position: relative;top: -5px; left: 10px;"><i class="icon-question"></i></span>
+                                <span class="polaris-tooltip-wrapper">
+                                    <span class="polaris-help-icon" data-tooltip-id="tooltip-{{$loop->index}}">
+                                        <svg viewBox="0 0 20 20" class="polaris-icon-svg" focusable="false" aria-hidden="true">
+                                            <path d="M10 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"></path>
+                                            <path d="M10.75 9.5a.75.75 0 0 0-1.5 0v4a.75.75 0 0 0 1.5 0v-4Z"></path>
+                                            <path fill-rule="evenodd" d="M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Zm-1.5 0a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0Z"></path>
+                                        </svg>
+                                    </span>
+                                    <span class="polaris-tooltip" id="tooltip-{{$loop->index}}">{{$property["help_text"]}}</span>
+                                </span>
                                 @endif
                             </span></div></li>
                         @endforeach
@@ -146,7 +156,19 @@
                                             @elseif($plan["properties"][$name]["value"] == "false")    
                                                 <svg class="Polaris-Icon__Svg" focusable="false" aria-hidden="true" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" bis_size="{&quot;x&quot;:745,&quot;y&quot;:2871,&quot;w&quot;:20,&quot;h&quot;:20,&quot;abs_x&quot;:985,&quot;abs_y&quot;:2971}"><path d="M15 9H5a1 1 0 1 0 0 2h10a1 1 0 1 0 0-2z" bis_size="{&quot;x&quot;:749,&quot;y&quot;:2880,&quot;w&quot;:12,&quot;h&quot;:2,&quot;abs_x&quot;:989,&quot;abs_y&quot;:2980}"></path></svg>
                                             @else
-                                                {{$plan["properties"][$name]["value"]}}
+                                                <span>{{$plan["properties"][$name]["value"]}}</span>
+                                            @endif
+                                            @if (isset($plan["properties"][$name]["help_text"]) && $plan["properties"][$name]["help_text"] !="")
+                                            <span class="polaris-tooltip-wrapper plan-feature-tooltip">
+                                                <span class="polaris-help-icon" data-tooltip-id="tooltip-plan-{{$loop->parent->index}}-{{$loop->index}}">
+                                                    <svg viewBox="0 0 20 20" class="polaris-icon-svg" focusable="false" aria-hidden="true">
+                                                        <path d="M10 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"></path>
+                                                        <path d="M10.75 9.5a.75.75 0 0 0-1.5 0v4a.75.75 0 0 0 1.5 0v-4Z"></path>
+                                                        <path fill-rule="evenodd" d="M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Zm-1.5 0a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0Z"></path>
+                                                    </svg>
+                                                </span>
+                                                <span class="polaris-tooltip" id="tooltip-plan-{{$loop->parent->index}}-{{$loop->index}}">{{$plan["properties"][$name]["help_text"]}}</span>
+                                            </span>
                                             @endif
                                         @else
                                         <svg class="Polaris-Icon__Svg" focusable="false" aria-hidden="true" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" bis_size="{&quot;x&quot;:745,&quot;y&quot;:2871,&quot;w&quot;:20,&quot;h&quot;:20,&quot;abs_x&quot;:985,&quot;abs_y&quot;:2971}"><path d="M15 9H5a1 1 0 1 0 0 2h10a1 1 0 1 0 0-2z" bis_size="{&quot;x&quot;:749,&quot;y&quot;:2880,&quot;w&quot;:12,&quot;h&quot;:2,&quot;abs_x&quot;:989,&quot;abs_y&quot;:2980}"></path></svg>

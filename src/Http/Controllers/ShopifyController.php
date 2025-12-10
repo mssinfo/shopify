@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Carbon;
+use Msdev2\Shopify\Events\PlanPurchaseCompleted;
 use Msdev2\Shopify\Lib\AuthRedirection;
 use Msdev2\Shopify\Lib\DbSessionStorage;
 use Msdev2\Shopify\Mail\TicketAdminMail;
@@ -159,6 +161,44 @@ class ShopifyController extends BaseController
             }
         }
         if (config('msdev2.billing') && !$shop->activeCharge) {
+            // Try to auto-subscribe to a free plan if one exists in configuration
+            $planList = config('msdev2.plan', []);
+            $freePlan = null;
+            foreach ($planList as $p) {
+                if (isset($p['amount']) && (float)$p['amount'] === 0.0) {
+                    $freePlan = $p;
+                    break;
+                }
+            }
+
+            if ($freePlan) {
+                // Create an active free charge record for the shop
+                $planType = 'free';
+                $billingOn = Carbon::now();
+                $trialDay = ($freePlan['trialDays'] ?? 0) > $shop->appUsedDay() ? ($freePlan['trialDays'] - $shop->appUsedDay()) : 0;
+
+                $shop->charges()->create([
+                    'charge_id' => 0,
+                    'name' => $freePlan['chargeName'],
+                    'test' => !(app()->environment() === 'production'),
+                    'status' => 'active',
+                    'type' => $planType,
+                    'price' => $freePlan['amount'],
+                    'interval' => $freePlan['interval'] ?? 'ONE_TIME',
+                    'capped_amount' => $freePlan['cappedAmount'] ?? 0,
+                    'trial_days' => $trialDay,
+                    'billing_on' => $billingOn,
+                    'activated_on' => Carbon::now(),
+                    'trial_ends_on' => Carbon::now()->addDays($trialDay),
+                ]);
+
+                if (class_exists(PlanPurchaseCompleted::class)) {
+                    PlanPurchaseCompleted::dispatch($shop, null, $freePlan['chargeName']);
+                }
+
+                return redirect($redirectUrl);
+            }
+
             return redirect($redirectUrl . '/plan');
         }
 

@@ -242,7 +242,7 @@
         const csrfToken = document.querySelector('input[name="_token"]').value;
 
         if (!subject || !message) {
-            alert("Please enter a subject and message to preview.");
+             $GLOBALS.showToast("Please enter a subject and message to preview.", true);
             return;
         }
 
@@ -272,7 +272,7 @@
         })
         .catch(error => {
             console.error('Error:', error);
-            alert("Failed to generate preview.");
+            $GLOBALS.showToast("Failed to generate preview.", true);
         });
     }
 

@@ -25,7 +25,7 @@ class UsageBillingService
      */
     public static function bill(Shop $shop, $type, $qty, $cost, $description, $meta = [])
     {
-        if($shop->meta('_use_payu_only')){
+        if($shop->plan()['amount'] == 0){
             // Forced to use PayU only
             return [
                 'success' => false,
@@ -34,10 +34,15 @@ class UsageBillingService
             ];
         }
         try {
-
             // Attempt normal Shopify usage billing
             $lineItemId = self::getSubscriptionLineItemId($shop);
-
+            if(!$lineItemId){
+                return [
+                    'success' => false,
+                    'fallback_payu' => true,  // Auto fallback enabled
+                    'errors' => ['Failed to fetch subscriptionLineItemId from Shopify']
+                ];
+            }
             $mutation = <<<'GQL'
                 mutation appUsageRecordCreate(
                 $subscriptionLineItemId: ID!
@@ -79,7 +84,6 @@ class UsageBillingService
             // Shopify returned userErrors (billing failed)
             if (!empty($body['data']['appUsageRecordCreate']['userErrors'])) {
                 \Log::warning("Shopify Usage Billing Failed", $body);
-                $shop->meta('_use_payu_only', true);
                 return [
                     'success' => false,
                     'fallback_payu' => true,   // Tell UI to open PayU
@@ -99,7 +103,6 @@ class UsageBillingService
                 'reference_id' => $usageRecord['id'] ?? null,
                 'meta'         => $meta,
             ]);
-            $shop->meta('_use_payu_only', false);
             return [
                 'success' => true,
                 'fallback_payu' => false,
@@ -112,7 +115,6 @@ class UsageBillingService
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            $shop->meta('_use_payu_only', true);
             return [
                 'success' => false,
                 'fallback_payu' => true,  // Auto fallback enabled
@@ -133,38 +135,64 @@ class UsageBillingService
         $chargeId = $shop->lastCharge->charge_id;
 
         $query = <<<'GQL'
-            query getSubscription($id: ID!) {
-            node(id: $id) {
-                ... on AppSubscription {
-                id
-                lineItems {
+            query CurrentAppInstallation {
+                currentAppInstallation {
                     id
+                    launchUrl
+                    uninstallUrl
+                    activeSubscriptions {
+                        createdAt
+                        currentPeriodEnd
+                        id
+                        name
+                        returnUrl
+                        status
+                        test
+                        trialDays
+                        lineItems {
+                            id
+                            plan {
+                                pricingDetails {
+                                    ... on AppUsagePricing {
+                                        interval
+                                        terms
+                                        cappedAmount {
+                                            amount
+                                            currencyCode
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-                }
-            }
             }
         GQL;
 
         $response = mGraph($shop)->query([
-            "query" => $query,
-            "variables" => [
-                "id" => "gid://shopify/AppSubscription/{$chargeId}",
-            ]
+            "query" => $query
         ]);
 
         $body = $response->getDecodedBody();
 
-        $lineItemId = data_get($body, "data.node.lineItems.0.id");
+        $lineItemIds = data_get($body, "data.currentAppInstallation.activeSubscriptions.0.lineItems");
 
-        if (!$lineItemId) {
+        if (!$lineItemIds) {
             \Log::error("FAILED TO FETCH lineItemId", $body);
-            throw new \Exception("Cannot fetch subscriptionLineItemId from Shopify.");
+            return null;
+            // throw new \Exception("Cannot fetch subscriptionLineItemId from Shopify.");
         }
-
+        $ItemId = null;
+        foreach ($lineItemIds as $lineItemId) {
+            if(isset($lineItemId['plan']['pricingDetails']['cappedAmount']['amount']) && $lineItemId['plan']['pricingDetails']['cappedAmount']['amount'] > 0){
+                $ItemId = $lineItemId['id'];
+                $shop->meta('_subscription_line_item_id', $lineItemId['id']);
+            }
+        }
         // Save to meta
-        $shop->meta('_subscription_line_item_id', $lineItemId);
-
-        return $lineItemI;
+        // $lineItemIds = explode("?", $lineItemId);
+        // $shop->meta('_subscription_line_item_id', $lineItemIds[0]."?v=1&index=1");
+        return $ItemId;
     }
 
 }

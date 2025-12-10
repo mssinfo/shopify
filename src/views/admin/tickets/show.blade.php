@@ -172,7 +172,7 @@
         input.select();
         document.execCommand('copy');
         input.type = 'password'; // Re-hide
-        alert('Password copied to clipboard');
+        $GLOBALS.showToast("Password copied to clipboard.");
     }
 </script>
 @endpush

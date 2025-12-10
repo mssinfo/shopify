@@ -15,6 +15,7 @@ return [
     "enable_turbolinks"=> (bool) env('SHOPIFY_ENABLE_TURBOLINKS',true) ?? true,
     "enable_polaris"=> (bool) env('SHOPIFY_ENABLE_POLARIS',false) ?? false,
     "tawk_url"=> env('TAWK_URL',''),
+    "tidio_url"=> env('TIDIO_URL',''),
     "footer"=>env('SHOPIFY_FOOTER', '<p>Copyright &copy; All right reserved.</p>'),
     "test_stores"=>env('SHOPIFY_TEST_STORES',''),
     "shopify_app_url"=>env('SHOPIFY_APP_URL',''),
@@ -25,11 +26,25 @@ return [
     'extension_name' => env('SHOPIFY_EXTENSION_NAME', 'Laravel'),
     'extension_app_name' => env('SHOPIFY_EXTENSION_APP_NAME', 'Laravel'),
     'tables'=>env('SHOPIFY_DYNAMIC_CONFIG_TABLES',''),
+    /* Payment provider selection: 'payu' or 'stripe' */
+    'payment_provider' => env('MSDEV2_PAYMENT_PROVIDER','payu'),
     'payu'=>[
         'key'=>env('PAYU_KEY','AOO79J'),
         'salt'=>env('PAYU_SALT','VA75tnAxK6eEvKOVTBjZOcsqCtGmV0BE'),
         'url'=>env('PAYU_URL','https://test.payu.in/_payment'),
     ],
+    'stripe' => [
+        'secret' => env('STRIPE_SECRET',''),
+        'publishable' => env('STRIPE_KEY',''),
+        'currency' => env('STRIPE_CURRENCY','USD'),
+    ],
+        'paypal' => [
+            // PayPal credentials and mode: 'sandbox' or 'live'
+            'client_id' => env('PAYPAL_CLIENT_ID', ''),
+            'secret' => env('PAYPAL_SECRET', ''),
+            'mode' => env('PAYPAL_MODE', 'sandbox'),
+            'currency' => env('PAYPAL_CURRENCY', 'USD'),
+        ],
     "menu"=>[
         'logo'=>[
             'type'=>'url',//image,url,

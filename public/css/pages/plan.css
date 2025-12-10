@@ -1,5 +1,644 @@
-@charset "UTF-8";html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}
-@font-face {font-family: 'SF Pro Display';src: url('./fonts/SFProDisplay-Regular.woff2') format('woff2'), url('./fonts/SFProDisplay-Regular.woff') format('woff');font-weight: normal;font-style: normal;font-display: block;}@font-face {font-family: 'SF Pro Display';src: url('./fonts/SFProDisplay-Bold.woff2') format('woff2'), url('./fonts/SFProDisplay-Bold.woff') format('woff');font-weight: bold;font-style: normal;font-display: block;}@font-face {font-family: 'SF Pro Display';src: url('./fonts/SFProDisplay-Medium.woff2') format('woff2'), url('./fonts/SFProDisplay-Medium.woff') format('woff');font-weight: 500;font-style: normal;font-display: block;}
+@charset "UTF-8";
 
-.plan_page body {background-color: #f1f1f1;font-size: 14px;font-family: 'SF Pro Display';line-height: 1.5;font-weight: 400;color: #202223;margin: 0;}.plan_page ul {list-style: none;padding: 0;margin: 0;}.plan_page *, .plan_page *::before, .plan_page *::after {outline: none;box-sizing: border-box;}.plan_page p {margin-top: 0;margin-bottom: 10px;}.plan_page .plan_page {margin: 25px auto;max-width: 1160px;padding: 0 15px;}.plan_page .email-banner {box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);border-radius: 12px;margin-top: 11px;}.plan_page .email-banner .banner_title {display: flex;align-items: center;justify-content: space-between;border-top-left-radius: 12px;border-top-right-radius: 12px;}.plan_page .email-banner .banner_title {background: #91CFFF;padding: 0 15px;}.plan_page .email-banner .banner_content, .plan_page .email-banner .banner_title {padding: 15px;color: #585B5C;}.plan_page .email-banner .banner_title .banner_info {display: flex;align-items: center;justify-content: flex-start;}.plan_page .email-banner .banner_title .banner_info .banner_message {margin-left: 10px;font-weight: bold;border-bottom-left-radius: 12px;border-bottom-right-radius: 12px;color: #0f0f0f;margin-bottom: 0px;}.plan_page .close-email-banner {background: transparent;border: none;cursor: pointer;}.plan_page .email-banner .banner_title .banner_info .banner_icon, .plan_page .email-banner .banner_title .banner_icon {width: 12px;}.plan_page .selectPlans {padding: 20px 0 0;}.plan_page .planContentWrap {margin: 0 auto;padding: 0 32px;max-width: 998px;}.plan_page .selectPlanBox {display: flex;justify-content: space-between;align-items: center;}.plan_page .plansText {font-size: 20px;color: #111213;font-weight: 600;line-height: 28px;margin-right: 8px;}.plan_page .planTabBtn .plantbText {display: flex;align-items: center;padding: 7px 16px;text-align: center;font-size: 16px;font-weight: 600;min-height: 55px;min-width: 94px;justify-content: center;cursor: pointer;background-color: white;border-radius: 8px;color: #258060;box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;border: none;}.plan_page .planstabsItem.active .planTabBtn .plantbText {font-size: 17px;font-weight: 500;min-height: 60px;background-color: #257f60;color: #fff;}.plan_page .planstabsItem.active:first-child {position: relative;right: -5px;}.plan_page .planstabsItem.active:last-child {position: relative;left: -5px;}.plan_page .planstabs {display: flex;align-items: center;}.plan_page .annualPlnTxt {display: block;}.plan_page .annualPlanCnt {display: flex;align-items: center;justify-content: space-between;}.plan_page .stackItem {margin-left: 16px;}.plan_page .annualText {text-align: left;line-height: 1;}.plan_page .annualPlanSaveText {color: #000;font-size: 12px;}.plan_page .stackItem .getfreetext {border: 2px dotted #000;padding: 5px;margin-top: 2px;font-size: 16px;color: #000000;font-weight: normal !important;font-family: 'Satisfy', cursive;}.plan_page .cstmPlnCntIn {display: flex;justify-content: space-between;}.plan_page .ResourceFeature {width: 30%;}.plan_page .PlanInfoCnt {width: 70%;}.plan_page .PlanInfoCntIn {display: flex;justify-content: space-between;}.plan_page .ResourceList > li, .plan_page .planInfoList li, .plan_page .planInfoHeadCnt {border-top: 1px solid #ddd;border-right: 1px solid #ddd;background: #fff;padding: 16px 16px 16px 20px;min-height: 54px;}.plan_page .ResourceList > li {border-left: 1px solid #ddd;border-right: none;padding-bottom: 0;padding-top: 0; text-align: left; display: flex;align-items: center;}.plan_page .ResourceList > li:first-child {border-top-left-radius: 12px;}.plan_page .rsListTitle {font-size: 14px;color: #111213;line-height: 15.4px;}.plan_page .planInfoItem {flex: 1;}.plan_page .planInfoDes svg {width: 20px;height: 20px;}.plan_page .planInfoDes {display: flex;align-items: center;justify-content: center;}.plan_page .customPlanContent {margin: 50px 0 0;}.plan_page .plan__price {min-height: 98px;padding: 16px 16px 16px 20px;}.plan_page .planInfoItem:first-child .plan__price {border-left: 1px solid #ddd;box-shadow: none;border-top-left-radius: 12px;overflow: hidden;}.plan_page .planInfoItem:first-child .planInfoList li {border-left: 1px solid #ddd;}.plan_page .planIcon__Svg path {fill: #007f5f;}.plan_page .planMinsIcon .Polaris-Icon__Svg path {fill: #8c9196;}.plan_page .ResourceList > li:last-child {border-bottom-left-radius: 12px;min-height: 55px;border-bottom: 1px solid #ddd;}.plan_page .planInfoText {display: block;text-align: center;line-height: 21px;color: #202223;font-size: 14px;}.plan_page .planHeadTopCnt {display: block;margin: 10px 0 0;font-size: 25px;font-weight: 700;line-height: 24px;color: #202223;}.plan_page .planInfoList li:last-child {min-height: 70px;}.plan_page .choosePlanBtn {position: relative;display: inline-flex;align-items: center;justify-content: center;min-height: 36px;min-width: 36px;margin: 0;padding: 7px 16px;background: white;box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);border-radius: 4px;color: #202223;border: 1px solid #babfc3;border-top-color: #c9cccf;border-bottom-color: #babfc4;line-height: 1;text-align: center;cursor: pointer;-webkit-user-select: none;user-select: none;text-decoration: none;-webkit-tap-highlight-color: transparent;}.plan_page .planBtns {text-align: center;}.plan_page .choosePlanBtn[disabled="disabled"] {transition: none;box-shadow: none;border-color: #d2d5d8;background: #fafbfb;color: #8c9196;cursor: default;pointer-events: none;}.plan_page .choosePlanBtn:hover {background: #006e52;border-color: transparent;color: #fff;}.plan_page .planInfoItem:first-child .planInfoList li:last-child {border-bottom-left-radius: 12px;border-bottom: 1px solid #ddd;}.plan_page .planInfoItem:nth-child(2) .planInfoList li:last-child {border-bottom: 1px solid #ddd;}.plan_page .planInfoItem:last-child .planInfoList li:last-child {border-bottom: 1px solid #ddd;border-bottom-right-radius: 12px;}.plan_page .proText {font-size: 16px;font-weight: bold;line-height: 24px;display: block;}.plan_page .priceOfmnthText {margin: 10px 0 0;}.plan_page .priceOfmnthText p {font-size: 20px;font-weight: 700;line-height: 18px;margin: 0;}.plan_page .priceOfmnthText .plnMnttext {margin-top: 5px;font-size: 17px;}.plan_page .planInfoItem:last-child .plan__price {border-top-right-radius: 12px;}@media (max-width: 1023px) {.plan_page .ResourceList > li, .plan_page .planInfoList li {min-height: 117px !important;display: flex;flex-direction: column;justify-content: center;}.plan_page .planInfoList li:last-child {min-height: 100px !important;}}@media (max-width: 749px) {.plan_page .planContentWrap {padding: 0;}.plan_page .customPlanContent {overflow: auto;}.plan_page .planTabBtn .plantbText {padding: 5px 6px 5px 10px;font-size: 14px;min-height: 50px;min-width: 84px;}.plan_page .planstabsItem.active .planTabBtn .plantbText {font-size: 15px;min-height: 57px;}.plan_page .stackItem .getfreetext {padding: 4px;font-size: 11px;}.plan_page .priceOfmnthText p, .plan_page .planHeadTopCnt {font-size: 20px;}.plan_page .ResourceFeature {width: 36%;}.plan_page .PlanInfoCnt {width: 66%;}.plan_page .ResourceList > li, .plan_page .planInfoList li, .plan_page .planInfoHeadCnt {padding: 10px 10px 10px 15px;}.plan_page .priceOfmnthText {margin: 5px 0 0;}}@media (max-width: 360px) {.plan_page .annualPlanSaveText {font-size: 10px;}.plan_page .planstabsItem.active .planTabBtn .plantbText {font-size: 13px;min-height: 57px;}.plan_page .planTabBtn .plantbText {font-size: 12px;min-width: 70px;}.plan_page .stackItem .getfreetext {font-size: 9px;}}
+html {
+    font-family: sans-serif;
+    -ms-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%
+}
 
+body {
+    margin: 0
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./fonts/SFProDisplay-Regular.woff2') format('woff2'), url('./fonts/SFProDisplay-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+}
+
+.plan_page body {
+    background-color: #f1f1f1;
+    font-size: 14px;
+    font-family: 'SF Pro Display';
+    line-height: 1.5;
+    font-weight: 400;
+    color: #202223;
+    margin: 0;
+}
+
+.plan_page ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.plan_page *,
+.plan_page *::before,
+.plan_page *::after {
+    outline: none;
+    box-sizing: border-box;
+}
+
+.plan_page p {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.plan_page .plan_page {
+    margin: 25px auto;
+    max-width: 1160px;
+    padding: 0 15px;
+}
+
+.plan_page .email-banner {
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    margin-top: 11px;
+}
+
+.plan_page .email-banner .banner_title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.plan_page .email-banner .banner_title {
+    background: #91CFFF;
+    padding: 0 15px;
+}
+
+.plan_page .email-banner .banner_content,
+.plan_page .email-banner .banner_title {
+    padding: 15px;
+    color: #585B5C;
+}
+
+.plan_page .email-banner .banner_title .banner_info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.plan_page .email-banner .banner_title .banner_info .banner_message {
+    margin-left: 10px;
+    font-weight: bold;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    color: #0f0f0f;
+    margin-bottom: 0px;
+}
+
+.plan_page .close-email-banner {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.plan_page .email-banner .banner_title .banner_info .banner_icon,
+.plan_page .email-banner .banner_title .banner_icon {
+    width: 12px;
+}
+
+.plan_page .selectPlans {
+    padding: 20px 0 0;
+}
+
+.plan_page .planContentWrap {
+    margin: 0 auto;
+    padding: 0 32px;
+    max-width: 998px;
+}
+
+.plan_page .selectPlanBox {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.plan_page .plansText {
+    font-size: 20px;
+    color: #111213;
+    font-weight: 600;
+    line-height: 28px;
+    margin-right: 8px;
+}
+
+.plan_page .planTabBtn .plantbText {
+    display: flex;
+    align-items: center;
+    padding: 7px 16px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    min-height: 55px;
+    min-width: 94px;
+    justify-content: center;
+    cursor: pointer;
+    background-color: white;
+    border-radius: 8px;
+    color: #258060;
+    box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+    border: none;
+}
+
+.plan_page .planstabsItem.active .planTabBtn .plantbText {
+    font-size: 17px;
+    font-weight: 500;
+    min-height: 60px;
+    background-color: #257f60;
+    color: #fff;
+}
+
+.plan_page .planstabsItem.active:first-child {
+    position: relative;
+    right: -5px;
+}
+
+.plan_page .planstabsItem.active:last-child {
+    position: relative;
+    left: -5px;
+}
+
+.plan_page .planstabs {
+    display: flex;
+    align-items: center;
+}
+
+.plan_page .annualPlnTxt {
+    display: block;
+}
+
+.plan_page .annualPlanCnt {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.plan_page .stackItem {
+    margin-left: 16px;
+}
+
+.plan_page .annualText {
+    text-align: left;
+    line-height: 1;
+}
+
+.plan_page .annualPlanSaveText {
+    color: #000;
+    font-size: 12px;
+}
+
+.plan_page .stackItem .getfreetext {
+    border: 2px dotted #000;
+    padding: 5px;
+    margin-top: 2px;
+    font-size: 16px;
+    color: #000000;
+    font-weight: normal !important;
+    font-family: 'Satisfy', cursive;
+}
+
+.plan_page .cstmPlnCntIn {
+    display: flex;
+    justify-content: space-between;
+}
+
+.plan_page .ResourceFeature {
+    width: 30%;
+}
+
+.plan_page .PlanInfoCnt {
+    width: 70%;
+}
+
+.plan_page .PlanInfoCntIn {
+    display: flex;
+    justify-content: space-between;
+}
+
+.plan_page .ResourceList>li,
+.plan_page .planInfoList li,
+.plan_page .planInfoHeadCnt {
+    border-top: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    background: #fff;
+    padding: 16px 16px 16px 20px;
+    min-height: 54px;
+}
+
+.plan_page .ResourceList>li {
+    border-left: 1px solid #ddd;
+    border-right: none;
+    padding-bottom: 0;
+    padding-top: 0;
+    text-align: left;
+    display: flex;
+    align-items: center;
+}
+
+.plan_page .ResourceList>li:first-child {
+    border-top-left-radius: 12px;
+}
+
+.plan_page .rsListTitle {
+    font-size: 14px;
+    color: #111213;
+    line-height: 15.4px;
+}
+
+.plan_page .planInfoItem {
+    flex: 1;
+}
+
+.plan_page .planInfoDes svg {
+    width: 20px;
+    height: 20px;
+}
+
+.plan_page .planInfoDes {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.plan_page .customPlanContent {
+    margin: 50px 0 0;
+}
+
+.plan_page .plan__price {
+    min-height: 98px;
+    padding: 16px 16px 16px 20px;
+}
+
+.plan_page .planInfoItem:first-child .plan__price {
+    border-left: 1px solid #ddd;
+    box-shadow: none;
+    border-top-left-radius: 12px;
+    overflow: hidden;
+}
+
+.plan_page .planInfoItem:first-child .planInfoList li {
+    border-left: 1px solid #ddd;
+}
+
+.plan_page .planIcon__Svg path {
+    fill: #007f5f;
+}
+
+.plan_page .planMinsIcon .Polaris-Icon__Svg path {
+    fill: #8c9196;
+}
+
+.plan_page .ResourceList>li:last-child {
+    border-bottom-left-radius: 12px;
+    min-height: 55px;
+    border-bottom: 1px solid #ddd;
+}
+
+.plan_page .planInfoText {
+    display: block;
+    text-align: center;
+    line-height: 21px;
+    color: #202223;
+    font-size: 14px;
+}
+
+.plan_page .planHeadTopCnt {
+    display: block;
+    margin: 10px 0 0;
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 24px;
+    color: #202223;
+}
+
+.plan_page .planInfoList li:last-child {
+    min-height: 70px;
+}
+
+.plan_page .choosePlanBtn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    min-width: 36px;
+    margin: 0;
+    padding: 7px 16px;
+    background: white;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    color: #202223;
+    border: 1px solid #babfc3;
+    border-top-color: #c9cccf;
+    border-bottom-color: #babfc4;
+    line-height: 1;
+    text-align: center;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.plan_page .planBtns {
+    text-align: center;
+}
+
+.plan_page .choosePlanBtn[disabled="disabled"] {
+    transition: none;
+    box-shadow: none;
+    border-color: #d2d5d8;
+    background: #fafbfb;
+    color: #8c9196;
+    cursor: default;
+    pointer-events: none;
+}
+
+.plan_page .choosePlanBtn:hover {
+    background: #006e52;
+    border-color: transparent;
+    color: #fff;
+}
+
+.plan_page .planInfoItem:first-child .planInfoList li:last-child {
+    border-bottom-left-radius: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.plan_page .planInfoItem:nth-child(2) .planInfoList li:last-child {
+    border-bottom: 1px solid #ddd;
+}
+
+.plan_page .planInfoItem:last-child .planInfoList li:last-child {
+    border-bottom: 1px solid #ddd;
+    border-bottom-right-radius: 12px;
+}
+
+.plan_page .proText {
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 24px;
+    display: block;
+}
+
+.plan_page .priceOfmnthText {
+    margin: 10px 0 0;
+}
+
+.plan_page .priceOfmnthText p {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 18px;
+    margin: 0;
+}
+
+.plan_page .priceOfmnthText .plnMnttext {
+    margin-top: 5px;
+    font-size: 17px;
+}
+
+.plan_page .planInfoItem:last-child .plan__price {
+    border-top-right-radius: 12px;
+}
+
+/* Usage Summary Section */
+.plan_page .usage-summary-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.plan_page .usage-summary-card {
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    padding: 12px 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.plan_page .usage-summary-label {
+    font-size: 13px;
+    color: #6d7175;
+    font-weight: 500;
+}
+
+.plan_page .usage-summary-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #008060;
+}
+
+.plan_page .usage-summary-sublabel {
+    font-size: 12px;
+    color: #6d7175;
+    margin-left: 4px;
+}
+
+.plan_page .usage-summary-actions {
+    display: flex;
+    align-items: center;
+}
+
+.plan_page .usage-view-btn {
+    background: #008060;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background 0.2s ease;
+}
+
+.plan_page .usage-view-btn:hover {
+    background: #004c3f;
+}
+
+/* Polaris Tooltip Styles */
+.plan_page .polaris-tooltip-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-left: 6px;
+}
+
+.plan_page .polaris-help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: help;
+    vertical-align: middle;
+}
+
+.plan_page .polaris-icon-svg {
+    width: 16px;
+    height: 16px;
+    fill: #6d7175;
+}
+
+.plan_page .polaris-help-icon:hover .polaris-icon-svg {
+    fill: #202223;
+}
+
+.plan_page .polaris-tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #202223;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    white-space: nowrap;
+    max-width: 250px;
+    white-space: normal;
+    z-index: 1000;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.plan_page .polaris-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #202223 transparent transparent transparent;
+}
+
+.plan_page .polaris-help-icon:hover+.polaris-tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Plan feature tooltips - show inline with feature value */
+.plan_page .plan-feature-tooltip {
+    margin-left: 4px;
+}
+
+.plan_page .planInfoDes {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 1023px) {
+
+    .plan_page .ResourceList>li,
+    .plan_page .planInfoList li {
+        min-height: 117px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .plan_page .planInfoList li:last-child {
+        min-height: 100px !important;
+    }
+}
+
+@media (max-width: 749px) {
+    .plan_page .planContentWrap {
+        padding: 0;
+    }
+
+    .plan_page .customPlanContent {
+        overflow: auto;
+    }
+
+    .plan_page .planTabBtn .plantbText {
+        padding: 5px 6px 5px 10px;
+        font-size: 14px;
+        min-height: 50px;
+        min-width: 84px;
+    }
+
+    .plan_page .planstabsItem.active .planTabBtn .plantbText {
+        font-size: 15px;
+        min-height: 57px;
+    }
+
+    .plan_page .stackItem .getfreetext {
+        padding: 4px;
+        font-size: 11px;
+    }
+
+    .plan_page .priceOfmnthText p,
+    .plan_page .planHeadTopCnt {
+        font-size: 20px;
+    }
+
+    .plan_page .ResourceFeature {
+        width: 36%;
+    }
+
+    .plan_page .PlanInfoCnt {
+        width: 66%;
+    }
+
+    .plan_page .ResourceList>li,
+    .plan_page .planInfoList li,
+    .plan_page .planInfoHeadCnt {
+        padding: 10px 10px 10px 15px;
+    }
+
+    .plan_page .priceOfmnthText {
+        margin: 5px 0 0;
+    }
+
+    .plan_page .usage-summary-section {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .plan_page .usage-summary-card {
+        width: 100%;
+    }
+
+    .plan_page .usage-summary-actions {
+        width: 100%;
+    }
+
+    .plan_page .usage-view-btn {
+        display: block;
+        text-align: center;
+        width: 100%;
+    }
+}
+
+@media (max-width: 360px) {
+    .plan_page .annualPlanSaveText {
+        font-size: 10px;
+    }
+
+    .plan_page .planstabsItem.active .planTabBtn .plantbText {
+        font-size: 13px;
+        min-height: 57px;
+    }
+
+    .plan_page .planTabBtn .plantbText {
+        font-size: 12px;
+        min-width: 70px;
+    }
+
+    .plan_page .stackItem .getfreetext {
+        font-size: 9px;
+    }
+}

@@ -83,10 +83,24 @@ class VerifyShopify
         $cacheKey = 'shopify.access_scopes:' . $shopName;
 
         $grantedScopes = Cache::get($cacheKey);
+
+        // If the same check happens twice within a short window (2 minutes),
+        // invalidate the cached scopes so we fetch fresh values from Shopify.
+        $timeKey = $cacheKey . ':last_checked';
+        $lastChecked = Cache::get($timeKey);
+        if ($lastChecked !== null && (time() - (int)$lastChecked) < 120) {
+            if (config('msdev2.debug')) {
+                \Log::info('compareShopifyScopes: recent check detected, invalidating scopes cache', ['shop' => $shopName, 'last_checked' => $lastChecked]);
+            }
+            Cache::forget($cacheKey);
+            $grantedScopes = null;
+        }
+
         if ($grantedScopes === null) {
             // Fetch granted scopes from Shopify
-            $data = mRest()->get('/admin/oauth/access_scopes.json');
+            $data = mRest()->get('/admin/oauth/access_scopes.json');    
             $shopifyScopes = $data->getDecodedBody();
+            \Log::alert("check shopify database scops",['shopifyScopes'=>$shopifyScopes]);
             if (!isset($shopifyScopes['access_scopes'])) {
                 // If we couldn't fetch scopes, treat as all missing (forces re-auth)
                 return $scopes;
@@ -96,10 +110,19 @@ class VerifyShopify
             // Cache for 24 hours (86400 seconds)
             try {
                 Cache::put($cacheKey, $grantedScopes, 86400);
+                // Record when we last refreshed/checked scopes for this shop
+                Cache::put($timeKey, time(), 86400);
             } catch (\Throwable $e) {
                 // If cache fails for any reason, continue without breaking flow
                 Log::warning('Failed to cache shopify access scopes: ' . $e->getMessage(), ['shop' => $shopName]);
             }
+        }
+
+        // Ensure we update the last-checked timestamp even when returning cached scopes
+        try {
+            Cache::put($timeKey, time(), 86400);
+        } catch (\Throwable $e) {
+            // ignore cache write failures for timestamp
         }
 
         return array_diff($scopes, $grantedScopes ?? []);
