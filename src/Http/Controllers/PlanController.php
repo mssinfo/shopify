@@ -48,7 +48,18 @@ class PlanController extends BaseController{
             $plan["enable"] = $enable;
             $plans[] = $plan;
         }
-        return view('msdev2::plan',compact('activePlanName','appUsed','properties','plans','hasPlans'));
+
+        // Detect if all property help_texts are the same; if so, mark for shared display
+        $helpTexts = array_column($properties, 'help_text');
+        $nonEmptyHelpTexts = array_filter($helpTexts, function($text) { return !empty($text); });
+        $allPropertiesHelpTextsSame = false;
+        $globalHelpText = null;
+        if (!empty($nonEmptyHelpTexts) && count(array_unique($nonEmptyHelpTexts)) === 1) {
+            $allPropertiesHelpTextsSame = true;
+            $globalHelpText = reset($nonEmptyHelpTexts);
+        }
+
+        return view('msdev2::plan',compact('activePlanName','appUsed','properties','plans','hasPlans','allPropertiesHelpTextsSame','globalHelpText'));
     }
     public function planSubscribe(Request $request){
         $shop = Utils::getShop();

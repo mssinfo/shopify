@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Msdev2\Shopify\Http\Controllers\BaseController;
+use Illuminate\Support\Str;
 
 class EnvController extends BaseController
 {

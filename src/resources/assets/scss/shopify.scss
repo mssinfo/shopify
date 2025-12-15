@@ -1,0 +1,249 @@
+
+// Cleaned and organized SCSS for Shopify app mock
+// Variables
+:root {
+  --shopify-color-primary: #008060;
+  --shopify-color-primary-hover: #006e52;
+  --shopify-color-error: #d82c0d;
+  --shopify-color-success: #008060;
+  --shopify-color-background: #f6f6f7;
+  --shopify-color-surface: #ffffff;
+  --shopify-color-text: #202223;
+  --shopify-color-text-secondary: #6d7175;
+  --shopify-color-border: #c9cccf;
+  --shopify-shadow-modal: 0 26px 80px rgba(0, 0, 0, 0.2);
+  --shopify-shadow-toast: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shopify-radius-base: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --shopify-color-background: #1a1a1a;
+    --shopify-color-surface: #2c2c2c;
+    --shopify-color-text: #e3e3e3;
+    --shopify-color-text-secondary: #b5b5b5;
+    --shopify-color-border: #3d3d3d;
+  }
+}
+
+// Toasts
+#shopify-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+
+  .shopify-toast {
+    background: var(--shopify-color-surface);
+    color: var(--shopify-color-text);
+    padding: 16px 20px;
+    border-radius: var(--shopify-radius-base);
+    box-shadow: var(--shopify-shadow-toast);
+    min-width: 300px;
+    max-width: 500px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: shopifySlideIn 0.3s ease;
+    pointer-events: auto;
+    border-left: 4px solid var(--shopify-color-success);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    &.error { border-left-color: var(--shopify-color-error); }
+
+    .shopify-toast-icon { font-size: 20px; line-height: 1; }
+    .shopify-toast-message { flex: 1; font-size: 14px; line-height: 1.5; }
+  }
+}
+
+@keyframes shopifySlideIn { from { transform: translateX(400px); opacity:0 } to { transform: translateX(0); opacity:1 } }
+@keyframes shopifySlideOut { from { transform: translateX(0); opacity:1 } to { transform: translateX(400px); opacity:0 } }
+
+// Loading overlay
+#shopify-loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items:center; justify-content:center; z-index:9999;
+  &.active { display:flex }
+  .shopify-spinner { width:48px; height:48px; border:4px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation: shopifySpin 0.8s linear infinite }
+}
+@keyframes shopifySpin { to { transform: rotate(360deg) } }
+
+// Modal and titlebar
+ui-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+  padding: 24px;
+  box-sizing: border-box;
+  animation: shopifyFadeIn 0.2s ease;
+
+  &[open] { display:flex }
+
+  > .modal-content {
+    background: var(--shopify-color-surface);
+    color: var(--shopify-color-text);
+    border-radius: 10px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    max-width: 900px;
+    width: 100%;
+    max-height: calc(100vh - 160px);
+    overflow: auto;
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: 20px;
+    position: relative;
+
+    ui-title-bar {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      margin-bottom: 12px;
+      gap:12px;
+
+      .title-text { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; font-size:16px }
+
+      /* small close button style (reset heavy globals) */
+      button, .btn { display:inline-block; padding:6px 10px; margin:0; border-radius:6px; border:1px solid rgba(0,0,0,0.08); background:transparent; color:var(--shopify-color-primary); font-size:14px; line-height:1; cursor:pointer; box-shadow:none }
+      button:focus, .btn:focus { outline: 2px solid rgba(0,128,96,0.15) }
+    }
+
+    .shopify-modal-body { padding: 12px 0 0 0 }
+  }
+}
+
+@keyframes shopifyFadeIn { from { opacity:0 } to { opacity:1 } }
+@keyframes shopifyModalSlideIn { from { transform: translateY(-50px); opacity:0 } to { transform: translateY(0); opacity:1 } }
+
+// Resource picker
+.shopify-resource-picker-modal { padding:20px;
+  .shopify-resource-picker-header { margin-bottom:16px;
+    h3 { margin:0 0 8px 0; font-size:18px; color:var(--shopify-color-text) }
+    p { color:var(--shopify-color-text-secondary); font-size:14px; margin:0 0 12px 0 }
+  }
+  .shopify-resource-picker-input { width:100%; padding:10px 12px; border:1px solid var(--shopify-color-border); border-radius:6px; font-size:14px; background:var(--shopify-color-surface); color:var(--shopify-color-text); box-sizing:border-box }
+  .shopify-resource-picker-input:focus { outline:2px solid var(--shopify-color-primary); outline-offset:0 }
+  .shopify-resource-picker-actions { display:flex; gap:12px; margin-top:16px; justify-content:flex-end }
+}
+
+// Buttons
+.shopify-btn { padding:10px 16px; border:1px solid var(--shopify-color-border); border-radius:6px; background:var(--shopify-color-surface); color:var(--shopify-color-text); font-size:14px; font-weight:500; cursor:pointer; transition:all .2s; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif }
+.shopify-btn:hover { background:var(--shopify-color-background) }
+.shopify-btn-primary { background:var(--shopify-color-primary); color:#fff; border-color:var(--shopify-color-primary) }
+.shopify-btn-primary:hover { background:var(--shopify-color-primary-hover); border-color:var(--shopify-color-primary-hover) }
+
+/* Strong modal overrides to ensure consistent appearance */
+body ui-modal, ui-modal {
+    display: none !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0,0,0,0.45) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 100000 !important;
+    padding: 24px !important;
+    box-sizing: border-box !important;
+}
+
+body ui-modal[open], ui-modal[open] {
+    display: flex !important;
+}
+
+ui-modal > .modal-content, body ui-modal > .modal-content {
+    background: var(--shopify-color-surface) !important;
+    color: var(--shopify-color-text) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35) !important;
+    max-width: 900px !important;
+    width: 100% !important;
+    max-height: calc(100vh - 160px) !important;
+    overflow: auto !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+    padding: 20px !important;
+    position: relative !important;
+}
+
+ui-modal > .modal-content ui-title-bar, body ui-modal > .modal-content ui-title-bar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 16px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.06) !important;
+    margin-bottom: 12px !important;
+}
+
+ui-modal > .modal-content ui-title-bar::before {
+    content: attr(title) !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    color: var(--shopify-color-text) !important;
+    flex: 1 !important;
+    margin-right: 12px !important;
+}
+
+.shopify-modal-body { padding: 12px 0 0 0 !important; }
+
+/* Title-bar button and layout fixes to avoid global overrides */
+ui-modal > .modal-content ui-title-bar,
+body ui-modal > .modal-content ui-title-bar {
+    flex-direction: row !important;
+}
+
+ui-modal > .modal-content ui-title-bar::before {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+ui-modal > .modal-content ui-title-bar button,
+ui-modal > .modal-content ui-title-bar .btn,
+body ui-modal > .modal-content ui-title-bar button,
+body ui-modal > .modal-content ui-title-bar .btn {
+    /* reset heavy global button styles inside title bar */
+    display: inline-block !important;
+    padding: 6px 10px !important;
+    margin: 0 !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    background: transparent !important;
+    color: var(--shopify-color-primary) !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    box-shadow: none !important;
+}
+
+ui-modal > .modal-content ui-title-bar button:focus,
+ui-modal > .modal-content ui-title-bar .btn:focus {
+    outline: 2px solid rgba(0,128,96,0.15) !important;
+}
+
+/* ensure title and close button align horizontally even on narrow viewports */
+ui-modal > .modal-content ui-title-bar { gap: 12px !important; }
+
+/* Prefer actual element for title text to avoid pseudo-element conflicts */
+ui-modal > .modal-content ui-title-bar .title-text,
+body ui-modal > .modal-content ui-title-bar .title-text {
+    display: block !important;
+    flex: 1 !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    color: var(--shopify-color-text) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* hide pseudo content if present to avoid duplication */
+ui-modal > .modal-content ui-title-bar::before,
+body ui-modal > .modal-content ui-title-bar::before { display: none !important; }
+
+    

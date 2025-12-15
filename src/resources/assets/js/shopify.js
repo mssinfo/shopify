@@ -13,268 +13,7 @@
 
     // Inject styles into document
     const styleElement = document.createElement('style');
-    styleElement.textContent = `
-        :root {
-            --shopify-color-primary: #008060;
-            --shopify-color-primary-hover: #006e52;
-            --shopify-color-error: #d82c0d;
-            --shopify-color-success: #008060;
-            --shopify-color-background: #f6f6f7;
-            --shopify-color-surface: #ffffff;
-            --shopify-color-text: #202223;
-            --shopify-color-text-secondary: #6d7175;
-            --shopify-color-border: #c9cccf;
-            --shopify-shadow-modal: 0 26px 80px rgba(0, 0, 0, 0.2);
-            --shopify-shadow-toast: 0 4px 16px rgba(0, 0, 0, 0.1);
-            --shopify-radius-base: 8px;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --shopify-color-background: #1a1a1a;
-                --shopify-color-surface: #2c2c2c;
-                --shopify-color-text: #e3e3e3;
-                --shopify-color-text-secondary: #b5b5b5;
-                --shopify-color-border: #3d3d3d;
-            }
-        }
-
-        #shopify-toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            pointer-events: none;
-        }
-
-        .shopify-toast {
-            background: var(--shopify-color-surface);
-            color: var(--shopify-color-text);
-            padding: 16px 20px;
-            border-radius: var(--shopify-radius-base);
-            box-shadow: var(--shopify-shadow-toast);
-            min-width: 300px;
-            max-width: 500px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            animation: shopifySlideIn 0.3s ease;
-            pointer-events: auto;
-            border-left: 4px solid var(--shopify-color-success);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        .shopify-toast.error {
-            border-left-color: var(--shopify-color-error);
-        }
-
-        .shopify-toast-icon {
-            font-size: 20px;
-            line-height: 1;
-        }
-
-        .shopify-toast-message {
-            flex: 1;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        @keyframes shopifySlideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes shopifySlideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-        }
-
-        #shopify-loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-
-        #shopify-loading-overlay.active {
-            display: flex;
-        }
-
-        .shopify-spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: shopifySpin 0.8s linear infinite;
-        }
-
-        @keyframes shopifySpin {
-            to { transform: rotate(360deg); }
-        }
-
-        ui-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 9998;
-            animation: shopifyFadeIn 0.2s ease;
-        }
-
-        ui-modal[open] {
-            display: flex;
-        }
-
-        ui-modal > .modal-content {
-            background: var(--shopify-color-surface);
-            border-radius: var(--shopify-radius-base);
-            box-shadow: var(--shopify-shadow-modal);
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow: auto;
-            animation: shopifyModalSlideIn 0.3s ease;
-        }
-
-        @keyframes shopifyFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes shopifyModalSlideIn {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        ui-title-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            border-top: 1px solid var(--shopify-color-border);
-            gap: 12px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        ui-title-bar::before {
-            content: attr(title);
-            font-weight: 600;
-            font-size: 16px;
-            flex: 1;
-            color: var(--shopify-color-text);
-        }
-
-        .shopify-modal-body {
-            padding: 20px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: var(--shopify-color-text);
-        }
-
-        .shopify-resource-picker-modal {
-            padding: 20px;
-        }
-
-        .shopify-resource-picker-header {
-            margin-bottom: 16px;
-        }
-
-        .shopify-resource-picker-header h3 {
-            margin: 0 0 8px 0;
-            font-size: 18px;
-            color: var(--shopify-color-text);
-        }
-
-        .shopify-resource-picker-header p {
-            color: var(--shopify-color-text-secondary);
-            font-size: 14px;
-            margin: 0 0 12px 0;
-        }
-
-        .shopify-resource-picker-input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--shopify-color-border);
-            border-radius: 6px;
-            font-size: 14px;
-            background: var(--shopify-color-surface);
-            color: var(--shopify-color-text);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            box-sizing: border-box;
-        }
-
-        .shopify-resource-picker-input:focus {
-            outline: 2px solid var(--shopify-color-primary);
-            outline-offset: 0;
-        }
-
-        .shopify-resource-picker-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 16px;
-            justify-content: flex-end;
-        }
-
-        .shopify-btn {
-            padding: 10px 16px;
-            border: 1px solid var(--shopify-color-border);
-            border-radius: 6px;
-            background: var(--shopify-color-surface);
-            color: var(--shopify-color-text);
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        .shopify-btn:hover {
-            background: var(--shopify-color-background);
-        }
-
-        .shopify-btn-primary {
-            background: var(--shopify-color-primary);
-            color: white;
-            border-color: var(--shopify-color-primary);
-        }
-
-        .shopify-btn-primary:hover {
-            background: var(--shopify-color-primary-hover);
-            border-color: var(--shopify-color-primary-hover);
-        }
-    `;
+    styleElement.textContent = ``;
     
     // Wait for DOM to be ready before injecting styles
     if (document.head) {
@@ -284,7 +23,11 @@
             document.head.appendChild(styleElement);
         });
     }
+
+    // Modal CSS moved to SCSS: src/resources/assets/scss/shopify.scss
     window.shopify = window.shopify || {};
+    // ensure config exists to avoid runtime errors when reading properties
+    window.shopify.config = window.shopify.config || { shopUrl: '', appUrl: '' };
     // Toast Notifications
     window.shopify.toast = {
         show: function(message, options) {
@@ -345,21 +88,104 @@
     shopify.modal = {
         show: function(modalId) {
             var modal = document.getElementById(modalId);
-            if (modal && modal.tagName === 'UI-MODAL') {
-                modal.setAttribute('open', '');
-                
-                // Close on backdrop click
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        shopify.modal.hide(modalId);
-                    }
-                });
+            if (!modal) return;
+            // lock background scroll
+            if (!document.__shopify_original_overflow) {
+                document.__shopify_original_overflow = document.body.style.overflow || '';
             }
+            document.body.style.overflow = 'hidden';
+
+            // Ensure content is wrapped in .modal-content so CSS targets it correctly
+            try{
+                if (!modal.querySelector(':scope > .modal-content')) {
+                    var titleBar = modal.querySelector(':scope > ui-title-bar');
+                    var childNodes = Array.prototype.slice.call(modal.childNodes);
+                    var wrapper = document.createElement('div');
+                    wrapper.className = 'modal-content';
+                    // move titleBar first if present
+                    if (titleBar) {
+                        // ensure title text exists as an element so CSS can reliably show it
+                        try{
+                            var titleText = titleBar.querySelector('.title-text');
+                            var titleValue = titleBar.getAttribute('title') || '';
+                            if(!titleText){
+                                // try to extract a text node (not inside buttons)
+                                var extracted = '';
+                                Array.prototype.slice.call(titleBar.childNodes).forEach(function(n){
+                                    if(n.nodeType === Node.TEXT_NODE){
+                                        var t = n.textContent.trim();
+                                        if(t) extracted += (extracted? ' ' : '') + t;
+                                        n.parentNode.removeChild(n);
+                                    }
+                                });
+                                if(!titleValue && extracted) titleValue = extracted;
+                                titleText = document.createElement('span');
+                                titleText.className = 'title-text';
+                                titleText.textContent = titleValue || '';
+                                // insert at start
+                                titleBar.insertBefore(titleText, titleBar.firstChild);
+                            } else {
+                                // sync attribute into element if needed
+                                if(!titleText.textContent.trim() && titleBar.getAttribute('title')){
+                                    titleText.textContent = titleBar.getAttribute('title');
+                                }
+                            }
+                        }catch(e){/*ignore*/}
+                        wrapper.appendChild(titleBar);
+                    }
+                    childNodes.forEach(function(n){
+                        if (n === titleBar) return;
+                        if (n === wrapper) return;
+                        wrapper.appendChild(n);
+                    });
+                    // move modal to document.body to avoid ancestor CSS interference
+                    if (modal.parentNode !== document.body) {
+                        document.body.appendChild(modal);
+                    }
+                    modal.appendChild(wrapper);
+                } else {
+                    // ensure modal is at body level to avoid inherited layout rules
+                    if (modal.parentNode !== document.body) {
+                        document.body.appendChild(modal);
+                    }
+                }
+            }catch(e){ /* defensive */ }
+
+            // prefer using the element's API if available
+            if (typeof modal.show === 'function') {
+                modal.show();
+            } else {
+                modal.setAttribute('open', '');
+            }
+
+            // Attach a single backdrop click handler (use capture false)
+            var handler = function(e) {
+                if (e.target === modal) {
+                    shopify.modal.hide(modalId);
+                }
+            };
+            // remove existing to avoid duplicates
+            try{ modal.removeEventListener('click', modal.__backdropHandler || handler); }catch(e){}
+            modal.addEventListener('click', handler);
+            modal.__backdropHandler = handler;
         },
         hide: function(modalId) {
             var modal = document.getElementById(modalId);
-            if (modal) {
+            if (!modal) return;
+            if (typeof modal.hide === 'function') {
+                modal.hide();
+            } else {
                 modal.removeAttribute('open');
+            }
+            // restore body overflow
+            if (document.__shopify_original_overflow !== undefined) {
+                document.body.style.overflow = document.__shopify_original_overflow;
+                delete document.__shopify_original_overflow;
+            }
+            // cleanup handler
+            if (modal.__backdropHandler) {
+                try{ modal.removeEventListener('click', modal.__backdropHandler); }catch(e){}
+                delete modal.__backdropHandler;
             }
         }
     };
@@ -467,17 +293,21 @@
     // Fetch Interceptor
     var originalFetch = window.fetch;
     window.fetch = function(url, options) {
-        // Check if URL starts with "shopify:"
-        if (typeof url === 'string' && url.indexOf('shopify:') === 0) {
+        // Check if URL starts with "shopify:" and we have an appUrl configured
+        if (typeof url === 'string' && url.indexOf('shopify:') === 0 && shopify.config && shopify.config.appUrl) {
             // Replace "shopify:" with shop URL
-            url = shopify.config.appUrl + '/admin/shopify-graph?shop=' + encodeURIComponent(shopify.config.shopUrl);
+            url = shopify.config.appUrl + '/admin/shopify-graph?shop=' + encodeURIComponent(shopify.config.shopUrl || '');
         }
         // add shopify access token header
         options = options || {};
         options.headers = options.headers || {};
-        // append csrf token header
-        options.headers['X-CSRF-Token'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        options.headers['Content-Type'] = 'application/json';
+        // append csrf token header if present
+        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        if (csrfMeta && csrfMeta.getAttribute) {
+            var token = csrfMeta.getAttribute('content');
+            if (token) options.headers['X-CSRF-Token'] = token;
+        }
+        options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/json';
         return originalFetch(url, options);
     };
 
@@ -509,6 +339,8 @@
     }
 
     console.log('✅ Shopify App Bridge Mock loaded');
-    console.log('📝 Configure: shopify.config.shopUrl = "' + shopify.config.shopUrl + '"');
+    try{
+        console.log('📝 Configure: shopify.config.shopUrl = "' + (shopify.config && shopify.config.shopUrl ? shopify.config.shopUrl : '') + '"');
+    }catch(e){ /* silent */ }
 
 })();

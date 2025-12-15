@@ -110,7 +110,7 @@
                     <ul class="ResourceList">
                         @foreach ($properties as $name=>$property)
                             <li><div class="rsListTitle"><span class="rsListTitleItem">{{$name}}
-                                @if (isset($property["help_text"]) && $property["help_text"] !="")
+                                @if (!$allPropertiesHelpTextsSame && isset($property["help_text"]) && $property["help_text"] !="")
                                 <span class="polaris-tooltip-wrapper">
                                     <span class="polaris-help-icon" data-tooltip-id="tooltip-{{$loop->index}}">
                                         <svg viewBox="0 0 20 20" class="polaris-icon-svg" focusable="false" aria-hidden="true">
@@ -124,6 +124,20 @@
                                 @endif
                             </span></div></li>
                         @endforeach
+                        @if ($allPropertiesHelpTextsSame && !empty($globalHelpText))
+                        <li><div class="rsListTitle"><span class="rsListTitleItem">
+                            <span class="polaris-tooltip-wrapper">
+                                <span class="polaris-help-icon" data-tooltip-id="tooltip-global-help">
+                                    <svg viewBox="0 0 20 20" class="polaris-icon-svg" focusable="false" aria-hidden="true">
+                                        <path d="M10 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"></path>
+                                        <path d="M10.75 9.5a.75.75 0 0 0-1.5 0v4a.75.75 0 0 0 1.5 0v-4Z"></path>
+                                        <path fill-rule="evenodd" d="M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Zm-1.5 0a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0Z"></path>
+                                    </svg>
+                                </span>
+                                <span class="polaris-tooltip" id="tooltip-global-help">{{$globalHelpText}}</span>
+                            </span>
+                        </span></div></li>
+                        @endif
                     </ul>
                 </div>
             </div>
@@ -158,7 +172,7 @@
                                             @else
                                                 <span>{{$plan["properties"][$name]["value"]}}</span>
                                             @endif
-                                            @if (isset($plan["properties"][$name]["help_text"]) && $plan["properties"][$name]["help_text"] !="")
+                                            @if (!$allPropertiesHelpTextsSame && isset($plan["properties"][$name]["help_text"]) && $plan["properties"][$name]["help_text"] !="")
                                             <span class="polaris-tooltip-wrapper plan-feature-tooltip">
                                                 <span class="polaris-help-icon" data-tooltip-id="tooltip-plan-{{$loop->parent->index}}-{{$loop->index}}">
                                                     <svg viewBox="0 0 20 20" class="polaris-icon-svg" focusable="false" aria-hidden="true">

@@ -121,18 +121,37 @@ class CreditService
             'meta' => $meta,
         ]);
     }
+    public static function canUseOne(Shop $shop): bool
+    {
+        self::checkMonthlyReset($shop);
 
+        // 1) Check free credits
+        $freeLimit = self::freeLimit($shop);
+        $freeUsed  = self::freeUsed($shop);
+        if ($freeUsed < $freeLimit) {
+            return true;
+        }
+
+        // 2) Check purchased credits
+        if (self::purchasedRemaining($shop) > 0) {
+            return true;
+        }
+
+        return false; // No credits left
+    }
     /**
      * Use ONE credit — returns TRUE if successful, FALSE if insufficient credits
      */
     public static function useOne(Shop $shop, array $meta = [], ?string $referenceId = null): bool
     {
         self::checkMonthlyReset($shop);
-
-        // 1) Use free credits
+        
+        // 1) Use free credits  
         $freeLimit = self::freeLimit($shop);
         $freeUsed  = self::freeUsed($shop);
-
+        if(!$referenceId){
+            return false;
+        }
         if ($freeUsed < $freeLimit) {
             $shop->meta('free_credit_monthly_used', $freeUsed + 1);
 

@@ -2,6 +2,10 @@
 return [
     'debug' => env('MSDEV2_DEBUG', false),
     'force_https' => env('MSDEV2_FORCE_HTTPS', true),
+    // HTTP client tuning
+    'http_connect_timeout' => env('MSDEV2_HTTP_CONNECT_TIMEOUT', 5),
+    'http_timeout' => env('MSDEV2_HTTP_TIMEOUT', 15),
+    'http_retries' => env('MSDEV2_HTTP_RETRIES', 2),
     "shopify_api_key"=>env('SHOPIFY_API_KEY', '63f2fa001dd7228268d7c5f920f9b28b'),
     "shopify_api_secret"=>env('SHOPIFY_API_SECRET', '47f72686a3950d8f9bf307f5eea1f071'),
     "scopes"=>env('SHOPIFY_API_SCOPES', 'read_content,read_files,write_files,read_themes,write_themes,write_metaobject_definitions,read_metaobjects,write_metaobjects,read_themes,read_metaobject_definitions'),

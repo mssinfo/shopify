@@ -145,6 +145,7 @@
 
     <div class="row g-4">
         @foreach($groupedShops as $planName => $shops)
+            @continue(strtolower($planName) === 'free')
         @php
             $price = 0;
             if($shops->isNotEmpty()) {
@@ -220,38 +221,79 @@
     <div class="row g-4 mt-2">
         <div class="col-lg-6">
             <div class="card h-100">
-                <div class="card-header text-danger border-bottom-0">
-                    <i class="fas fa-trash-alt me-2"></i> Recently Uninstalled (Inactive)
+                <div class="card-header text-info border-bottom-0 d-flex justify-content-between">
+                    <span><i class="fas fa-calendar-alt me-2"></i> Upcoming Payments (Next 10)</span>
+                    @if(\Illuminate\Support\Facades\Route::has('admin.charges.upcoming'))
+                        <a href="{{ route('admin.charges.upcoming') }}" class="btn btn-sm btn-link text-decoration-none">View All</a>
+                    @else
+                        <a href="#" class="btn btn-sm btn-link text-decoration-none disabled">View All</a>
+                    @endif
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
                         <thead class="bg-light">
                             <tr>
-                                <th class="ps-3 w-50">Shop</th>
-                                <th>Last Plan / Date</th>
-                                <th class="text-end pe-3">Action</th>
+                                <th class="ps-3">Shop</th>
+                                <th>Amount</th>
+                                <th class="text-end pe-3">Date</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($uninstalledShops as $shop)
-                            <tr>
-                                <td class="ps-3">
-                                    <div class="fw-bold text-secondary">{{ $shop->shop }}</div>
-                                    <div class="small text-muted">Uninstalled: {{ $shop->updated_at->format('M d, Y') }}</div>
-                                </td>
-                                <td>
-                                    @if($shop->lastCharge)
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border">{{ $shop->lastCharge->name }}</span>
-                                    @else
-                                        <span class="small text-muted">No Plan</span>
-                                    @endif
-                                </td>
-                                <td class="text-end pe-3">
-                                    <a href="{{ route('admin.shops.show', $shop->id) }}" class="btn btn-sm btn-outline-secondary">View</a>
-                                </td>
-                            </tr>
+                            @php
+                                if(isset($upcomingPayments)) {
+                                    $upcoming = collect($upcomingPayments)->take(10);
+                                } else {
+                                    $all = collect();
+                                    if(isset($groupedShops) && is_iterable($groupedShops)) {
+                                        foreach($groupedShops as $pName => $shops) {
+                                            foreach($shops as $s) {
+                                                $charges = $s->charges ?? [];
+                                                foreach($charges as $c) {
+                                                    $chargeName = strtolower(trim($c->name ?? ''));
+                                                    $type = strtolower($c->type ?? 'recurring');
+                                                    $billing = $c->billing_on ?? $c->date ?? null;
+                                                    if($billing && \Carbon\Carbon::parse($billing)->isFuture() && $type === 'recurring' && $chargeName !== 'free') {
+                                                        $all->push((object)[
+                                                            'shop' => $s,
+                                                            'charge' => $c,
+                                                            'amount' => $c->price ?? $c->amount ?? 0,
+                                                            'date' => $billing,
+                                                            'plan' => $c->name ?? $pName,
+                                                        ]);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    $upcoming = $all->sortBy(function($it){ return \Carbon\Carbon::parse($it->date)->timestamp; })->values()->take(10);
+                                }
+                            @endphp
+                            @forelse($upcoming as $payment)
+                                @php
+                                    $shop = $payment->shop ?? ($payment->shop ?? null);
+                                    $shopName = $shop->shop ?? ($payment->shop_name ?? ($payment->shop ?? 'Unknown'));
+                                    $amount = $payment->amount ?? ($payment->charge->price ?? $payment->charge->amount ?? 0);
+                                    $date = $payment->date ?? ($payment->charge->billing_on ?? $payment->charge->date ?? null);
+                                    $planName = $payment->plan ?? ($payment->charge->name ?? '');
+                                @endphp
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="fw-bold text-dark text-break" style="max-width: 200px;">{{ $shopName }}</div>
+                                        <div class="small text-muted">{{ $shop->domain ?? ($payment->domain ?? '') }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="small text-dark">${{ number_format($amount ?? 0, 2) }}</div>
+                                    </td>
+                                    <td class="text-end pe-3 small text-muted">
+                                        @if($date)
+                                            {{ \Carbon\Carbon::parse($date)->format('M d, Y') }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                </tr>
                             @empty
-                            <tr><td colspan="3" class="text-center text-muted py-3">No recent uninstalls.</td></tr>
+                                <tr><td colspan="3" class="text-center text-muted py-3">No upcoming payments.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

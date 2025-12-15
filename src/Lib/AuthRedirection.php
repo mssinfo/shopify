@@ -13,7 +13,6 @@ class AuthRedirection
     public static function redirect(Request $request, bool $isOnline = false): ?RedirectResponse
     {
         if(!$request->query("shop")){
-            \Log::info("AuthRedirection redirect called without shop parameter", ['request' => $request->all()]);
             return null;
         }
         Artisan::call('cache:forget shop');

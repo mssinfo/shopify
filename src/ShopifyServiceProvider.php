@@ -14,6 +14,11 @@ use Msdev2\Shopify\Http\Middleware\EnsureShopifySession;
 use Msdev2\Shopify\Http\Middleware\VerifyShopify;
 use Msdev2\Shopify\Lib\DbSessionStorage;
 use Shopify\Context;
+use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware as GuzzleMiddleware;
+use GuzzleHttp\Exception\ConnectException as GuzzleConnectException;
+use Psr\Http\Client\ClientInterface;
 
 class ShopifyServiceProvider extends ServiceProvider
 {
@@ -32,6 +37,7 @@ class ShopifyServiceProvider extends ServiceProvider
         $this->commands([
             \Msdev2\Shopify\Console\Commands\SendCustomerEmails::class,
             \Msdev2\Shopify\Console\Commands\CreateAdmin::class,
+            \Msdev2\Shopify\Console\Commands\SyncShopifyInstallations::class,
         ]);
 
         // Bind the session storage as a singleton. This ensures the same instance is used throughout the app.
@@ -153,5 +159,46 @@ class ShopifyServiceProvider extends ServiceProvider
             isPrivateApp:     config('msdev2.is_private_app', false),
             customShopDomains: (array) config('msdev2.shop_custom_domain', null)
         );
+
+        // Configure HTTP client factory with sensible timeouts and retries to avoid long blocking calls
+        $connectTimeout = (int) config('msdev2.http_connect_timeout', 5);
+        $timeout = (int) config('msdev2.http_timeout', 15);
+        $maxRetries = (int) config('msdev2.http_retries', 2);
+
+        Context::$HTTP_CLIENT_FACTORY = new class($connectTimeout, $timeout, $maxRetries) extends \Shopify\Clients\HttpClientFactory {
+            private int $connectTimeout;
+            private int $timeout;
+            private int $maxRetries;
+
+            public function __construct(int $connectTimeout, int $timeout, int $maxRetries)
+            {
+                $this->connectTimeout = $connectTimeout;
+                $this->timeout = $timeout;
+                $this->maxRetries = $maxRetries;
+            }
+
+            public function client(): ClientInterface
+            {
+                $handler = HandlerStack::create();
+
+                $retries = $this->maxRetries;
+                $handler->push(GuzzleMiddleware::retry(function ($retriesDone, $request, $response = null, $exception = null) use ($retries) {
+                    if ($retriesDone >= $retries) return false;
+                    if ($exception instanceof GuzzleConnectException) return true;
+                    if ($response && in_array($response->getStatusCode(), [429, 500])) return true;
+                    return false;
+                }, function ($retriesDone) {
+                    // exponential backoff (ms)
+                    return (int) (100 * pow(2, $retriesDone));
+                }));
+
+                return new Client([
+                    'handler' => $handler,
+                    'connect_timeout' => $this->connectTimeout,
+                    'timeout' => $this->timeout,
+                    'http_errors' => true,
+                ]);
+            }
+        };
     }
 }

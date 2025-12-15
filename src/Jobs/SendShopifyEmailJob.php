@@ -28,7 +28,7 @@ class SendShopifyEmailJob implements ShouldQueue
     {
         $shop = Shop::find($this->shopId);
         if (!$shop) {
-            Log::warning('SendShopifyEmailJob: shop not found', ['shop_id' => $this->shopId, 'type' => $this->type]);
+            Log::warning('SendShopifyEmailJob: shop not found', ['shop_id' => $this->shopId, 'type' => $this->type, 'app_url' => config('app.url'), 'app_name'=>config('app.name'), 'request'=>request(), 'server'=>$_SERVER ?? []]);
             return;
         }
 

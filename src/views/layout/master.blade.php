@@ -19,6 +19,7 @@
                 };
             </script>   
             <script src="{{ asset('msdev2/js/shopify.js') }}" ></script>
+            <link rel="stylesheet" href="{{ asset('msdev2/css/shopify.css') }}">
             <style>
                 ui-nav-menu {
                     display: none;

@@ -20,6 +20,11 @@ class VerifyShopify
         Cache::forget('shop');
         Cache::forget('shopName');
         $shopName = mShopName();
+        // Validate shop name early to avoid malformed hosts (e.g. numeric IDs)
+        if ($shopName && !$this->isValidShopName($shopName)) {
+            if (config('msdev2.debug')) \Log::warning('Invalid shop name detected', ['shop' => $shopName]);
+            abort(400, 'Invalid shop parameter');
+        }
         if (strpos($request->getRequestUri(),"a/".config("msdev2.proxy_path")) !== false && !isset($request->shop)) {
             $shopName = $_SERVER['HTTP_HOST'] != str_replace(["https://"],"",config("app.url")) ? $_SERVER['HTTP_HOST'] : null;
         }
@@ -64,6 +69,19 @@ class VerifyShopify
             return redirect()->route('msdev2.install');
         }
         abort(403, 'Shop does not exist in request');
+    }
+
+    /**
+     * Basic validation for shop strings to avoid numeric or clearly malformed hosts.
+     */
+    private function isValidShopName(?string $shopName): bool
+    {
+        if (empty($shopName)) return false;
+        // Reject pure numeric values which get interpreted as IPv4 numeric addresses (e.g. 1269 -> 0.0.4.245)
+        if (preg_match('/^\d+$/', $shopName)) return false;
+        // Must contain at least one dot and be a valid hostname
+        if (strpos($shopName, '.') === false) return false;
+        return (bool) filter_var($shopName, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME);
     }
 
     private function isAllowedRequest(Request $request): bool

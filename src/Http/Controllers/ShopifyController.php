@@ -337,7 +337,7 @@ class ShopifyController extends BaseController
             if(!empty($email)) {
                 Mail::to(config('msdev2.contact_email','mragankshekhatr@gmail.com'))->queue(new TicketAdminMail($input, $shop, "New ticket Created"));
             }
-            Mail::to($request->email)->queue(new TicketUserEmail("Acknowledgement of Your Ticket Creation"));
+            Mail::to($request->email)->queue(new TicketUserEmail("Acknowledgement of Your Ticket Creation", $data));
             
             return mSuccessResponse($data);
         }

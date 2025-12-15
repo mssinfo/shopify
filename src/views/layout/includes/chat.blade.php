@@ -25,17 +25,17 @@ if (\Msdev2\Shopify\Utils::shouldRedirectToEmbeddedApp() || request()->header('s
 
     // ✅ visitor data that MUST be stored inside Tawk
     const __tawkVisitorAttributes = {
-        name: "{{ $shop->detail['name'] ?? '' }} - {{ $shop->detail['shop_owner'] ?? '' }}",                // ✅ shows as visitor name (notification)
-        email: "{{ $shop->detail['email'] ?? '' }}",
+        name: "{{ data_get($shop, 'detail.name', '') }} - {{ data_get($shop, 'detail.shop_owner', '') }}",                // ✅ shows as visitor name (notification)
+        email: "{{ data_get($shop, 'detail.email', '') }}",
         // custom fields
-        shop: "https://{{ $shop->detail['myshopify_domain'] ?? '' }}",
-        // plan_name: "{{ $shop->activeCharge->name ?? 'FREE' }}",
-        // plan_display_name: "{{ $shop->detail['plan_display_name'] ?? '' }}",
-        app: "({{ $shop->activeCharge->name ?? 'FREE' }}) {{ config('app.name') }}",
-        referrer: "Shopify Plan: {{ $shop->detail['plan_display_name'] ?? '' }}",
+        shop: "https://{{ data_get($shop, 'detail.myshopify_domain', '') }}",
+        // plan_name: "{{ data_get($shop, 'activeCharge.name', 'FREE') }}",
+        // plan_display_name: "{{ data_get($shop, 'detail.plan_display_name', '') }}",
+        app: "({{ data_get($shop, 'activeCharge.name', 'FREE') }}) {{ config('app.name') }}",
+        referrer: "Shopify Plan: {{ data_get($shop, 'detail.plan_display_name', '') }}",
     };
-    @if ($shop->detail['phone'] != "")
-        __tawkVisitorAttributes.phone = "{{ $shop->detail['phone'] ?? '' }}";
+    @if (!empty(data_get($shop, 'detail.phone')))
+        __tawkVisitorAttributes.phone = "{{ data_get($shop, 'detail.phone', '') }}";
     @endif
         
 
@@ -53,17 +53,17 @@ if (\Msdev2\Shopify\Utils::shouldRedirectToEmbeddedApp() || request()->header('s
         @endif
         // ✅ Event for admins
         try {
-            if(!localStorage.getItem('is_visited') === '1'){
-                localStorage.setItem('is_visited', '1');
+                if(!localStorage.getItem('is_visited{{ $shop->id ?? '' }}') === '1'){
+                localStorage.setItem('is_visited{{ $shop->id ?? '' }}', '1');
                 window.Tawk_API.addEvent('ShopVisit', {
-                    details: `🛍️ Shop: {{ $shop->detail['myshopify_domain'] ?? '' }}
-                        👤 Name: {{ $shop->detail['name'] ?? '' }}
-                        👤 Owner: {{ $shop->detail['shop_owner'] ?? '' }}
-                        📧 Email: {{ $shop->detail['email'] ?? '' }}
-                        📱 Phone: {{ $shop->detail['phone'] ?? 'N/A' }}
-                        🏷️ App Charge Name: {{ $shop->activeCharge->name ?? 'FREE' }}
-                        🏷️ Shopify Plan: {{ $shop->detail['plan_display_name'] ?? '' }} ({{ $shop->detail['plan_name'] ?? '' }})
-                        🏪 Store Name: {{ $shop->detail['name'] ?? '' }}
+                    details: `🛍️ Shop: {{ data_get($shop, 'detail.myshopify_domain', '') }}
+                        👤 Name: {{ data_get($shop, 'detail.name', '') }}
+                        👤 Owner: {{ data_get($shop, 'detail.shop_owner', '') }}
+                        📧 Email: {{ data_get($shop, 'detail.email', '') }}
+                        📱 Phone: {{ data_get($shop, 'detail.phone', 'N/A') }}
+                        🏷️ App Charge Name: {{ data_get($shop, 'activeCharge.name', 'FREE') }}
+                        🏷️ Shopify Plan: {{ data_get($shop, 'detail.plan_display_name', '') }} ({{ data_get($shop, 'detail.plan_name', '') }})
+                        🏪 Store Name: {{ data_get($shop, 'detail.name', '') }}
                         📍 Referrer: ${document.title || 'Direct'}`
                 }, function(err){
                     console.log("✅ User details sent to Tawk Admin",err);
@@ -101,12 +101,12 @@ if (\Msdev2\Shopify\Utils::shouldRedirectToEmbeddedApp() || request()->header('s
     @if (isset($shop) && $shop)
         tidioChatApi.setVisitorData({
             distinct_id: "{{ $shop->id }}",
-            name: "{{ $shop->detail['name'] ?? '' }} - {{ $shop->detail['shop_owner'] ?? '' }}",
-            email: "{{ $shop->detail['email'] ?? '' }}",
-            phone: "{{ $shop->detail['phone'] ?? '' }}",
-            city: "{{ $shop->detail['city'] ?? '' }}",
-            country: "{{ $shop->detail['country_code'] ?? '' }}",
-            tags: ["shopify", "plan-{{ $shop->activeCharge->name ?? 'FREE' }}", "shop-{{ $shop->detail['plan_display_name'] ?? '' }}","https://{{ $shop->detail['myshopify_domain'] ?? '' }}"],
+            name: "{{ data_get($shop, 'detail.name', '') }} - {{ data_get($shop, 'detail.shop_owner', '') }}",
+            email: "{{ data_get($shop, 'detail.email', '') }}",
+            phone: "{{ data_get($shop, 'detail.phone', '') }}",
+            city: "{{ data_get($shop, 'detail.city', '') }}",
+            country: "{{ data_get($shop, 'detail.country_code', '') }}",
+            tags: ["shopify", "plan-{{ data_get($shop, 'activeCharge.name', 'FREE') }}", "shop-{{ data_get($shop, 'detail.plan_display_name', '') }}","https://{{ data_get($shop, 'detail.myshopify_domain', '') }}"],
         });
         
     @endif
