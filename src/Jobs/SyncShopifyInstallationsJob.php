@@ -1,4 +1,5 @@
 <?php
+
 namespace Msdev2\Shopify\Jobs;
 
 use Carbon\Carbon;
@@ -9,138 +10,314 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Msdev2\Shopify\Models\Shop;
+use Msdev2\Shopify\Models\Charge;
+use Shopify\Webhooks\Registry;
+use Msdev2\Shopify\Traits\LoadsModuleConfiguration;
 
 class SyncShopifyInstallationsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use LoadsModuleConfiguration;
+
+    /* ================= QUEUE SAFETY ================= */
 
     public $timeout = 300;
-    protected ?string $shopName;
+    public $tries   = 3;
+    public $backoff = [60, 300];
+
+    protected ?string $shopFilter;
     protected bool $check;
 
-    public function __construct(?string $shopName = null, bool $check = false)
+    /* ================= PLAN PRICE FALLBACK ================= */
+
+    protected array $planPrices = [
+        'STARTER'  => 1.99,
+        'PRO'      => 4.99,
+        'BUSINESS' => 9.99,
+    ];
+
+    /* ================= REQUIRED WEBHOOKS ================= */
+
+    protected array $webhookList = [
+        'APP_UNINSTALLED',
+        'SHOP_UPDATE',
+        'ORDERS_PAID',
+    ];
+
+    public function __construct(?string $shop = null, bool $check = false)
     {
-        $this->shopName = $shopName;
+        $this->shopFilter = $shop;
         $this->check = $check;
     }
 
+    /* ================= ENTRY ================= */
+
     public function handle()
     {
-        $processSingle = !empty($this->shopName);
-
-        $processor = function($shop) {
-            try{
-                $query = <<<'GQL'
-                    query { currentAppInstallation { id } }
-                GQL;
-
-                $response = mGraph($shop)->query(['query' => $query]);
-                $decoded = method_exists($response, 'getDecodedBody') ? $response->getDecodedBody() : (is_array($response) ? $response : []);
-                $installed = data_get($decoded, 'data.currentAppInstallation') ? true : false;
-
-                if($this->check){
-                    // Write a per-shop check log
-                    $logPath = storage_path('logs/'.$shop->shop);
-                    if(!is_dir($logPath)) mkdir($logPath, 0777, true);
-                    $line = '['.Carbon::now()->toDateTimeString().'] installed: '.($installed ? 'true' : 'false')."\n";
-                    file_put_contents($logPath.'/sync-check.log', $line, FILE_APPEND);
-                    Log::info('Sync check', ['shop' => $shop->shop, 'installed' => $installed]);
-                    return;
+        Shop::when($this->shopFilter, function ($q) {
+                $q->where('shop', $this->shopFilter)
+                  ->orWhere('id', $this->shopFilter)
+                  ->orWhere('domain', $this->shopFilter);
+            })
+            ->chunkById(50, function ($shops) {
+                foreach ($shops as $shop) {
+                    try { $this->loadModuleFromHost($shop->shop); } catch (\Throwable $e) { Log::warning('SyncShopifyInstallationsJob: failed to load module config', ['error'=>$e->getMessage(), 'shop'=>$shop->shop]); }
+                    $this->syncShopSafely($shop);
                 }
+            });
+    }
 
-                // If there's no explicit plan stored, ensure shop has at least a Free plan recorded in metadata
-                try{
-                    $currentPlan = $shop->plan();
-                    if(empty($currentPlan)){
-                        $shop->meta('plan', ['name' => 'Free', 'assigned_at' => Carbon::now()->toDateTimeString()]);
-                        Log::info('Assigned Free plan to shop (no plan found)', ['shop' => $shop->shop]);
-                    }
-                }catch(\Throwable $e){
-                    Log::warning('Failed to ensure default plan metadata', ['shop' => $shop->shop, 'error' => $e->getMessage()]);
-                }
+    /* ================= SAFETY WRAPPER ================= */
 
-                if($installed){
-                    if($shop->is_uninstalled){
-                        // Shop was previously marked uninstalled but now reports installed — restore and fetch plan details
-                        $shop->is_uninstalled = 0;
-                        $shop->uninstalled_at = null;
-                        $shop->save();
-                        Log::info('Shop marked as reinstalled; fetching plan details', ['shop' => $shop->shop]);
+    protected function syncShopSafely(Shop $shop): void
+    {
+        $changes = [];
 
-                        // Attempt to fetch full recurring charge details from Shopify REST and store in metadata
-                        try{
-                            $resp = mRest($shop)->get('recurring_application_charges')->getDecodedBody();
-                            $charges = data_get($resp, 'recurring_application_charges', $resp);
-                            $active = null;
-                            if(is_array($charges) || $charges instanceof \Traversable){
-                                $active = collect($charges)->first(function($c){
-                                    $status = strtolower(data_get($c, 'status', ''));
-                                    return in_array($status, ['active','accepted']);
-                                });
-                            }
-
-                            if($active){
-                                // store full charge details into metadata 'plan'
-                                $shop->meta('plan', $active);
-                                Log::info('Updated shop plan metadata from Shopify recurring charge', ['shop' => $shop->shop, 'charge_id' => data_get($active,'id')]);
-                            } else {
-                                // No active recurring charge found; ensure Free plan
-                                $shop->meta('plan', ['name' => 'Free', 'assigned_at' => Carbon::now()->toDateTimeString()]);
-                                Log::info('No active recurring charge found; assigned Free plan', ['shop' => $shop->shop]);
-                            }
-                        }catch(\Throwable $e){
-                            Log::warning('Failed to fetch recurring_application_charges from Shopify', ['shop' => $shop->shop, 'error' => $e->getMessage()]);
-                        }
-                    }
-                } else {
-                    if(!$shop->is_uninstalled){
-                        $shop->is_uninstalled = 1;
-                        $shop->uninstalled_at = Carbon::now();
-                        $shop->save();
-
-                        Log::info('Shop marked as uninstalled by sync job', ['shop' => $shop->shop]);
-
-                        $charges = $shop->activeCharge;
-                        if($charges){
-                            $charges->status = 'canceled';
-                            $charges->cancelled_on = Carbon::now();
-                            $charges->description = 'Cancel due to uninstall (sync job)';
-                            $charges->save();
-
-                            if(isset($charges->type) && strtolower($charges->type) === 'recurring' && (!empty($charges->charge_id) && $charges->charge_id > 0)){
-                                try{
-                                    mRest($shop)->delete('recurring_application_charges/'.$charges->charge_id)->getDecodedBody();
-                                }catch(\Throwable $e){
-                                    Log::warning('Failed to cancel recurring charge via REST', ['shop' => $shop->shop, 'error' => $e->getMessage()]);
-                                }
-                            }
-                        }
-
-                        try{
-                            \Msdev2\Shopify\Webhook\AppUninstalled::dispatch('APP_UNINSTALLED_SYNC', $shop->shop, []);
-                        }catch(\Throwable $e){
-                            Log::warning('Failed to dispatch AppUninstalled email', ['shop' => $shop->shop, 'error' => $e->getMessage()]);
-                        }
-                    }
-                }
-            }catch(\Throwable $e){
-                Log::warning('SyncShopifyInstallationsJob: shop sync failed', ['shop' => $shop->shop ?? $this->shopName, 'error' => $e->getMessage()]);
-            }
-        };
-
-        if($processSingle){
-            $shop = Shop::where('shop', $this->shopName)->orWhere('id', $this->shopName)->orWhere('domain', $this->shopName)->first();
-            if($shop) $processor($shop);
+        try {
+            $this->syncShop($shop, $changes);
+        } catch (\Throwable $e) {
+            // NEVER break whole job
+            Log::warning('Shop sync skipped (unexpected error)', [
+                'shop' => $shop->shop,
+                'error' => $e->getMessage(),
+            ]);
             return;
         }
 
-        // Process shops in chunks to limit memory usage
-        Shop::where(function($q){
-            $q->where('is_uninstalled','!=',1)->orWhereNull('is_uninstalled');
-        })->chunkById(100, function($shops) use ($processor){
-            foreach($shops as $shop){
-                $processor($shop);
+        // 🔕 Log ONLY if something changed
+        if (!empty($changes)) {
+            Log::info(
+                $this->check ? 'SYNC CHECK → CHANGES' : 'SYNC UPDATED',
+                ['shop' => $shop->shop, 'changes' => $changes]
+            );
+        }
+    }
+
+    /* ================= CORE LOGIC ================= */
+
+    protected function syncShop(Shop $shop, array &$changes): void
+    {
+        try {
+            $installed = $this->isInstalledOnShopify($shop);
+        } catch (\Throwable $e) {
+
+            if ($this->isInvalidTokenError($e)) {
+                $this->markUninstalled($shop, 'invalid_access_token', $changes);
             }
-        });
+
+            // cURL / network → skip
+            return;
+        }
+
+        if (!$installed) {
+            $this->markUninstalled($shop, 'app_not_installed', $changes);
+            return;
+        }
+
+        // Webhooks only for valid installs
+        $this->checkAndRegisterWebhooks($shop, $changes);
+
+        // Paid or Free
+        $charge = $this->fetchActiveRecurringCharge($shop);
+
+        if ($charge) {
+            $this->applyPaidPlan($shop, $charge, $changes);
+        } else {
+            $this->applyFreePlan($shop, $changes);
+        }
+    }
+
+    /* ================= SHOPIFY ================= */
+
+    protected function isInstalledOnShopify(Shop $shop): bool
+    {
+        $query = <<<'GQL'
+        query {
+          currentAppInstallation {
+            id
+          }
+        }
+        GQL;
+
+        $resp = mGraph($shop)->query(['query' => $query])->getDecodedBody();
+        return (bool) data_get($resp, 'data.currentAppInstallation');
+    }
+
+    protected function fetchActiveRecurringCharge(Shop $shop): ?array
+    {
+        try {
+            $resp = mRest($shop)->get('recurring_application_charges')->getDecodedBody();
+            foreach (data_get($resp, 'recurring_application_charges', []) as $charge) {
+                if (in_array(strtolower($charge['status']), ['active', 'accepted'])) {
+                    return $charge;
+                }
+            }
+        } catch (\Throwable $e) {
+            if ($this->isInvalidTokenError($e)) {
+                throw $e;
+            }
+        }
+        return null;
+    }
+
+    /* ================= WEBHOOK SYNC ================= */
+
+    protected function checkAndRegisterWebhooks(Shop $shop, array &$changes): void
+    {
+        try {
+            $resp = mRest($shop)->get('webhooks.json')->getDecodedBody();
+            $existing = array_map(fn ($w) => strtolower($w['topic']), $resp['webhooks'] ?? []);
+
+            foreach ($this->webhookList as $topic) {
+                $shopifyTopic = strtolower(str_replace('_', '/', $topic));
+
+                if (in_array($shopifyTopic, $existing)) {
+                    continue;
+                }
+
+                if ($this->check) {
+                    $changes[] = "would_subscribe_webhook:$topic";
+                    continue;
+                }
+
+                $status = Registry::register(
+                    route('msdev2.shopify.webhooks'),
+                    \Shopify\Webhooks\Topics::{$topic},
+                    $shop->shop,
+                    $shop->access_token
+                );
+
+                $changes[] = $status->isSuccess()
+                    ? "webhook_subscribed:$topic"
+                    : "webhook_failed:$topic";
+            }
+        } catch (\Throwable $e) {
+            // Never uninstall for webhook/network issues
+        }
+    }
+
+    /* ================= PRICE ================= */
+
+    protected function resolvePrice(array $charge): float
+    {
+        if (!empty($charge['price']) && (float)$charge['price'] > 0) {
+            return (float) $charge['price'];
+        }
+
+        return $this->planPrices[strtoupper(trim($charge['name'] ?? ''))] ?? 0.0;
+    }
+
+    /* ================= APPLY STATES ================= */
+
+    protected function applyPaidPlan(Shop $shop, array $charge, array &$changes): void
+    {
+        if ($this->check) {
+            $changes[] = 'would_apply_paid_plan';
+            return;
+        }
+
+        if ($shop->is_uninstalled) {
+            $shop->update(['is_uninstalled' => 0, 'uninstalled_at' => null]);
+            $changes[] = 'shop_restored';
+        }
+
+        $price = $this->resolvePrice($charge);
+
+        $model = Charge::updateOrCreate(
+            ['shop_id' => $shop->id, 'charge_id' => $charge['id']],
+            [
+                'name' => $charge['name'] ?? null,
+                'status' => strtolower($charge['status']),
+                'type' => 'recurring',
+                'test' => (int)($charge['test'] ?? false),
+                'price' => $price,
+                'interval' => $charge['interval'] ?? 'EVERY_30_DAYS',
+                'trial_days' => $charge['trial_days'] ?? null,
+                'billing_on' => isset($charge['billing_on']) ? Carbon::parse($charge['billing_on']) : null,
+                'trial_ends_on' => isset($charge['trial_ends_on']) ? Carbon::parse($charge['trial_ends_on']) : null,
+                'activated_on' => Carbon::now(),
+            ]
+        );
+
+        if ($model->wasRecentlyCreated || $model->wasChanged()) {
+            $changes[] = 'charge_synced';
+        }
+
+        $meta = ['type' => 'paid', 'name' => $charge['name'], 'price' => $price];
+        if ($shop->meta('plan') !== $meta) {
+            $shop->meta('plan', $meta);
+            $changes[] = 'plan_meta_updated';
+        }
+    }
+
+    protected function applyFreePlan(Shop $shop, array &$changes): void
+    {
+        if ($this->check) {
+            $changes[] = 'would_apply_free_plan';
+            return;
+        }
+
+        if ($shop->is_uninstalled) {
+            $shop->update(['is_uninstalled' => 0, 'uninstalled_at' => null]);
+            $changes[] = 'shop_restored';
+        }
+
+        $model = Charge::updateOrCreate(
+            ['shop_id' => $shop->id, 'charge_id' => 0],
+            ['name' => 'Free', 'status' => 'active', 'type' => 'free', 'price' => 0]
+        );
+
+        if ($model->wasRecentlyCreated || $model->wasChanged()) {
+            $changes[] = 'free_charge_synced';
+        }
+
+        if ($shop->meta('plan') !== ['type' => 'free']) {
+            $shop->meta('plan', ['type' => 'free']);
+            $changes[] = 'plan_meta_updated';
+        }
+    }
+
+    protected function markUninstalled(Shop $shop, string $reason, array &$changes): void
+    {
+        if ($this->check) {
+            $changes[] = "would_mark_uninstalled:$reason";
+            return;
+        }
+
+        if (!$shop->is_uninstalled) {
+            $shop->update(['is_uninstalled' => 1, 'uninstalled_at' => Carbon::now()]);
+            $changes[] = 'shop_uninstalled';
+        }
+
+        $count = Charge::where('shop_id', $shop->id)
+            ->whereIn('status', ['active', 'accepted'])
+            ->update([
+                'status' => 'cancelled',
+                'cancelled_on' => Carbon::now(),
+            ]);
+
+        if ($count > 0) {
+            $changes[] = 'charges_cancelled';
+        }
+    }
+
+    /* ================= ERROR CLASSIFICATION ================= */
+
+    protected function isInvalidTokenError(\Throwable $e): bool
+    {
+        $msg = strtolower($e->getMessage());
+
+        return str_contains($msg, 'invalid api key')
+            || str_contains($msg, 'invalid access token')
+            || str_contains($msg, 'invalid api key or access token')
+            || str_contains($msg, '401')
+            || str_contains($msg, '403');
+    }
+
+    public function failed(\Throwable $e): void
+    {
+        Log::critical('SyncShopifyInstallationsJob FAILED permanently', [
+            'error' => $e->getMessage(),
+        ]);
     }
 }

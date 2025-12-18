@@ -11,7 +11,7 @@ return [
     "scopes"=>env('SHOPIFY_API_SCOPES', 'read_content,read_files,write_files,read_themes,write_themes,write_metaobject_definitions,read_metaobjects,write_metaobjects,read_themes,read_metaobject_definitions'),
     "app_id"=>env('SHOPIFY_APP_ID', 'msdev2'),
     "api_version"=>env('SHOPIFY_API_VERSION', '2025-10'),
-    "webhooks"=>env('SHOPIFY_WEBHOOKS', 'APP_UNINSTALLED,SHOP_UPDATE'),
+    "webhooks"=>env('SHOPIFY_WEBHOOKS', 'APP_UNINSTALLED,SHOP_UPDATE,APP_SUBSCRIPTIONS_UPDATE'),
     'appbridge_enabled' => (bool) env('SHOPIFY_APPBRIDGE_ENABLED', true),
     "appbridge_version"=>env('SHOPIFY_APPBRIDGE_VERSION', '3'),
     "is_embedded_app"=> (bool) env('SHOPIFY_IS_EMBEDDED_APP',true) ?? true,

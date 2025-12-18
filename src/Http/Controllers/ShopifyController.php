@@ -24,6 +24,7 @@ use Shopify\Clients\HttpHeaders;
 use Shopify\Context;
 use Shopify\Utils;
 use Shopify\Webhooks\Registry;
+use Msdev2\Shopify\Jobs\HandleShopInstalledJob;
 
 class ShopifyController extends BaseController
 {
@@ -94,19 +95,7 @@ class ShopifyController extends BaseController
         );
         $shop->refresh();
         $redirectUrl = Utils::getEmbeddedAppUrl($host);
-        if (config('msdev2.webhooks')) {
-            try {
-                $webhooks = explode(",", config('msdev2.webhooks'));
-                foreach ($webhooks as $webhook) {
-                    if(config('msdev2.debug')){
-                        mLog("Registering webhook", ['shop' => $shopName, 'webhook' => $webhook]);
-                    }
-                    Registry::register('/shopify/webhooks', $webhook, $shopName, $result->json("access_token"));
-                }
-            } catch (\Throwable $th) {
-                Log::error("Webhook registration failed", ['error' => $th->getMessage()]);
-            }
-        }
+        // Webhook registration deferred to HandleShopInstalledJob to speed up install
         Context::initialize(
             apiKey: config('msdev2.shopify_api_key'),
             apiSecretKey: config('msdev2.shopify_api_secret'),
@@ -126,42 +115,9 @@ class ShopifyController extends BaseController
             Context::$SESSION_STORAGE->storeSession($sessionStore);
         }
 
-        // --- Start of REST implementation ---
-        $response = ShopifyUtils::rest($shop)->get('shop');
-        $data = $response->getDecodedBody();
-        if (!isset($data['shop'])) {
-            Log::error("Failed to fetch shop details during install", ['response' => $response->getBody(),'data' => $data]);
-        }else{
-            $shop->detail = $data['shop'];
-            $shop->domain = $data['shop']['domain'] ?? $shop->shop;
-        }
-        $shop->save();
-        $classWebhook = "\\App\\Webhook\\Handlers\\AppInstalled";
-        if (class_exists($classWebhook)) {
-            // Call handler directly to avoid container resolving primitive method params when queued
-            try {
-                $handler = new $classWebhook();
-                if (method_exists($handler, 'handle')) {
-                    $handler->handle('app/installed', $shop->shop ?? $shop, $request->all());
-                }
-            } catch (\Throwable $e) {
-                Log::warning('Failed to run AppInstalled handler: ' . $e->getMessage());
-            }
-        }else{
-            $classWebhook = "\\Msdev2\\Shopify\\Webhook\\AppInstalled";
-            if (class_exists($classWebhook)) {
-                try {
-                    $handler = new $classWebhook();
-                    if (method_exists($handler, 'handle')) {
-                        $handler->handle('app/installed', $shop->shop ?? $shop, $request->all());
-                    }
-                } catch (\Throwable $e) {
-                    Log::warning('Failed to run AppInstalled framework handler: ' . $e->getMessage());
-                }
-            }
-        }
+        // Ensure free billing plan is created synchronously so user lands on dashboard
+        $finalRedirect = $redirectUrl;
         if (config('msdev2.billing') && !$shop->activeCharge) {
-            // Try to auto-subscribe to a free plan if one exists in configuration
             $planList = config('msdev2.plan', []);
             $freePlan = null;
             foreach ($planList as $p) {
@@ -172,37 +128,63 @@ class ShopifyController extends BaseController
             }
 
             if ($freePlan) {
-                // Create an active free charge record for the shop
-                $planType = 'free';
-                $billingOn = Carbon::now();
-                $trialDay = ($freePlan['trialDays'] ?? 0) > $shop->appUsedDay() ? ($freePlan['trialDays'] - $shop->appUsedDay()) : 0;
+                try {
+                    $planType = 'free';
+                    $billingOn = Carbon::now();
+                    $trialDay = ($freePlan['trialDays'] ?? 0) > $shop->appUsedDay() ? ($freePlan['trialDays'] - $shop->appUsedDay()) : 0;
 
-                $shop->charges()->create([
-                    'charge_id' => 0,
-                    'name' => $freePlan['chargeName'],
-                    'test' => !(app()->environment() === 'production'),
-                    'status' => 'active',
-                    'type' => $planType,
-                    'price' => $freePlan['amount'],
-                    'interval' => $freePlan['interval'] ?? 'ONE_TIME',
-                    'capped_amount' => $freePlan['cappedAmount'] ?? 0,
-                    'trial_days' => $trialDay,
-                    'billing_on' => $billingOn,
-                    'activated_on' => Carbon::now(),
-                    'trial_ends_on' => Carbon::now()->addDays($trialDay),
-                ]);
+                    $shop->charges()->create([
+                        'charge_id' => 0,
+                        'name' => $freePlan['chargeName'],
+                        'test' => !(app()->environment() === 'production'),
+                        'status' => 'active',
+                        'type' => $planType,
+                        'price' => $freePlan['amount'],
+                        'interval' => $freePlan['interval'] ?? 'ONE_TIME',
+                        'capped_amount' => $freePlan['cappedAmount'] ?? 0,
+                        'trial_days' => $trialDay,
+                        'billing_on' => $billingOn,
+                        'activated_on' => Carbon::now(),
+                        'trial_ends_on' => Carbon::now()->addDays($trialDay),
+                    ]);
 
-                if (class_exists(PlanPurchaseCompleted::class)) {
-                    PlanPurchaseCompleted::dispatch($shop, null, $freePlan['chargeName']);
+                    if (class_exists(PlanPurchaseCompleted::class)) {
+                        PlanPurchaseCompleted::dispatch($shop, null, $freePlan['chargeName']);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to create free plan synchronously: ' . $e->getMessage(), ['shop' => $shop->shop]);
+                    // If creating free plan failed, send user to plan selection
+                    $finalRedirect = $redirectUrl . '/plan';
                 }
-
-                return redirect($redirectUrl);
+            } else {
+                // Billing enabled but no free plan configured — send to plan page
+                $finalRedirect = $redirectUrl . '/plan';
             }
-
-            return redirect($redirectUrl . '/plan');
         }
 
-        return redirect($redirectUrl);
+        // Fetch shop details synchronously and persist so views have `detail` immediately
+        try {
+            $response = ShopifyUtils::rest($shop)->get('shop');
+            $data = $response->getDecodedBody();
+            if (isset($data['shop'])) {
+                $shop->detail = $data['shop'];
+                $shop->domain = $data['shop']['domain'] ?? $shop->shop;
+                $shop->save();
+            } else {
+                Log::warning('generateToken: shop details missing from REST response', ['shop' => $shop->shop]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('generateToken: failed fetching shop details', ['shop' => $shop->shop, 'error' => $e->getMessage()]);
+        }
+
+        // Dispatch background job for remaining install tasks (keep signature expected by job)
+        try {
+            HandleShopInstalledJob::dispatch($shop->id, $shop->shop, $request->all(), $host);
+        } catch (\Throwable $e) {
+            Log::warning('Failed to dispatch HandleShopInstalledJob: ' . $e->getMessage(), ['shop' => $shop->shop]);
+        }
+
+        return redirect($finalRedirect);
     }
 
     public function webhooksAction(Request $request, $name = null)
@@ -275,12 +257,23 @@ class ShopifyController extends BaseController
                 return mErrorResponse([],"Webhook handler failed with message: " . $response->getErrorMessage());
             }
         } catch (\Exception $error) {
+            // If the exception is an HMAC validation error, log headers and return 401
+            if (class_exists('\\Shopify\\Exception\\InvalidWebhookException') && $error instanceof \Shopify\Exception\InvalidWebhookException) {
+                Log::warning('Webhook HMAC validation failed', ['error' => $error->getMessage(), 'headers' => $rawHeaders, 'shop' => $shopName]);
+                return mErrorResponse('Invalid webhook HMAC', [], 401);
+            }
+
             try {
                 $cls = new $finalClassWebhook();
                 mLog('exception while processing webhook: ' . $error->getMessage(), [$error], 'error');
                 // attempt a safe fallback call to handler's handle method, if present
                 if (method_exists($cls, 'handle')) {
-                    $cls->handle($topic, $shopName, $request->all());
+                    // only call fallback if shopName is present
+                    if (empty($shopName)) {
+                        mLog('webhook fallback skipped due to missing shop header', ['topic' => $topic, 'headers' => $rawHeaders]);
+                    } else {
+                        $cls->handle($topic, $shopName, $request->all());
+                    }
                 }
             } catch (\Exception $inner) {
                 mLog('exception in webhook fallback handler: ' . $inner->getMessage(), [$inner], 'error');

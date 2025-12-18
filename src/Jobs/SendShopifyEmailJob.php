@@ -8,12 +8,14 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Msdev2\Shopify\Traits\LoadsModuleConfiguration;
 use Msdev2\Shopify\Models\Shop;
 use Msdev2\Shopify\Lib\BaseMailHandler;
 
 class SendShopifyEmailJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use LoadsModuleConfiguration;
 
     public string $type;
     public int $shopId;
@@ -31,6 +33,9 @@ class SendShopifyEmailJob implements ShouldQueue
             Log::warning('SendShopifyEmailJob: shop not found', ['shop_id' => $this->shopId, 'type' => $this->type, 'app_url' => config('app.url'), 'app_name'=>config('app.name'), 'request'=>request(), 'server'=>$_SERVER ?? []]);
             return;
         }
+
+        // Load module configuration for this shop (no-op if no module found)
+        try { $this->loadModuleFromHost($shop->shop); } catch (\Throwable $e) { Log::warning('SendShopifyEmailJob: failed to load module config', ['error' => $e->getMessage(), 'shop'=>$shop->shop]); }
 
         $metaKey = 'email_sent:' . $this->type;
 

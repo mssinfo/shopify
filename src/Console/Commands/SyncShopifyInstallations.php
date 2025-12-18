@@ -1,4 +1,5 @@
 <?php
+
 namespace Msdev2\Shopify\Console\Commands;
 
 use Illuminate\Console\Command;
@@ -7,30 +8,29 @@ use Msdev2\Shopify\Jobs\SyncShopifyInstallationsJob;
 class SyncShopifyInstallations extends Command
 {
     protected $signature = 'shopify:sync
-        {--dispatch : Dispatch to queue instead of running inline}
-        {--shop= : Run for a specific shop (domain or id)}
-        {--check : Dry run — do not modify DB, save per-shop status logs}';
+        {--queue}
+        {--shop=}
+        {--check}';
 
-    protected $description = 'Sync Shopify app installations for shops (mark uninstalled when not present in Shopify).';
+    protected $description = 'Authoritative sync of all Shopify installations';
 
     public function handle()
     {
-        $shopOpt = $this->option('shop');
-        $check = $this->option('check') ? true : false;
-
-        if($this->option('dispatch')){
-            SyncShopifyInstallationsJob::dispatch($shopOpt, $check);
-            $this->info('SyncShopifyInstallationsJob dispatched to queue.');
+        if ($this->option('queue')) {
+            SyncShopifyInstallationsJob::dispatch(
+                $this->option('shop'),
+                $this->option('check')
+            );
+            $this->info('Sync dispatched to queue');
             return 0;
         }
 
-        // Run synchronously
-        $job = new SyncShopifyInstallationsJob($shopOpt, $check);
-        $job->handle();
-        $this->info('SyncShopifyInstallationsJob completed.');
-        if($check){
-            $this->info('Check logs written to storage/logs/{shop}/sync-check.log for each shop.');
-        }
+        (new SyncShopifyInstallationsJob(
+            $this->option('shop'),
+            $this->option('check')
+        ))->handle();
+
+        $this->info('Sync completed');
         return 0;
     }
 }

@@ -78,7 +78,7 @@ class PlanController extends BaseController{
         $charges = $shop->activeCharge;
         if($charges){
             EnsureBilling::requestCancelSubscription($shop, 'gid://shopify/AppSubscription/'.$charges->charge_id);
-            $charges->status = 'canceled';
+            $charges->status = 'cancelled';
             $charges->description = 'Cancel due to change plan';
             $charges->cancelled_on = Carbon::now();
             $charges->save();
