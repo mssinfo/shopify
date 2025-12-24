@@ -51,7 +51,7 @@ class ShopifyController extends BaseController
 
     public function install(Request $request)
     {
-        if(config('msdev2.debug')) \Log::info("Install called", ['request' => $request->all()]);
+        if(config('msdev2.debug')) Log::info("Install called", ['request' => $request->all()]);
         return AuthRedirection::redirect($request);
     }
 
@@ -259,7 +259,7 @@ class ShopifyController extends BaseController
         } catch (\Exception $error) {
             // If the exception is an HMAC validation error, log headers and return 401
             if (class_exists('\\Shopify\\Exception\\InvalidWebhookException') && $error instanceof \Shopify\Exception\InvalidWebhookException) {
-                Log::warning('Webhook HMAC validation failed', ['error' => $error->getMessage(), 'headers' => $rawHeaders, 'shop' => $shopName]);
+                Log::warning('Webhook HMAC validation failed', ['error' => $error->getMessage(), 'headers' => $rawHeaders, 'shop' => $shopName, 'topic' => $topic, 'request' => $request->all(), 'server'=>$_SERVER]);
                 return mErrorResponse('Invalid webhook HMAC', [], 401);
             }
 

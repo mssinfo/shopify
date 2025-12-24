@@ -32,7 +32,7 @@ class VerifyShopify
         if ($this->isAllowedRequest($request) || $shopName) {
             $shop = mShop($shopName);
             if (!$shop || $shop->is_uninstalled) {
-                 if(config('msdev2.debug')) \Log::info("$shopName already uninstalled or does not exist", ['shop' => ($shop ?? null)]);
+                 if(config('msdev2.debug')) \Log::info("$shopName already uninstalled or does not exist", ['shop' => ($shop ?? null), 'request'=>$request->all(), 'server'=>$_SERVER]);
                 return $this->redirectToInstall($shopName);
             }
 
@@ -144,8 +144,12 @@ class VerifyShopify
         return array_diff($scopes, $grantedScopes ?? []);
     }
 
-    private function redirectToInstall(string $shopName, $scopes = null)
+    private function redirectToInstall(?string $shopName, $scopes = null)
     {
+        if (is_null($shopName)) {
+            \Log::warning('redirectToInstall called with null shopName in VerifyShopify middleware', ['file' => __FILE__, 'request'=>request()->all(),'server'=>$_SERVER]);
+            return redirect()->route('msdev2.shopify.install');
+        }
         $routeParams = ['shop' => $shopName];
         if ($scopes) {
             $routeParams['scopes'] = $scopes;
