@@ -284,6 +284,30 @@ class ShopifyController extends BaseController
             try { $lock->release(); } catch (\Throwable $e) { /* ignore */ }
         }
     }
+    
+    /**
+     * Persist review result (success true/false) and schedule next review.
+     */
+    public function markReviewRequested(Request $request)
+    {
+        $shop = mShop();
+        if (!$shop) return mErrorResponse('Shop not found', [], 404);
+
+        $success = (bool) ($request->input('success') ?? false);
+
+        try {
+            // store the raw result for auditing
+            $shop->meta('request-review-result', ['success' => $success, 'at' => Carbon::now()->toDateTimeString()]);
+
+            // schedule next review to avoid immediate repeats
+            $shop->meta('request-review', Carbon::now()->addDays(30)->toDateTimeString());
+
+            return mSuccessResponse(['next' => $shop->meta('request-review'), 'result' => $success]);
+        } catch (\Throwable $e) {
+            Log::warning('markReviewRequested failed', ['shop' => $shop->shop ?? null, 'error' => $e->getMessage()]);
+            return mErrorResponse('Failed to set next review date');
+        }
+    }
     public function ticket(Request $request)
     {
         return view("msdev2::ticket");

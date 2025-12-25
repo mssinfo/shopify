@@ -36,14 +36,8 @@ class VerifyShopify
                 return $this->redirectToInstall($shopName);
             }
 
-            // Check for missing Shopify scopes
-            $missingScopes = $this->compareShopifyScopes();
-            if (!empty($missingScopes)) {
-                // Normalize scopes for logging as well
-                $requiredScopes = array_values(array_unique(array_filter(array_map('trim', explode(',', config('msdev2.scopes'))))));
-                 if(config('msdev2.debug')) \Log::info("{$shop->shop} missing scopes: ", ['missing_scopes' => $missingScopes, 'shop' => $shop->shop, 'required_scopes' => $requiredScopes]);
-                return $this->redirectToInstall($shopName, implode(', ', $missingScopes));
-            }
+            // Scope validation deferred to client-side to avoid extra Shopify REST calls on every request.
+            // Client will request missing scopes via the Shop UI using the shopify.scopes API.
 
             // Billing check
             if (config('msdev2.billing')) {
@@ -87,61 +81,6 @@ class VerifyShopify
     private function isAllowedRequest(Request $request): bool
     {
         return Str::contains($request->getRequestUri(), ['/auth/callback', '/install', '/billing', '/payu/success', '/payu/failed']);
-    }
-
-    private function compareShopifyScopes(): array
-    {
-        // Normalize configured scopes: split, trim whitespace, remove empty values and duplicates
-        $scopes = array_map('trim', explode(',', config('msdev2.scopes')));
-        $scopes = array_filter($scopes); // remove any empty strings
-        $scopes = array_unique($scopes);
-
-        // Cache granted scopes per-shop to avoid calling Shopify on every request.
-        $shopName = mShopName() ?: 'global';
-        $cacheKey = 'shopify.access_scopes:' . $shopName;
-
-        $grantedScopes = Cache::get($cacheKey);
-
-        // If the same check happens twice within a short window (2 minutes),
-        // invalidate the cached scopes so we fetch fresh values from Shopify.
-        $timeKey = $cacheKey . ':last_checked';
-        $lastChecked = Cache::get($timeKey);
-        if ($lastChecked !== null && (time() - (int)$lastChecked) < 120) {
-            if (config('msdev2.debug'))  \Log::info('compareShopifyScopes: recent check detected, invalidating scopes cache', ['shop' => $shopName, 'last_checked' => $lastChecked]);
-            Cache::forget($cacheKey);
-            $grantedScopes = null;
-        }
-
-        if ($grantedScopes === null) {
-            // Fetch granted scopes from Shopify
-            $data = mRest()->get('/admin/oauth/access_scopes.json');    
-            $shopifyScopes = $data->getDecodedBody();
-            if(config('msdev2.debug')) \Log::alert("check shopify database scops",['shopifyScopes'=>$shopifyScopes]);
-            if (!isset($shopifyScopes['access_scopes'])) {
-                // If we couldn't fetch scopes, treat as all missing (forces re-auth)
-                return $scopes;
-            }
-
-            $grantedScopes = Arr::pluck($shopifyScopes['access_scopes'], 'handle');
-            // Cache for 24 hours (86400 seconds)
-            try {
-                Cache::put($cacheKey, $grantedScopes, 86400);
-                // Record when we last refreshed/checked scopes for this shop
-                Cache::put($timeKey, time(), 86400);
-            } catch (\Throwable $e) {
-                // If cache fails for any reason, continue without breaking flow
-                 if(config('msdev2.debug')) \Log::warning('Failed to cache shopify access scopes: ' . $e->getMessage(), ['shop' => $shopName]);
-            }
-        }
-
-        // Ensure we update the last-checked timestamp even when returning cached scopes
-        try {
-            Cache::put($timeKey, time(), 86400);
-        } catch (\Throwable $e) {
-            // ignore cache write failures for timestamp
-        }
-
-        return array_diff($scopes, $grantedScopes ?? []);
     }
 
     private function redirectToInstall(?string $shopName, $scopes = null)

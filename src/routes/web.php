@@ -44,6 +44,8 @@ Route::middleware(['msdev2.shopify.verify','msdev2.load.shop'])->group(function(
     Route::post('/stripe/create_intent', [UsageController::class, 'stripeCreateIntent'])->name('msdev2.stripe.create_intent');
     Route::post('credits/buy', [UsageController::class, 'buyCredits'])->name('msdev2.credits.buy');
     Route::post('credits/stripe_confirm', [UsageController::class, 'stripeConfirm'])->name('msdev2.credits.stripe_confirm');
+    // Persist review result and schedule next request
+    Route::post('shop/request-review/mark', [ShopifyController::class, 'markReviewRequested'])->name('msdev2.shopify.review.mark');
 });
 
 // Public signed popup (used when session/cookies are not reliably available)
